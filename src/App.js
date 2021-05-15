@@ -1,16 +1,16 @@
-import logo from './logo.svg';
-import './App.css';
+import { Bataille } from './Bataille'
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Hi Bob
-        </p>
-      </header>
-    </div>
-  );
+    return (
+        <div className="App">
+            <header className="App-header">
+                <p>
+                    Hi Bob
+                </p>
+                <Bataille/>
+            </header>
+        </div>
+    )
 }
 
-export default App;
+export default App
