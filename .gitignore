@@ -35,5 +35,3 @@ yarn-error.log*
 /.eslintcache
 
 /basic-mmo-phaser
-/basic-mmo-phaser/node_modules/
-/basic-mmo-phaser/
