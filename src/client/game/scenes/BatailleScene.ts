@@ -40,9 +40,9 @@ export class BatailleScene extends BaseScene {
                 aliveUnits.push(unit.id)
                 if(this.units[unit.id]){
                     this.units[unit.id].update(unit)
-                    console.log("update")
                 } else {
-                    this.units[unit.id] = new StickUnit(this, unit.position.x, unit.position.y )
+                    console.log("new unit")
+                    this.units[unit.id] = new StickUnit(this, unit.id, unit.position.x, unit.position.y )
                 }
             })
             const thisUnitsIds = Object.keys(this.units)

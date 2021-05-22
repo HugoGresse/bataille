@@ -1,6 +1,6 @@
 import {io, Socket} from "socket.io-client"
 import {GameState} from '../server/model/GameState'
-import {GAME_STATE_UPDATE} from '../constants/SOCKET_EMIT'
+import {GAME_STATE_UPDATE} from '../common/SOCKET_EMIT'
 
 export class SocketConnection {
 

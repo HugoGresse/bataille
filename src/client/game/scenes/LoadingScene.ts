@@ -1,5 +1,5 @@
 import 'phaser'
-import {BUILDING_TOWN, UNIT_STICK} from '../../../constants/UNITS'
+import {BUILDING_TOWN, UNIT_STICK} from '../../../common/UNITS'
 
 export class LoadingScene extends Phaser.Scene {
 

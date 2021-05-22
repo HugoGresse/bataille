@@ -4,6 +4,7 @@ import {StickUnit} from './model/actors/units/StickUnit'
 import {Position} from './model/actors/Position'
 import {GameLoop} from './GameLoop'
 import {GameState, UnitState} from './model/GameState'
+import {UnitAction} from '../common/UnitAction'
 
 export class Game {
 
@@ -56,5 +57,13 @@ export class Game {
         const y = Math.floor(Math.random() * 300)
         player.addUnit(new StickUnit(player, new Position(x, y)))
         console.log("addUnit")
+    }
+
+    unitEvent(playerId: string, event: UnitAction) {
+        this.players[playerId].unitAction(event)
+    }
+
+    update() {
+        Object.values(this.players).forEach(player => player.update())
     }
 }

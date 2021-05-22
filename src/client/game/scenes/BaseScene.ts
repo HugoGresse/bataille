@@ -7,7 +7,7 @@ export abstract class BaseScene extends Phaser.Scene {
         super(name)
     }
 
-    protected get actions(): GameActions {
+    public get actions(): GameActions {
         return this.game.registry.get('actions')
     }
 

@@ -1,4 +1,4 @@
-import {UnitsType} from '../../constants/UNITS'
+import {UnitsType} from '../../common/UNITS'
 
 export interface GameState {
 

@@ -1,5 +1,6 @@
 import {PlayerState, UnitState} from './GameState'
 import {BaseUnit} from './actors/units/BaseUnit'
+import {UnitAction} from '../../common/UnitAction'
 
 export class Player {
 
@@ -10,19 +11,19 @@ export class Player {
         this.name = name
     }
 
-    public set name(name: string) {
+    set name(name: string) {
         this._name = name.trim()
     }
 
-    public get name() {
+    get name() {
         return this._name
     }
 
-    public addUnit(unit: BaseUnit) {
+    addUnit(unit: BaseUnit) {
         this.units.push(unit)
     }
 
-    public getUnitsState(): UnitState[] {
+    getUnitsState(): UnitState[] {
         return this.units.map((unit: BaseUnit) => ({
             id: unit.id,
             type: unit.type,
@@ -31,11 +32,20 @@ export class Player {
         }))
     }
 
-    public getPlayerState(): PlayerState {
+    getPlayerState(): PlayerState {
         return {
             name: this.name
         }
     }
 
+    unitAction(action: UnitAction) {
+        const unit = this.units.find(unit => unit.id === action.unitId)
+        if(unit){
+            unit.addAction(action)
+        }
+    }
 
+    update() {
+        this.units.forEach(unit => unit.update())
+    }
 }

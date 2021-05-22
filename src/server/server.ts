@@ -4,7 +4,8 @@ import {parseKeyCode} from './utils/parseKeyCode'
 import {newId} from './utils/newId'
 import {Game} from './Game'
 import {Player} from './model/Player'
-import {GAME_CLEAR, PLAYER_JOINED, PLAYER_NEW_UNIT} from '../constants/SOCKET_EMIT'
+import {GAME_CLEAR, PLAYER_JOINED, PLAYER_NEW_UNIT, PLAYER_UNIT} from '../common/SOCKET_EMIT'
+import {UnitAction} from '../common/UnitAction'
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001
 
@@ -20,6 +21,7 @@ io.on("connection", (socket: Socket) => {
     socket.on('keydown', handleKeydown(socket.id));
     socket.on(PLAYER_JOINED, handlePlayerJoin(socket))
     socket.on(PLAYER_NEW_UNIT, handlePlayerNewUnit(socket))
+    socket.on(PLAYER_UNIT, handlePlayerUnit(socket))
     socket.on(GAME_CLEAR, handleClearGame())
 });
 
@@ -55,5 +57,8 @@ const handleClearGame = () => () => {
     game.stopLoop()
     game = new Game(newId(), io)
     console.log("clearGame")
+}
 
+const handlePlayerUnit = (socket: Socket) => (event: UnitAction) => {
+    game.unitEvent(socket.id, event)
 }

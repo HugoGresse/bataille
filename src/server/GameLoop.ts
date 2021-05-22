@@ -1,9 +1,9 @@
 import {Game} from './Game'
-import {GAME_STATE_UPDATE} from '../constants/SOCKET_EMIT'
+import {GAME_STATE_UPDATE} from '../common/SOCKET_EMIT'
 import {BroadcastOperator} from 'socket.io'
 import {DefaultEventsMap} from 'socket.io/dist/typed-events'
 
-const FRAME_RATE = 0.5
+const FRAME_RATE = 20
 const INTERVAL_SPEED = 1000 / FRAME_RATE
 
 export class GameLoop {
@@ -39,13 +39,13 @@ export class GameLoop {
     }
 
     run(game: Game):boolean {
+        game.update()
 
         return false
     }
 
     emitGameState(game: Game) {
-        console.log(game.getState())
-
+        // console.log(game.getState())
         this.sockets.emit(GAME_STATE_UPDATE, game.getState())
     }
 

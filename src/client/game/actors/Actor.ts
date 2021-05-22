@@ -1,9 +1,10 @@
-import { Physics } from "phaser";
+import { Physics, GameObjects } from "phaser";
 
 export class Actor extends Physics.Arcade.Sprite {
     protected hp = 100;
+    protected selectedCircle !: GameObjects.Arc | null
 
-    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: string | number) {
+    constructor(scene: Phaser.Scene, public readonly id: string, x: number, y: number, texture: string, frame?: string | number) {
         super(scene, x, y, texture, frame);
 
         scene.add.existing(this);
@@ -12,8 +13,21 @@ export class Actor extends Physics.Arcade.Sprite {
         this.getBody().setCollideWorldBounds(true);
     }
 
-    protected getLatestState() {
+    // When unit is selected, emphasis the actor
+    protected onSelect() {
+        const center = this.getBody().center
+        if(this.selectedCircle) {
+            this.selectedCircle.destroy()
+        }
+        this.selectedCircle = this.scene.add.circle(center.x , center.y , this.getBody().height /2, 0x666666);
+        this.selectedCircle.setDepth(-1)
+    }
 
+    protected onUnselect() {
+        if(this.selectedCircle){
+            this.selectedCircle.destroy()
+            this.selectedCircle = null
+        }
     }
 
     public getDamage(value?: number): void {
