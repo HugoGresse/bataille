@@ -52,6 +52,9 @@ export class Game {
     }
 
     addUnit(playerId: string) {
+        if(!this.players[playerId]) {
+            return
+        }
         const player = this.players[playerId]
         const x = Math.floor(Math.random() * 300)
         const y = Math.floor(Math.random() * 300)
@@ -60,7 +63,9 @@ export class Game {
     }
 
     unitEvent(playerId: string, event: UnitAction) {
-        this.players[playerId].unitAction(event)
+        if(this.players[playerId]){
+            this.players[playerId].unitAction(event)
+        }
     }
 
     update() {
