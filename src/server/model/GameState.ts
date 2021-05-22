@@ -13,6 +13,7 @@ export interface PlayerState {
 }
 
 export interface UnitState {
+    id: string,
     type: UnitsType,
     hp: {
         current: number,

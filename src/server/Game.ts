@@ -16,6 +16,10 @@ export class Game {
         this.gameLoop = new GameLoop(ioServer.to(id))
     }
 
+    stopLoop() {
+        this.gameLoop.stop()
+    }
+
     getState(): GameState {
         const units = Object
             .values(this.players)
@@ -45,7 +49,6 @@ export class Game {
             this.gameLoop.start(this)
         }
     }
-
 
     addUnit(playerId: string) {
         const player = this.players[playerId]

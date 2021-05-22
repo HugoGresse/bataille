@@ -28,6 +28,10 @@ export const Game = () => {
                 game && game.destroy()
                 console.log("destroyed")
             }}>Destroy</button>
+            <button onClick={() => {
+                game && game.clearGame()
+                console.log("clearGame")
+            }}>Clear server</button>
         </div>
         <div ref={gameContainer} id="gameContainer"/>
     </div>

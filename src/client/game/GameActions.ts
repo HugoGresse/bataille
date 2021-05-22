@@ -1,4 +1,4 @@
-import {PLAYER_JOINED, PLAYER_NEW_UNIT} from '../../constants/SOCKET_EMIT'
+import {GAME_CLEAR, PLAYER_JOINED, PLAYER_NEW_UNIT} from '../../constants/SOCKET_EMIT'
 import {Socket} from 'socket.io-client'
 
 export class GameActions {
@@ -13,5 +13,9 @@ export class GameActions {
 
     newUnit() {
         this.socket.emit(PLAYER_NEW_UNIT)
+    }
+
+    clearGame() {
+        this.socket.emit(GAME_CLEAR)
     }
 }

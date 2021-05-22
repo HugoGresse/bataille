@@ -24,6 +24,7 @@ export class Player {
 
     public getUnitsState(): UnitState[] {
         return this.units.map((unit: BaseUnit) => ({
+            id: unit.id,
             type: unit.type,
             hp: unit.life.get(),
             position: unit.position.get()
