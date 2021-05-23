@@ -4,6 +4,7 @@ import {UIScene} from './scenes/UIScene'
 import {LoadingScene} from './scenes/LoadingScene'
 import {SocketConnection} from '../SocketConnection'
 import {GameActions} from './GameActions'
+import {ExportType} from '../../server/model/types/ExportType'
 
 export class BatailleGame {
 
@@ -38,10 +39,22 @@ export class BatailleGame {
         };
 
         this.game = new Phaser.Game(config);
-        this.socket = new SocketConnection("localhost:3001")
+        this.socket = new SocketConnection("localhost:3001", (data) => {
+            if(this.game.isRunning){
+                this.onGameStart(data)
+            }
+        })
         const gameActions = new GameActions(this.socket.getSocketIO())
         this.game.registry.set("actions", gameActions)
         gameActions.joinGame()
+
+
+
+    }
+
+    onGameStart (data: ExportType) {
+        const batailleScene: BatailleScene = this.game.scene.getScene('BatailleScene') as BatailleScene
+        batailleScene.initSceneWithData(data)
     }
 
     destroy() {

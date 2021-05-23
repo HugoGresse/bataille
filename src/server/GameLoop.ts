@@ -1,7 +1,5 @@
 import {Game} from './Game'
-import {GAME_STATE_UPDATE} from '../common/SOCKET_EMIT'
-import {BroadcastOperator} from 'socket.io'
-import {DefaultEventsMap} from 'socket.io/dist/typed-events'
+import {SocketEmitter} from './SocketEmitter'
 
 const FRAME_RATE = 20
 const INTERVAL_SPEED = 1000 / FRAME_RATE
@@ -11,7 +9,7 @@ export class GameLoop {
     intervalId: NodeJS.Timeout | null = null
     public isRunning = false
 
-    constructor(protected sockets: BroadcastOperator<DefaultEventsMap>) {
+    constructor(protected emmitter: SocketEmitter) {
 
     }
 
@@ -45,8 +43,7 @@ export class GameLoop {
     }
 
     emitGameState(game: Game) {
-        // console.log(game.getState())
-        this.sockets.emit(GAME_STATE_UPDATE, game.getState())
+        this.emmitter.emitGameUpdate(game)
     }
 
 }

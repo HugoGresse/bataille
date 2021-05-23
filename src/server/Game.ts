@@ -5,6 +5,9 @@ import {Position} from './model/actors/Position'
 import {GameLoop} from './GameLoop'
 import {GameState, UnitState} from './model/GameState'
 import {UnitAction} from '../common/UnitAction'
+import {Map} from './model/map/Map'
+import {SocketEmitter} from './SocketEmitter'
+import {ExportType} from './model/types/ExportType'
 
 export class Game {
 
@@ -12,13 +15,23 @@ export class Game {
         [id: string]: Player
     } = {}
     protected gameLoop: GameLoop
+    protected map: Map
+    private emitter: SocketEmitter
 
     constructor(protected id: string, protected ioServer: Server) {
-        this.gameLoop = new GameLoop(ioServer.to(id))
+        this.emitter = new SocketEmitter(ioServer.to(id))
+        this.gameLoop = new GameLoop(this.emitter)
+        this.map = new Map()
     }
 
     stopLoop() {
         this.gameLoop.stop()
+    }
+
+    export (): ExportType {
+        return {
+            map: this.map.export()
+        }
     }
 
     getState(): GameState {
@@ -49,6 +62,7 @@ export class Game {
         if(!this.gameLoop.isRunning) {
             this.gameLoop.start(this)
         }
+        this.emitter.emitInitialGameState(this)
     }
 
     addUnit(playerId: string) {

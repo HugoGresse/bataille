@@ -12,10 +12,8 @@ export class UIScene extends BaseScene {
             .text(100, 100, 'New stick', { color: '#00ff00' })
             .setInteractive()
             .on('pointerup', () => {
-
                 this.actions.newUnit()
                 console.log(this.registry.get('actions'))
-
             } );
     }
 

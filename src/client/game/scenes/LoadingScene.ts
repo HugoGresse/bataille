@@ -1,5 +1,5 @@
 import 'phaser'
-import {BUILDING_TOWN, UNIT_STICK} from '../../../common/UNITS'
+import {BUILDING_TOWN, TERRAIN_GROUND, TERRAIN_WATER, UNIT_STICK} from '../../../common/UNITS'
 
 export class LoadingScene extends Phaser.Scene {
 
@@ -9,6 +9,8 @@ export class LoadingScene extends Phaser.Scene {
     preload() {
         this.load.image(BUILDING_TOWN, 'assets/svg/town.svg')
         this.load.image(UNIT_STICK, 'assets/svg/u-stick.svg')
+        this.load.image(TERRAIN_GROUND, 'assets/svg/ground.png')
+        this.load.image(TERRAIN_WATER, 'assets/svg/water.png')
 
 
         this.load.image({

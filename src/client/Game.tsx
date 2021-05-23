@@ -33,6 +33,8 @@ export const Game = () => {
                 console.log("clearGame")
             }}>Clear server</button>
         </div>
-        <div ref={gameContainer} id="gameContainer"/>
+        <div ref={gameContainer} id="gameContainer">
+            Starting the game...
+        </div>
     </div>
 }
