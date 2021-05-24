@@ -51,7 +51,11 @@ export class BatailleGame {
 
     onGameStart (data: ExportType) {
         const batailleScene: BatailleScene = this.game.scene.getScene('BatailleScene') as BatailleScene
-        batailleScene.initSceneWithData(data)
+
+        batailleScene.events.on('start', function(){
+            batailleScene.initSceneWithData(data)
+            batailleScene.events.off('start')
+        });
     }
 
     destroy() {

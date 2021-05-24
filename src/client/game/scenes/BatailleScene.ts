@@ -6,6 +6,9 @@ import {BatailleGame} from '../BatailleGame'
 import {ExportType} from '../../../server/model/types/ExportType'
 import {setupCamera} from '../utils/setupCamera'
 import {TileSelection} from './TileSelection'
+import {Town} from '../actors/buildings/Town'
+import {UIPlayer} from '../actors/UIPlayer'
+import {TILE_WIDTH_HEIGHT} from '../../../common/UNITS'
 
 export class BatailleScene extends BaseScene {
 
@@ -59,24 +62,23 @@ export class BatailleScene extends BaseScene {
         this.map = this.make.tilemap({ key: "map" });
         const tiles = this.map.addTilesetImage("tile", "tiles");
 
-        // data.map.layerNames.forEach(layerName => {
-        //     this.map.createLayer(layerName, tiles);
-        // })
+        data.map.layerNames.forEach(layerName => {
+            this.map.createLayer(layerName, tiles);
+        })
 
-        // const xs = Object.keys(data.map.tiles).map(Number)
-        // const tileWidthHeight = 8
-        //
-        // xs.forEach(x => {
-        //     Object
-        //         .keys(data.map.tiles[x])
-        //         .map(Number)
-        //         .forEach(y => {
-        //         const tileData = data.map.tiles[x][y]
-        //         if(tileData.isTown) {
-        //             new Town(this, x * tileWidthHeight, y * tileWidthHeight, tileData.player as UIPlayer)
-        //         }
-        //     })
-        // })
+        const xs = Object.keys(data.map.tiles).map(Number)
+
+        xs.forEach(x => {
+            Object
+                .keys(data.map.tiles[x])
+                .map(Number)
+                .forEach(y => {
+                const tileData = data.map.tiles[x][y]
+                if(tileData.isTown) {
+                    new Town(this, x * TILE_WIDTH_HEIGHT, y * TILE_WIDTH_HEIGHT, tileData.player as UIPlayer)
+                }
+            })
+        })
 
         this.tileSelectionDetector = new TileSelection(this, this.map)
         this.tileSelectionDetector.start()
