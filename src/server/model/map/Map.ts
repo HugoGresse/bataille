@@ -7,13 +7,17 @@ export type MapTiles = {
     }
 }
 export type MapTilesPublic = {
-    [x: number]: {
-        [y: number]: TilePublic
-    }
+    tiles: {
+        [x: number]: {
+            [y: number]: TilePublic
+        }
+    },
+    layerNames: string[]
 }
 
-export class Map {
+const EXPORTED_LAYER_NAMES= ["g-water", 'c-fr', 'c-it','c-es','c-pt','c-uk','c-ie', 'c-ch', 'c-ma', 'towns', ]
 
+export class Map {
     private tiles: MapTiles = {}
     private mapWidth: number
     private mapHeight: number
@@ -32,7 +36,6 @@ export class Map {
 
         mapData.layers.forEach(layer => {
             if (layer.name.startsWith("c-")) {
-                console.log(layer.name)
                 const width = layer.width || 0
                 const height = layer.height || 0
                 if (!layer.data) {
@@ -55,18 +58,20 @@ export class Map {
         })
     }
 
-    export() {
-        const tiles: MapTilesPublic = {}
+    export(): MapTilesPublic {
+        const tiles: MapTilesPublic["tiles"] = {}
 
         for (let x = 0; x < this.mapWidth; x++) {
             tiles[x] = {}
             for (let y = 0; y < this.mapHeight; y++) {
                 tiles[x][y] = this.tiles[x][y].export()
-
             }
         }
 
-        return tiles
+        return {
+            tiles,
+            layerNames: EXPORTED_LAYER_NAMES
+        }
     }
 
 

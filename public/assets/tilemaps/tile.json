@@ -1,14 +1,20 @@
 { "columns":12,
+ "grid":
+    {
+     "height":32,
+     "orientation":"orthogonal",
+     "width":32
+    },
  "image":"tiles\/tile.png",
- "imageheight":32,
- "imagewidth":96,
+ "imageheight":96,
+ "imagewidth":192,
  "margin":0,
  "name":"tile",
  "spacing":0,
- "tilecount":48,
+ "tilecount":72,
  "tiledversion":"1.6.0",
- "tileheight":8,
- "tilewidth":8,
+ "tileheight":32,
+ "tilewidth":32,
  "type":"tileset",
  "version":"1.6"
 }

@@ -1,20 +1,16 @@
 import 'phaser'
 import {StickUnit} from '../actors/StickUnit'
-import {Tilemaps, Cameras} from 'phaser'
+import {Tilemaps} from 'phaser'
 import {BaseScene} from './BaseScene'
 import {BatailleGame} from '../BatailleGame'
 import {ExportType} from '../../../server/model/types/ExportType'
-import {UITile} from './tiles/UITile'
-import {TERRAIN_GROUND} from '../../../common/UNITS'
 import {setupCamera} from '../utils/setupCamera'
+import {TileSelection} from './TileSelection'
 
 export class BatailleScene extends BaseScene {
 
     private map!: Tilemaps.Tilemap
-    private tileset!: Tilemaps.Tileset
-    private europeBorderImage!: Tilemaps.Tileset
-    private europeGroundImage!: Tilemaps.Tileset
-    private borderLayer!: Tilemaps.TilemapLayer
+    private tileSelectionDetector !: TileSelection
 
     private units: {
         [id: string]: StickUnit
@@ -31,6 +27,7 @@ export class BatailleScene extends BaseScene {
     create() {
         this.scene.launch("UI")
         setupCamera(this.cameras.main, this)
+
     }
 
     update(time: number, delta: number) {
@@ -59,16 +56,25 @@ export class BatailleScene extends BaseScene {
     }
 
     initSceneWithData(data: ExportType) {
-        console.log("inittt")
-        const xs = Object.keys(data.map).map(Number)
-        const tileWidthHeight = 8
+        this.map = this.make.tilemap({ key: "map" });
+        const tiles = this.map.addTilesetImage("tile", "tiles");
 
-        xs.forEach(x => {
-            Object.keys(data.map[x]).map(Number).forEach(y => {
-                const tileData = data.map[x][y]
-                new UITile(this, x * tileWidthHeight, y * tileWidthHeight, TERRAIN_GROUND, tileData)
-            })
+        data.map.layerNames.forEach(layerName => {
+            this.map.createLayer(layerName, tiles);
         })
+
+        this.tileSelectionDetector = new TileSelection(this, this.map)
+        this.tileSelectionDetector.start()
+
+        // const xs = Object.keys(data.map).map(Number)
+        // const tileWidthHeight = 8
+        //
+        // xs.forEach(x => {
+        //     Object.keys(data.map[x]).map(Number).forEach(y => {
+        //         const tileData = data.map[x][y]
+        //         new UITile(this, x * tileWidthHeight, y * tileWidthHeight, TERRAIN_GROUND, tileData)
+        //     })
+        // })
 
         // From tuto
         // this.map = this.make.tilemap({ key: 'europe', tileWidth: 16, tileHeight: 16 });

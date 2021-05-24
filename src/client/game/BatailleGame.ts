@@ -17,7 +17,7 @@ export class BatailleGame {
         const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             backgroundColor: '#125555',
-            width: 400,
+            width: 800,
             height: 800,
             scene: [LoadingScene, BatailleScene, UIScene],
             parent: parent,
@@ -47,9 +47,6 @@ export class BatailleGame {
         const gameActions = new GameActions(this.socket.getSocketIO())
         this.game.registry.set("actions", gameActions)
         gameActions.joinGame()
-
-
-
     }
 
     onGameStart (data: ExportType) {

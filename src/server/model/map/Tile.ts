@@ -1,9 +1,9 @@
 import {Player} from '../Player'
 
-enum TileType {
+export enum TileType {
     None = 0,
     Ground = 1,
-    GroundBorder = 2
+    GroundBorder = 3
 }
 
 export type TilePublic = {
