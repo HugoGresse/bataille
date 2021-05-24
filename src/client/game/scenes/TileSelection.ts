@@ -13,7 +13,6 @@ export class TileSelection {
     start(): void {
         this.scene.input.on('pointerup', (pointer: Input.Pointer) => {
             const layersReverse = [...this.map.layers].reverse()
-            console.log(layersReverse)
             for(const layer of layersReverse){
                 const tile = this.map.getTileAtWorldXY(
                     pointer.worldX,
@@ -24,7 +23,6 @@ export class TileSelection {
 
                 if(tile) {
                     this.onTilePress(tile)
-                    // onTilePress(tile)
                     return
                 }
             }

@@ -2,12 +2,12 @@ import {PlayerState, UnitState} from './GameState'
 import {BaseUnit} from './actors/units/BaseUnit'
 import {UnitAction} from '../../common/UnitAction'
 
-export class Player {
+abstract class AbstractPlayer {
 
     protected _name: string = `${Date.now()}`
     protected units: BaseUnit[] = []
 
-    constructor(protected socketId: string, name = `${Date.now()}`) {
+    protected constructor(name = `${Date.now()}`, public color: string) {
         this.name = name
     }
 
@@ -49,3 +49,19 @@ export class Player {
         this.units.forEach(unit => unit.update())
     }
 }
+
+export class Player extends AbstractPlayer {
+
+    constructor(protected socketId: string,  color: string, name ?: string,) {
+        super(name, color);
+    }
+}
+
+export class NeutralPlayer extends Player {
+
+    constructor() {
+        super("Neutral", "0x888888");
+    }
+
+}
+export const NeutralPlayerInstance = new NeutralPlayer()

@@ -1,5 +1,6 @@
 import {Game} from './Game'
 import {SocketEmitter} from './SocketEmitter'
+import {Map} from './model/map/Map'
 
 const FRAME_RATE = 20
 const INTERVAL_SPEED = 1000 / FRAME_RATE
@@ -9,7 +10,7 @@ export class GameLoop {
     intervalId: NodeJS.Timeout | null = null
     public isRunning = false
 
-    constructor(protected emmitter: SocketEmitter) {
+    constructor(protected emitter: SocketEmitter, private map: Map) {
 
     }
 
@@ -43,7 +44,7 @@ export class GameLoop {
     }
 
     emitGameState(game: Game) {
-        this.emmitter.emitGameUpdate(game)
+        this.emitter.emitGameUpdate(game)
     }
 
 }

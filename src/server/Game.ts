@@ -8,6 +8,9 @@ import {UnitAction} from '../common/UnitAction'
 import {Map} from './model/map/Map'
 import {SocketEmitter} from './SocketEmitter'
 import {ExportType} from './model/types/ExportType'
+import {townAssignation} from './utils/townAssignation'
+
+const MINIMUM_PLAYER_PER_GAME = 1
 
 export class Game {
 
@@ -20,8 +23,8 @@ export class Game {
 
     constructor(protected id: string, protected ioServer: Server) {
         this.emitter = new SocketEmitter(ioServer.to(id))
-        this.gameLoop = new GameLoop(this.emitter)
         this.map = new Map()
+        this.gameLoop = new GameLoop(this.emitter, this.map)
     }
 
     stopLoop() {
@@ -59,10 +62,14 @@ export class Game {
         socket.join(this.id)
         console.log("add player")
 
-        if(!this.gameLoop.isRunning) {
-            this.gameLoop.start(this)
+        if(Object.keys(this.players).length >= MINIMUM_PLAYER_PER_GAME) {
+            this.start()
         }
         this.emitter.emitInitialGameState(this)
+    }
+
+    getPlayers(): Player[] {
+        return Object.values(this.players)
     }
 
     addUnit(playerId: string) {
@@ -79,6 +86,13 @@ export class Game {
     unitEvent(playerId: string, event: UnitAction) {
         if(this.players[playerId]){
             this.players[playerId].unitAction(event)
+        }
+    }
+
+    start() {
+        townAssignation(this.getPlayers(), this.map)
+        if(!this.gameLoop.isRunning){
+            this.gameLoop.start(this)
         }
     }
 

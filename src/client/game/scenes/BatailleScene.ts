@@ -47,7 +47,7 @@ export class BatailleScene extends BaseScene {
             })
             const thisUnitsIds = Object.keys(this.units)
             const deadUnits = aliveUnits.filter((obj) => {
-                return thisUnitsIds.indexOf(obj) == -1
+                return thisUnitsIds.indexOf(obj) === -1
             })
             if (deadUnits.length > 0) {
                 console.log("dead:", deadUnits)
@@ -59,26 +59,28 @@ export class BatailleScene extends BaseScene {
         this.map = this.make.tilemap({ key: "map" });
         const tiles = this.map.addTilesetImage("tile", "tiles");
 
-        data.map.layerNames.forEach(layerName => {
-            this.map.createLayer(layerName, tiles);
-        })
+        // data.map.layerNames.forEach(layerName => {
+        //     this.map.createLayer(layerName, tiles);
+        // })
+
+        // const xs = Object.keys(data.map.tiles).map(Number)
+        // const tileWidthHeight = 8
+        //
+        // xs.forEach(x => {
+        //     Object
+        //         .keys(data.map.tiles[x])
+        //         .map(Number)
+        //         .forEach(y => {
+        //         const tileData = data.map.tiles[x][y]
+        //         if(tileData.isTown) {
+        //             new Town(this, x * tileWidthHeight, y * tileWidthHeight, tileData.player as UIPlayer)
+        //         }
+        //     })
+        // })
 
         this.tileSelectionDetector = new TileSelection(this, this.map)
         this.tileSelectionDetector.start()
 
-        // const xs = Object.keys(data.map).map(Number)
-        // const tileWidthHeight = 8
-        //
-        // xs.forEach(x => {
-        //     Object.keys(data.map[x]).map(Number).forEach(y => {
-        //         const tileData = data.map[x][y]
-        //         new UITile(this, x * tileWidthHeight, y * tileWidthHeight, TERRAIN_GROUND, tileData)
-        //     })
-        // })
-
-        // From tuto
-        // this.map = this.make.tilemap({ key: 'europe', tileWidth: 16, tileHeight: 16 });
-        // this.physics.world.setBounds(0, 0, this.borderLayer.width, this.borderLayer.height);
     }
 
 }

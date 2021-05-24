@@ -70,7 +70,6 @@ export class BatailleGame {
 
     public static setCurrentGame(game: BatailleGame) {
         this.instance = game
-        console.log('set instance ')
     }
     public static getCurrentGame() {
         return this.instance

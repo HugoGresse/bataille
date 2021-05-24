@@ -6,6 +6,7 @@ import {Game} from './Game'
 import {Player} from './model/Player'
 import {GAME_CLEAR, PLAYER_JOINED, PLAYER_NEW_UNIT, PLAYER_UNIT} from '../common/SOCKET_EMIT'
 import {UnitAction} from '../common/UnitAction'
+import {pickUnusedColor} from './utils/pickUnusedColor'
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001
 
@@ -45,8 +46,8 @@ const handleKeydown = (socketId: string) => (keyCode: string) => {
 }
 
 const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
-    const player = new Player(socket.id, playerName)
-    game.addPlayer(player, socket)
+    const player = new Player(socket.id, playerName, pickUnusedColor(game.getPlayers()))
+    game.addPlayer(player, socket, )
 }
 
 const handlePlayerNewUnit = (socket: Socket) => () => {

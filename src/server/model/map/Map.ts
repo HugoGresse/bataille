@@ -35,7 +35,7 @@ export class Map {
 
 
         mapData.layers.forEach(layer => {
-            if (layer.name.startsWith("c-")) {
+            if (layer.name.startsWith("c-") || layer.name === "towns") {
                 const width = layer.width || 0
                 const height = layer.height || 0
                 if (!layer.data) {
@@ -47,7 +47,6 @@ export class Map {
                     for (let x = 0; x < width; x++) {
                         layerData = layer.data[iter]
                         if (layerData !== 0) {
-                            // console.log(layerData)
                             this.tiles[x][y] = new Tile(layerData)
                         }
                         iter++
@@ -58,13 +57,29 @@ export class Map {
         })
     }
 
+    getTowns(): Tile[] {
+        const towns: Tile[] = []
+        let tempTile
+        for (let x = 0; x < this.mapWidth; x++) {
+            for (let y = 0; y < this.mapHeight; y++) {
+                tempTile = this.tiles[x][y]
+                if(tempTile.isTown){
+                    towns.push(tempTile)
+                }
+            }
+        }
+        return towns
+    }
+
     export(): MapTilesPublic {
         const tiles: MapTilesPublic["tiles"] = {}
 
         for (let x = 0; x < this.mapWidth; x++) {
             tiles[x] = {}
             for (let y = 0; y < this.mapHeight; y++) {
-                tiles[x][y] = this.tiles[x][y].export()
+                if(this.tiles[x][y].player){
+                    tiles[x][y] = this.tiles[x][y].export()
+                }
             }
         }
 
