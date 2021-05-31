@@ -47,6 +47,7 @@ const handleKeydown = (socketId: string) => (keyCode: string) => {
 
 const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
     const player = new Player(socket.id, pickUnusedColor(game.getPlayers()), playerName, )
+    console.log("new player", player)
     game.addPlayer(player, socket, )
 }
 

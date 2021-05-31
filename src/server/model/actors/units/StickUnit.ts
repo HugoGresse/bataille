@@ -4,7 +4,7 @@ import {Position} from '../Position'
 import {Velocity} from '../Velocity'
 
 
-const BASE_HP = 10
+const BASE_HP = 1
 const BASE_DAMAGE = 1
 
 export class StickUnit extends BaseUnit {

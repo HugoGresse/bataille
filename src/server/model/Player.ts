@@ -1,11 +1,18 @@
 import {PlayerState, UnitState} from './GameState'
 import {BaseUnit} from './actors/units/BaseUnit'
 import {UnitAction} from '../../common/UnitAction'
+import {xyMapToArray} from '../utils/xyMapToArray'
+
+export type UnitTile = {
+    [x: number]: {
+        [y: number]: BaseUnit
+    }
+}
 
 abstract class AbstractPlayer {
 
     protected _name: string = `${Date.now()}`
-    protected units: BaseUnit[] = []
+    protected units: UnitTile = {}
 
     protected constructor(name = `${Date.now()}`, public color: string) {
         this.name = name
@@ -19,12 +26,17 @@ abstract class AbstractPlayer {
         return this._name
     }
 
-    addUnit(unit: BaseUnit) {
-        this.units.push(unit)
+    addUnit(unit: BaseUnit, x: number, y: number) {
+        if(!this.units[x]){
+            this.units[x] = {}
+        }
+        this.units[x][y] = unit
+        console.log("add unit", x, y)
     }
 
     getUnitsState(): UnitState[] {
-        return this.units.map((unit: BaseUnit) => ({
+        return xyMapToArray<BaseUnit>(this.units)
+            .map((unit: BaseUnit) => ({
             id: unit.id,
             type: unit.type,
             hp: unit.life.get(),
@@ -39,14 +51,14 @@ abstract class AbstractPlayer {
     }
 
     unitAction(action: UnitAction) {
-        const unit = this.units.find(unit => unit.id === action.unitId)
+        const unit = xyMapToArray<BaseUnit>(this.units).find(unit => unit.id === action.unitId)
         if(unit){
             unit.addAction(action)
         }
     }
 
     update() {
-        this.units.forEach(unit => unit.update())
+        xyMapToArray<BaseUnit>(this.units).forEach(unit => unit.update())
     }
 }
 

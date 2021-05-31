@@ -13,11 +13,13 @@ import {TILE_WIDTH_HEIGHT} from '../../../common/UNITS'
 export class BatailleScene extends BaseScene {
 
     private map!: Tilemaps.Tilemap
+    private tileset!: Tilemaps.Tileset
     private tileSelectionDetector !: TileSelection
 
     private units: {
         [id: string]: StickUnit
     } = {}
+    private unitGroup!: Phaser.GameObjects.Group
 
 
     constructor() {
@@ -25,12 +27,12 @@ export class BatailleScene extends BaseScene {
     }
 
     preload() {
+        this.unitGroup = this.add.group()
     }
 
     create() {
         this.scene.launch("UI")
         setupCamera(this.cameras.main, this)
-
     }
 
     update(time: number, delta: number) {
@@ -44,8 +46,13 @@ export class BatailleScene extends BaseScene {
                 if (this.units[unit.id]) {
                     this.units[unit.id].update(unit)
                 } else {
-                    console.log("new unit")
-                    this.units[unit.id] = new StickUnit(this, unit.id, unit.position.x, unit.position.y)
+                    const unitObj = new StickUnit(
+                        this,
+                        unit.id,
+                        unit.position.x * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT/2,
+                        unit.position.y * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT/2)
+                    this.unitGroup.add(unitObj)
+                    this.units[unit.id] = unitObj
                 }
             })
             const thisUnitsIds = Object.keys(this.units)
@@ -59,11 +66,11 @@ export class BatailleScene extends BaseScene {
     }
 
     initSceneWithData(data: ExportType) {
-        this.map = this.make.tilemap({ key: "map" });
-        const tiles = this.map.addTilesetImage("tile", "tiles");
+        this.map = this.make.tilemap({key: "map"})
+        this.tileset = this.map.addTilesetImage("tile", "tiles")
 
         data.map.layerNames.forEach(layerName => {
-            this.map.createLayer(layerName, tiles);
+            this.map.createLayer(layerName, this.tileset)
         })
 
         const xs = Object.keys(data.map.tiles).map(Number)
@@ -73,11 +80,11 @@ export class BatailleScene extends BaseScene {
                 .keys(data.map.tiles[x])
                 .map(Number)
                 .forEach(y => {
-                const tileData = data.map.tiles[x][y]
-                if(tileData.isTown) {
-                    new Town(this, x * TILE_WIDTH_HEIGHT, y * TILE_WIDTH_HEIGHT, tileData.player as UIPlayer)
-                }
-            })
+                    const tileData = data.map.tiles[x][y]
+                    if (tileData.isTown) {
+                        new Town(this, x * TILE_WIDTH_HEIGHT, y * TILE_WIDTH_HEIGHT, tileData.player as UIPlayer)
+                    }
+                })
         })
 
         this.tileSelectionDetector = new TileSelection(this, this.map)

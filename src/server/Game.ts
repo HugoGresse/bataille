@@ -76,11 +76,11 @@ export class Game {
         if(!this.players[playerId]) {
             return
         }
-        const player = this.players[playerId]
-        const x = Math.floor(Math.random() * 300)
-        const y = Math.floor(Math.random() * 300)
-        player.addUnit(new StickUnit(player, new Position(x, y)))
-        console.log("addUnit")
+        // const player = this.players[playerId]
+        // const x = Math.floor(Math.random() * 300)
+        // const y = Math.floor(Math.random() * 300)
+        // player.addUnit(new StickUnit(player, new Position(x, y)))
+        console.log("addUnit, TODO")
     }
 
     unitEvent(playerId: string, event: UnitAction) {

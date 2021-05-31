@@ -1,23 +1,41 @@
 import {Player} from '../model/Player'
 import {Map} from '../model/map/Map'
 import {shuffleArray} from '../../utils/shuffleArray'
+import {Tile} from '../model/map/Tile'
+import {iterateOnXYMap} from './xyMapToArray'
+import {StickUnit} from '../model/actors/units/StickUnit'
+import {Position} from '../model/actors/Position'
 
 export const townAssignation = (players: Player[], map: Map) =>  {
     const towns = map.getTowns()
 
-    const townByPlayer = Math.floor(towns.length / players.length)
+    // Only let 1/5 of the towns to be assigned to player at start
+    const townByPlayer = Math.floor((towns.length / players.length) / 5)
 
-    const shuffledTowns = shuffleArray(towns)
-    // Only let 1/3 of the towns to be assigned to player at start
-    const availableTowns = shuffledTowns.splice(0, shuffledTowns.length / 3)
+    const shuffledTowns: Tile[] = shuffleArray(towns)
 
     let i = 0
+    let playerIndex = 0
 
-    for(const town of availableTowns) {
-        town.player = players[i]
+    for(const town of shuffledTowns) {
+        town.player = players[playerIndex]
         town.isNeutral = false
+        i += 1
         if(i >= townByPlayer){
-            i += 1
+            playerIndex +=1
+            i = 0
+        }
+        if(playerIndex >= players.length){
+            break
         }
     }
+
+    const mapTiles = map.getMapTiles()
+
+
+    iterateOnXYMap(mapTiles, (tile: Tile, x, y) => {
+        if(tile.isTown && tile.player && !tile.isNeutral) {
+            tile.player.addUnit(new StickUnit(tile.player, new Position(x, y)), x, y)
+        }
+    })
 }

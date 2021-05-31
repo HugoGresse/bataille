@@ -57,6 +57,10 @@ export class Map {
         })
     }
 
+    getMapTiles(): MapTiles {
+        return this.tiles
+}
+
     getTowns(): Tile[] {
         const towns: Tile[] = []
         let tempTile

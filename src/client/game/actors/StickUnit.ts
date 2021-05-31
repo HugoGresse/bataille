@@ -1,22 +1,20 @@
 import {Actor} from './Actor'
-import {UNIT_STICK} from '../../../common/UNITS'
 import {UnitState} from '../../../server/model/GameState'
-import {BaseScene} from '../scenes/BaseScene'
 
 export class StickUnit extends Actor {
     constructor(scene: Phaser.Scene, id: string, x: number, y: number) {
-        super(scene, id, x, y, UNIT_STICK);
+        super(scene, id, x, y, "tilesSpriteSheet", 20);
 
         // PHYSICS
-        this.getBody().setSize(100, 100);
-        this.setInteractive({draggable: true})
-        this.on('dragstart', this.onDragStart)
-        this.on('dragend', this.onDragEnd)
-        this.on('drag', this.onDrag)
+        // this.getBody().setSize(100, 100);
+        // this.setInteractive({draggable: true})
+        // this.on('dragstart', this.onDragStart)
+        // this.on('dragend', this.onDragEnd)
+        // this.on('drag', this.onDrag)
     }
 
     onDragStart() {
-        this.onSelect()
+        // this.onSelect()
     }
 
     onDragEnd() {
@@ -24,15 +22,15 @@ export class StickUnit extends Actor {
     }
 
     onDrag(pointer: PointerEvent, dragX: number, dragY: number) {
-        (this.scene as BaseScene).actions.moveUnit(this, dragX, dragY)
+        // (this.scene as BaseScene).actions.moveUnit(this, dragX, dragY)
     }
 
     update(refUnit: UnitState): void {
-        this.body.x =refUnit.position.x
-        this.body.y =refUnit.position.y
-        if(this.selectedCircle){
-            this.onSelect()
-        }
+        // this.body.x =refUnit.position.x
+        // this.body.y =refUnit.position.y
+        // if(this.selectedCircle){
+        //     this.onSelect()
+        // }
         // this.getBody().setVelocity(0);
         //
         // if (this.keyW?.isDown) {

@@ -1,5 +1,4 @@
 import 'phaser'
-import {BUILDING_TOWN, UNIT_STICK} from '../../../common/UNITS'
 
 export class LoadingScene extends Phaser.Scene {
 
@@ -7,10 +6,12 @@ export class LoadingScene extends Phaser.Scene {
         super('LoadingScene')
     }
     preload() {
-        this.load.image(UNIT_STICK, 'assets/svg/u-stick.svg')
-        this.load.image(BUILDING_TOWN, "assets/svg/town.svg")
-
         this.load.image("tiles", "assets/tilemaps/tiles/tile.png")
+        this.load.spritesheet("tilesSpriteSheet", "assets/tilemaps/tiles/tile.png", {
+            frameWidth: 32,
+            frameHeight: 32,
+
+        })
         this.load.tilemapTiledJSON('map', 'assets/tilemaps/json/map.json')
     }
 
