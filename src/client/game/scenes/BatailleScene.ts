@@ -9,7 +9,6 @@ import {TileSelection} from './TileSelection'
 import {Town} from '../actors/buildings/Town'
 import {UIPlayer} from '../actors/UIPlayer'
 import {TILE_WIDTH_HEIGHT} from '../../../common/UNITS'
-import {DEPTH_UNIT} from './depth'
 
 export class BatailleScene extends BaseScene {
 

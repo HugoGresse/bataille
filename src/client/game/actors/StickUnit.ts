@@ -30,31 +30,30 @@ export class StickUnit extends Actor {
     }
 
     update(refUnit: UnitState): void {
-        this.x =refUnit.position.x
-        this.y =refUnit.position.y
-        // if(this.selectedCircle){
-        //     this.onSelect()
-        // }
-        // this.getBody().setVelocity(0);
-        //
-        // if (this.keyW?.isDown) {
-        //     this.body.velocity.y = -500;
-        // }
-        //
-        // if (this.keyA?.isDown) {
-        //     this.body.velocity.x = -110;
-        //     this.checkFlip();
-        //     // this.getBody().setOffset(48, 15);
-        // }
-        //
-        // if (this.keyS?.isDown) {
-        //     this.body.velocity.y = 110;
-        // }
-        //
-        // if (this.keyD?.isDown) {
-        //     this.body.velocity.x = 110;
-        //     this.checkFlip();
-        //     // this.getBody().setOffset(15, 15);
-        // }
+        super.update(refUnit)
+
+        if(refUnit.position.x !== this.x && !this.scene.tweens.isTweening(this)){
+            this.scene.tweens.add({
+                targets: this,
+                x: {
+                    from:this.x,
+                    to: refUnit.position.x
+                },
+                ease: 'Linear',
+                duration: 100,
+            })
+
+        }
+        if(refUnit.position.y !== this.y && !this.scene.tweens.isTweening(this)){
+            this.scene.tweens.add({
+                targets: this,
+                y: {
+                  from:this.y,
+                  to: refUnit.position.y
+                },
+                ease: 'Linear',
+                duration: 100,
+            })
+        }
     }
 }

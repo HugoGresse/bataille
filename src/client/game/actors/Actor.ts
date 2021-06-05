@@ -1,7 +1,7 @@
 import { Physics, GameObjects } from "phaser";
-import {DEPTH_UNIT} from '../scenes/depth'
+import {UnitState} from '../../../server/model/GameState'
 
-export class Actor extends Physics.Arcade.Sprite {
+export class Actor extends Phaser.GameObjects.Sprite {
     protected hp = 100;
     protected selectedCircle !: GameObjects.Arc | null
 
@@ -9,6 +9,14 @@ export class Actor extends Physics.Arcade.Sprite {
         super(scene, x, y, texture, frame);
 
         scene.add.existing(this);
+    }
+
+    public update(refUnit: UnitState) {
+        if(this.selectedCircle){
+            this.selectedCircle.x = this.x
+            this.selectedCircle.y = this.y
+        }
+
     }
 
     // When unit is selected, emphasis the actor

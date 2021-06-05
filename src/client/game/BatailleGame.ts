@@ -24,18 +24,10 @@ export class BatailleGame {
             dom: {
                 createContainer: false
             },
-            physics: {
-                default: 'arcade',
-                arcade: {
-                    gravity: { y: 0 },
-                    debug: false
-                }
-            },
-            // fps: {
-            //     target: 1,
-            //     min: 1,
-            //
-            // }
+            fps: {
+                // target: 2,
+                // forceSetTimeOut: true
+            }
         };
 
         this.game = new Phaser.Game(config);

@@ -39,7 +39,7 @@ export class Position {
         this.y = round32(this.rY) * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
 
         // Did we reach the target?
-        if (Math.abs(this.rX - target.x) < 0.5 && Math.abs(this.rY - target.y) < 0.5) {
+        if (Math.abs(this.rX - target.x) < 1 && Math.abs(this.rY - target.y) < 1) {
             return true
         }
 
