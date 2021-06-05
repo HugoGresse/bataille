@@ -5,6 +5,7 @@ import {Tile} from '../model/map/Tile'
 import {iterateOnXYMap} from './xyMapToArray'
 import {StickUnit} from '../model/actors/units/StickUnit'
 import {Position} from '../model/actors/Position'
+import {TILE_WIDTH_HEIGHT} from '../../common/UNITS'
 
 export const townAssignation = (players: Player[], map: Map) =>  {
     const towns = map.getTowns()
@@ -35,7 +36,7 @@ export const townAssignation = (players: Player[], map: Map) =>  {
 
     iterateOnXYMap(mapTiles, (tile: Tile, x, y) => {
         if(tile.isTown && tile.player && !tile.isNeutral) {
-            tile.player.addUnit(new StickUnit(tile.player, new Position(x, y)), x, y)
+            tile.player.addUnit(new StickUnit(tile.player, new Position(x * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT/2, y*TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT/2)), x, y)
         }
     })
 }

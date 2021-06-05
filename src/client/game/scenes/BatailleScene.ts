@@ -9,6 +9,7 @@ import {TileSelection} from './TileSelection'
 import {Town} from '../actors/buildings/Town'
 import {UIPlayer} from '../actors/UIPlayer'
 import {TILE_WIDTH_HEIGHT} from '../../../common/UNITS'
+import {DEPTH_UNIT} from './depth'
 
 export class BatailleScene extends BaseScene {
 
@@ -49,8 +50,8 @@ export class BatailleScene extends BaseScene {
                     const unitObj = new StickUnit(
                         this,
                         unit.id,
-                        unit.position.x * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT/2,
-                        unit.position.y * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT/2)
+                        unit.position.x,
+                        unit.position.y)
                     this.unitGroup.add(unitObj)
                     this.units[unit.id] = unitObj
                 }

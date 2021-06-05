@@ -1,9 +1,15 @@
 import {Velocity} from './Velocity'
+import {TILE_WIDTH_HEIGHT} from '../../../common/UNITS'
 
 export class Position {
 
-    constructor(public x: number, public y: number) {
+    // real position used for the movement
+    private rX: number
+    private rY: number
 
+    constructor(public x: number, public y: number) {
+        this.rX = x
+        this.rY = y
     }
 
     get(){
@@ -17,8 +23,7 @@ export class Position {
      * @return true if the target has been reached
      */
     move(target: Position, velocity: Velocity): boolean {
-
-        const vector = pointMakeVector(this, target);
+        const vector = pointMakeVector(new Position(this.rX, this.rY), target);
         const vLength = length(vector);
 
         if (vLength == 0) {
@@ -27,11 +32,14 @@ export class Position {
 
         const factor = velocity.speed / vLength;
 
-        this.x = this.x + factor * vector.x;
-        this.y = this.y + factor * vector.y;
+        this.rX = this.rX + factor * vector.x;
+        this.rY = this.rY + factor * vector.y;
+
+        this.x = round32(this.rX) * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
+        this.y = round32(this.rY) * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
 
         // Did we reach the target?
-        if (Math.abs(this.x - target.x) < 0.5 && Math.abs(this.y - target.y) < 0.5) {
+        if (Math.abs(this.rX - target.x) < 0.5 && Math.abs(this.rY - target.y) < 0.5) {
             return true
         }
 
@@ -39,6 +47,8 @@ export class Position {
     }
 
 }
+
+const round32 = (value: number) => Math.floor(value/TILE_WIDTH_HEIGHT)
 
 const pointMakeVector = (point1: Position, point2: Position) => {
     let xDist, yDist;

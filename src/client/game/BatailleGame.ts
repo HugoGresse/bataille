@@ -52,10 +52,17 @@ export class BatailleGame {
     onGameStart (data: ExportType) {
         const batailleScene: BatailleScene = this.game.scene.getScene('BatailleScene') as BatailleScene
 
-        batailleScene.events.on('start', function(){
+        if(batailleScene.scene.settings.active && batailleScene.scene.settings.visible) {
             batailleScene.initSceneWithData(data)
-            batailleScene.events.off('start')
-        });
+        } else {
+            batailleScene.events.on('start', function(){
+                batailleScene.initSceneWithData(data)
+                batailleScene.events.off('start')
+            });
+            batailleScene.events.on('destroy', () => {
+                batailleScene.events.off('start')
+            });
+        }
     }
 
     destroy() {

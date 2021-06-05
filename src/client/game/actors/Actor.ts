@@ -1,4 +1,5 @@
 import { Physics, GameObjects } from "phaser";
+import {DEPTH_UNIT} from '../scenes/depth'
 
 export class Actor extends Physics.Arcade.Sprite {
     protected hp = 100;
@@ -12,12 +13,13 @@ export class Actor extends Physics.Arcade.Sprite {
 
     // When unit is selected, emphasis the actor
     protected onSelect() {
-        const center = this.getBody().center
+        const centerX = this.x
+        const centerY = this.y
         if(this.selectedCircle) {
             this.selectedCircle.destroy()
         }
-        this.selectedCircle = this.scene.add.circle(center.x , center.y , this.getBody().height /2, 0x666666);
-        this.selectedCircle.setDepth(-1)
+        this.selectedCircle = this.scene.add.circle(centerX , centerY , this.input.hitArea.height, 0xFFFFFFFF, 0);
+        this.selectedCircle.setDepth(0)
     }
 
     protected onUnselect() {
