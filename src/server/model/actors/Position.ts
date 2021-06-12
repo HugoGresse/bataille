@@ -18,6 +18,12 @@ export class Position {
             y: this.y
         }
     }
+    getRounded(){
+        return {
+            x: round32(this.x),
+            y: round32(this.y)
+        }
+    }
 
     /**
      * @return true if the target has been reached

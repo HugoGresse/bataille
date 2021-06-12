@@ -1,5 +1,6 @@
 import {Tile, TilePublic} from './Tile'
 import mapData from '../../../../public/assets/tilemaps/json/map.json'
+import {iterateOnXYMap} from '../../utils/xyMapToArray'
 
 export type MapTiles = {
     [x: number]: {
@@ -93,5 +94,14 @@ export class Map {
         }
     }
 
+    getTownsState(): TilePublic[] {
+        const outputArray: TilePublic[] = []
+        iterateOnXYMap<Tile>(this.tiles, (tile, x, y) => {
+            if(tile.isTown){
+                outputArray.push(tile.export())
+            }
+        })
 
+        return outputArray
+    }
 }

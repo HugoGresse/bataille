@@ -1,9 +1,10 @@
 import {PlayerState, UnitState} from './GameState'
 import {BaseUnit} from './actors/units/BaseUnit'
 import {UnitAction} from '../../common/UnitAction'
-import {xyMapToArray} from '../utils/xyMapToArray'
+import {iterateOnXYMap, xyMapToArray} from '../utils/xyMapToArray'
+import {v4 as uuidv4} from 'uuid'
 
-export type UnitTile = {
+export type UnitTiles = {
     [x: number]: {
         [y: number]: BaseUnit
     }
@@ -12,9 +13,11 @@ export type UnitTile = {
 abstract class AbstractPlayer {
 
     protected _name: string = `${Date.now()}`
-    protected units: UnitTile = {}
+    protected units: UnitTiles = {}
+    public id: string
 
     protected constructor(name = `${Date.now()}`, public color: string) {
+        this.id = uuidv4()
         this.name = name
     }
 
@@ -32,6 +35,10 @@ abstract class AbstractPlayer {
         }
         this.units[x][y] = unit
         console.log("add unit", x, y)
+    }
+
+    getUnits() : UnitTiles {
+        return this.units
     }
 
     getUnitsState(): UnitState[] {
@@ -58,7 +65,17 @@ abstract class AbstractPlayer {
     }
 
     update() {
-        xyMapToArray<BaseUnit>(this.units).forEach(unit => unit.update())
+        iterateOnXYMap<BaseUnit>(this.units, (unit, x, y) => {
+            unit.update()
+            const unitNewPos = unit.position.getRounded()
+            if(unitNewPos.x !== x || unitNewPos.y !== y) {
+                delete this.units[x][y]
+                if(!this.units[unitNewPos.x]) {
+                    this.units[unitNewPos.x] = {}
+                }
+                this.units[unitNewPos.x][unitNewPos.y] = unit
+            }
+        })
     }
 }
 

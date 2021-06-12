@@ -7,7 +7,6 @@ import {ExportType} from '../../../server/model/types/ExportType'
 import {setupCamera} from '../utils/setupCamera'
 import {TileSelection} from './TileSelection'
 import {Town} from '../actors/buildings/Town'
-import {UIPlayer} from '../actors/UIPlayer'
 import {TILE_WIDTH_HEIGHT} from '../../../common/UNITS'
 
 export class BatailleScene extends BaseScene {
@@ -20,7 +19,9 @@ export class BatailleScene extends BaseScene {
         [id: string]: StickUnit
     } = {}
     private unitGroup!: Phaser.GameObjects.Group
-
+    private towns: {
+        [id: string]: Town
+    } = {}
 
     constructor() {
         super('BatailleScene')
@@ -62,6 +63,10 @@ export class BatailleScene extends BaseScene {
             if (deadUnits.length > 0) {
                 console.log("dead:", deadUnits)
             }
+
+            newState.towns.forEach(town => {
+                this.towns[town.id].update(town)
+            })
         }
     }
 
@@ -82,7 +87,8 @@ export class BatailleScene extends BaseScene {
                 .forEach(y => {
                     const tileData = data.map.tiles[x][y]
                     if (tileData.isTown) {
-                        new Town(this, x * TILE_WIDTH_HEIGHT, y * TILE_WIDTH_HEIGHT, tileData.player as UIPlayer)
+                        const town = new Town(this, x * TILE_WIDTH_HEIGHT, y * TILE_WIDTH_HEIGHT, tileData)
+                        this.towns[town.id] = town
                     }
                 })
         })

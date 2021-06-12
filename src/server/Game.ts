@@ -1,14 +1,16 @@
 import {Server, Socket} from 'socket.io'
 import {Player} from './model/Player'
-import {StickUnit} from './model/actors/units/StickUnit'
-import {Position} from './model/actors/Position'
 import {GameLoop} from './GameLoop'
 import {GameState, UnitState} from './model/GameState'
 import {UnitAction} from '../common/UnitAction'
-import {Map} from './model/map/Map'
+import {Map, MapTiles} from './model/map/Map'
 import {SocketEmitter} from './SocketEmitter'
 import {ExportType} from './model/types/ExportType'
 import {townAssignation} from './utils/townAssignation'
+import {detectIntersection} from './model/detectIntersection'
+import {iterateOnXYMap} from './utils/xyMapToArray'
+import {BaseUnit} from './model/actors/units/BaseUnit'
+import {Tile} from './model/map/Tile'
 
 const MINIMUM_PLAYER_PER_GAME = 1
 
@@ -28,6 +30,17 @@ export class Game {
     }
 
     stopLoop() {
+        const player = Object.values(this.players)[0]
+        const units = player.getUnits()
+
+        iterateOnXYMap<Tile>(this.map.getMapTiles(), (tile, x: number, y: number) => {
+                if(tile.isTown) {
+                    console.log("town", x, y, tile.player?.name)
+                }
+        })
+        iterateOnXYMap<BaseUnit>(units, (unit, x: number, y: number) => {
+            console.log('unit', x, y)
+        })
         this.gameLoop.stop()
     }
 
@@ -51,7 +64,7 @@ export class Game {
             status: 'running',
             players: players,
             units: units,
-            towns: []
+            towns: this.map.getTownsState()
         }
     }
 
@@ -97,6 +110,9 @@ export class Game {
     }
 
     update() {
-        Object.values(this.players).forEach(player => player.update())
+        Object.values(this.players).forEach(player => {
+            player.update()
+            detectIntersection(this.map, player)
+        })
     }
 }

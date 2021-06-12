@@ -1,7 +1,3 @@
-import {Town} from '../../client/game/actors/buildings/Town'
-import {TILE_WIDTH_HEIGHT} from '../../common/UNITS'
-import {UIPlayer} from '../../client/game/actors/UIPlayer'
-
 export interface XYMap {
     [x: number]: {
         [x: number]: any

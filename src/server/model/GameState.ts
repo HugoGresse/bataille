@@ -1,4 +1,5 @@
 import {UnitsType} from '../../common/UNITS'
+import {TilePublic} from './map/Tile'
 
 export interface GameState {
 
@@ -27,6 +28,6 @@ export interface UnitState {
 }
 
 
-export interface TownsState {
+export interface TownsState extends TilePublic{
 
 }
