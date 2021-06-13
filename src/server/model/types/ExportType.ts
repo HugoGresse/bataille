@@ -1,4 +1,4 @@
-import {MapTilesPublic} from '../map/Map'
+import {MapTilesPublic} from './MapTilesPublic'
 
 export type ExportType = {
     map: MapTilesPublic

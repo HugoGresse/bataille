@@ -1,25 +1,16 @@
 import {Tile, TilePublic} from './Tile'
 import mapData from '../../../../public/assets/tilemaps/json/map.json'
 import {iterateOnXYMap} from '../../utils/xyMapToArray'
-
-export type MapTiles = {
-    [x: number]: {
-        [y: number]: Tile
-    }
-}
-export type MapTilesPublic = {
-    tiles: {
-        [x: number]: {
-            [y: number]: TilePublic
-        }
-    },
-    layerNames: string[]
-}
+import {MapTilesPublic} from '../types/MapTilesPublic'
+import {MapTiles} from '../types/MapTiles'
+import {TownByCountries} from '../types/TownByCountries'
+import {TownsDataLayer} from './TownsDataLayer'
 
 const EXPORTED_LAYER_NAMES= ["g-water", 'c-fr', 'c-it','c-es','c-pt','c-uk','c-ie', 'c-ch', 'c-ma', 'towns', ]
 
 export class Map {
     private tiles: MapTiles = {}
+    private townByCountries: TownByCountries = {}
     private mapWidth: number
     private mapHeight: number
 
@@ -34,6 +25,7 @@ export class Map {
             }
         }
 
+        const townDataLayer = new TownsDataLayer()
 
         mapData.layers.forEach(layer => {
             if (layer.name.startsWith("c-") || layer.name === "towns") {
@@ -48,7 +40,7 @@ export class Map {
                     for (let x = 0; x < width; x++) {
                         layerData = layer.data[iter]
                         if (layerData !== 0) {
-                            this.tiles[x][y] = new Tile(layerData)
+                            this.tiles[x][y] = new Tile(layerData, townDataLayer.getByCoordinates(x, y))
                         }
                         iter++
                     }

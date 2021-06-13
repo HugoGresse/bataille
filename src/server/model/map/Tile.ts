@@ -1,5 +1,6 @@
 import {NeutralPlayerInstance, Player} from '../Player'
 import {v4 as uuidv4} from 'uuid'
+import {TownsData} from '../types/TownsData'
 
 export enum TileType {
     None = 0,
@@ -26,8 +27,9 @@ export class Tile {
     public isTown = false
     public player ?: Player
     public isNeutral = true
+    public readonly data ?: TownsData
 
-    constructor(tileNumber: number | undefined) {
+    constructor(tileNumber: number | undefined, townsData : TownsData | null = null) {
         this.id=uuidv4()
         switch(tileNumber){
             case TileType.None:
@@ -41,6 +43,12 @@ export class Tile {
             case TileType.Port:
                 this.player = NeutralPlayerInstance
                 this.isTown = true
+                if(townsData){
+                this.data = townsData
+                } else {
+                    throw new Error('Missing towns data')
+                }
+                console.log(this.data)
                 break
             default:
                 console.log("Tile type not managed", tileNumber)
