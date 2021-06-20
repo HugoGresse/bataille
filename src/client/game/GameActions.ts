@@ -2,6 +2,7 @@ import {GAME_CLEAR, PLAYER_JOINED, PLAYER_NEW_UNIT, PLAYER_START, PLAYER_UNIT} f
 import {Socket} from 'socket.io-client'
 import {Actor} from './actors/Actor'
 import {UnitActionType} from '../../common/UnitAction'
+import {LOTR_NAMES} from '../utils/LOTR_NAMES'
 
 export class GameActions {
 
@@ -9,7 +10,7 @@ export class GameActions {
     }
 
     joinGame() {
-        this.socket.emit(PLAYER_JOINED, "Hugo")
+        this.socket.emit(PLAYER_JOINED, LOTR_NAMES[Math.floor(Math.random() * LOTR_NAMES.length)])
     }
 
     startGame() {
