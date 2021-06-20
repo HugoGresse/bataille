@@ -12,6 +12,8 @@ import {iterateOnXYMap} from './utils/xyMapToArray'
 import {BaseUnit} from './model/actors/units/BaseUnit'
 import {Tile} from './model/map/Tile'
 import {updatePlayerIncome} from './model/updatePlayerIncome'
+import {IncomeDispatcher} from './model/income/IncomeDispatcher'
+import {INCOME_MS} from '../common/GameSettings'
 
 const MINIMUM_PLAYER_PER_GAME = 1
 
@@ -22,6 +24,7 @@ export class Game {
     } = {}
     protected gameLoop: GameLoop
     protected map: Map
+    protected incomeDispatcher: IncomeDispatcher = new IncomeDispatcher(INCOME_MS)
     private emitter: SocketEmitter
 
     constructor(protected id: string, protected ioServer: Server) {
@@ -116,5 +119,6 @@ export class Game {
             detectIntersection(this.map, player)
             updatePlayerIncome(this.map.getTownsByCountries(), player)
         })
+        this.incomeDispatcher.update(this.players)
     }
 }

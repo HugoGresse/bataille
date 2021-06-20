@@ -4,6 +4,7 @@ import {UnitAction} from '../../common/UnitAction'
 import {iterateOnXYMap, xyMapToArray} from '../utils/xyMapToArray'
 import {v4 as uuidv4} from 'uuid'
 import {COUNTRIES_INCOME} from './map/COUNTRIES_INCOME'
+import {MONEY_START} from '../../common/GameSettings'
 
 export type UnitTiles = {
     [x: number]: {
@@ -83,7 +84,7 @@ abstract class AbstractPlayer {
 export class Player extends AbstractPlayer {
 
     public income: number = 0
-    public money: number = 4
+    public money: number = MONEY_START
 
     constructor(protected socketId: string,  color: string, name ?: string,) {
         super(name, color);
