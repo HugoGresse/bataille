@@ -13,9 +13,7 @@ import {BaseUnit} from './model/actors/units/BaseUnit'
 import {Tile} from './model/map/Tile'
 import {updatePlayerIncome} from './model/updatePlayerIncome'
 import {IncomeDispatcher} from './model/income/IncomeDispatcher'
-import {INCOME_MS} from '../common/GameSettings'
-
-const MINIMUM_PLAYER_PER_GAME = 2
+import {INCOME_MS, MINIMUM_PLAYER_PER_GAME} from '../common/GameSettings'
 
 export class Game {
 
@@ -38,9 +36,9 @@ export class Game {
         const units = player.getUnits()
 
         iterateOnXYMap<Tile>(this.map.getMapTiles(), (tile, x: number, y: number) => {
-                if(tile.isTown) {
-                    console.log("town", x, y, tile.player?.name)
-                }
+            if (tile.isTown) {
+                console.log("town", x, y, tile.player?.name)
+            }
         })
         iterateOnXYMap<BaseUnit>(units, (unit, x: number, y: number) => {
             console.log('unit', x, y)
@@ -48,7 +46,7 @@ export class Game {
         this.gameLoop.stop()
     }
 
-    export (): ExportType {
+    export(): ExportType {
         return {
             map: this.map.export()
         }
@@ -73,13 +71,17 @@ export class Game {
     }
 
     addPlayer(player: Player, socket: Socket) {
-        if(!this.players[socket.id]) {
+        if (this.gameLoop.isRunning) {
+            console.log("Attempt to join a game but is already started...")
+            return
+        }
+        if (!this.players[socket.id]) {
             this.players[socket.id] = player
         }
         socket.join(this.id)
         console.log("add player")
 
-        if(Object.keys(this.players).length >= MINIMUM_PLAYER_PER_GAME) {
+        if (Object.keys(this.players).length >= MINIMUM_PLAYER_PER_GAME) {
             this.start()
         }
         this.emitter.emitInitialGameState(this)
@@ -90,7 +92,7 @@ export class Game {
     }
 
     addUnit(playerId: string) {
-        if(!this.players[playerId]) {
+        if (!this.players[playerId]) {
             return
         }
         // const player = this.players[playerId]
@@ -101,14 +103,14 @@ export class Game {
     }
 
     unitEvent(playerId: string, event: UnitAction) {
-        if(this.players[playerId]){
+        if (this.players[playerId]) {
             this.players[playerId].unitAction(event)
         }
     }
 
     start() {
         townAssignation(this.getPlayers(), this.map)
-        if(!this.gameLoop.isRunning){
+        if (!this.gameLoop.isRunning) {
             this.gameLoop.start(this)
         }
     }

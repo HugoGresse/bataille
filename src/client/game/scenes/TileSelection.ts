@@ -38,7 +38,7 @@ export class TileSelection {
         }
 
         this.selectedTile = tile
-        this.selectedTile.index += 1
+        this.selectedTile.index += 1 // Update the display tile from the tilemap image
     }
 
 }

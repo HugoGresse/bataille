@@ -11,7 +11,7 @@ export abstract class BaseScene extends Phaser.Scene {
         return this.game.registry.get('actions')
     }
 
-    protected getState() : GameState | null {
+    public getState() : GameState | null {
         return BatailleGame.getCurrentGame().getSocket().getLatestState()
     }
 }

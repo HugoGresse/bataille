@@ -1,6 +1,6 @@
 import 'phaser'
 import {BatailleScene} from './scenes/BatailleScene'
-import {UIScene} from './scenes/UIScene'
+import {UIScene} from './scenes/UI/UIScene'
 import {LoadingScene} from './scenes/LoadingScene'
 import {SocketConnection} from '../SocketConnection'
 import {GameActions} from './GameActions'
