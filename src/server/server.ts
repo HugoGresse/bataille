@@ -4,7 +4,7 @@ import {parseKeyCode} from './utils/parseKeyCode'
 import {newId} from './utils/newId'
 import {Game} from './Game'
 import {Player} from './model/Player'
-import {GAME_CLEAR, PLAYER_JOINED, PLAYER_NEW_UNIT, PLAYER_UNIT} from '../common/SOCKET_EMIT'
+import {GAME_CLEAR, PLAYER_JOINED, PLAYER_NEW_UNIT, PLAYER_START, PLAYER_UNIT} from '../common/SOCKET_EMIT'
 import {UnitAction} from '../common/UnitAction'
 import {pickUnusedColor} from './utils/pickUnusedColor'
 
@@ -21,6 +21,7 @@ let game = new Game(newId(), io)
 io.on("connection", (socket: Socket) => {
     socket.on('keydown', handleKeydown(socket.id));
     socket.on(PLAYER_JOINED, handlePlayerJoin(socket))
+    socket.on(PLAYER_START, handlePlayerStart(socket))
     socket.on(PLAYER_NEW_UNIT, handlePlayerNewUnit(socket))
     socket.on(PLAYER_UNIT, handlePlayerUnit(socket))
     socket.on(GAME_CLEAR, handleClearGame())
@@ -49,6 +50,11 @@ const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
     const player = new Player(socket.id, pickUnusedColor(game.getPlayers()), playerName, )
     console.log("new player", player)
     game.addPlayer(player, socket, )
+}
+
+const handlePlayerStart = (socket: Socket) => () => {
+    console.log("Start game, sid", socket.id)
+    game.start()
 }
 
 const handlePlayerNewUnit = (socket: Socket) => () => {

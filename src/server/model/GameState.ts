@@ -10,7 +10,9 @@ export interface GameState {
 }
 
 export interface PlayerState {
-    name: string
+    name: string,
+    income: number,
+    money: number
 }
 
 export interface UnitState {

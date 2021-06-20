@@ -17,6 +17,12 @@ export const Game = () => {
         }
     }
 
+    const startGame = () => {
+        if(game) {
+            game.start()
+        }
+    }
+
     useEffect(() => {
         return newGame()
     }, [gameContainer])
@@ -24,6 +30,7 @@ export const Game = () => {
     return <div>
         <div style={{textAlign: "right"}}>
             <button onClick={newGame        }>new</button>
+            <button onClick={startGame}>start</button>
             <button onClick={() => {
                 game && game.destroy()
                 console.log("destroyed")

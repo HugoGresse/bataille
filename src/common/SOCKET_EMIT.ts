@@ -1,6 +1,7 @@
 
 // From client to server
 export const PLAYER_JOINED = "c-playerJoined"
+export const PLAYER_START = "c-playerStart"
 export const PLAYER_NEW_UNIT = "c-playerNewUnit"
 export const PLAYER_UNIT = "c-player/unit"
 export const GAME_CLEAR = "c-clearGame"

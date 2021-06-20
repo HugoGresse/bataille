@@ -15,7 +15,7 @@ import {updatePlayerIncome} from './model/updatePlayerIncome'
 import {IncomeDispatcher} from './model/income/IncomeDispatcher'
 import {INCOME_MS} from '../common/GameSettings'
 
-const MINIMUM_PLAYER_PER_GAME = 1
+const MINIMUM_PLAYER_PER_GAME = 2
 
 export class Game {
 

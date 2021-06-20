@@ -17,6 +17,8 @@ abstract class AbstractPlayer {
     protected _name: string = `${Date.now()}`
     protected units: UnitTiles = {}
     public id: string
+    public income: number = 0
+    public money: number = MONEY_START
 
     protected constructor(name = `${Date.now()}`, public color: string) {
         this.id = uuidv4()
@@ -55,7 +57,9 @@ abstract class AbstractPlayer {
 
     getPlayerState(): PlayerState {
         return {
-            name: this.name
+            name: this.name,
+            money: this.money,
+            income: this.income
         }
     }
 
@@ -79,21 +83,16 @@ abstract class AbstractPlayer {
             }
         })
     }
-}
-
-export class Player extends AbstractPlayer {
-
-    public income: number = 0
-    public money: number = MONEY_START
-
-    constructor(protected socketId: string,  color: string, name ?: string,) {
-        super(name, color);
-    }
-
     updateIncome(ownedCountriesIds: string[]) {
         this.income = ownedCountriesIds.reduce((acc: number, id) => {
             return acc + COUNTRIES_INCOME[id]
         }, 0)
+    }
+}
+
+export class Player extends AbstractPlayer {
+    constructor(protected socketId: string, color: string, name ?: string,) {
+        super(name, color);
     }
 }
 

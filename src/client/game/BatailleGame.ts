@@ -41,6 +41,11 @@ export class BatailleGame {
         gameActions.joinGame()
     }
 
+    start () {
+        const actions = this.game.registry.get('actions') as GameActions
+        actions.startGame()
+    }
+
     onGameStart (data: ExportType) {
         const batailleScene: BatailleScene = this.game.scene.getScene('BatailleScene') as BatailleScene
 
