@@ -4,15 +4,19 @@ import {TilePublic} from './map/Tile'
 export interface GameState {
 
     status: "running",
-    players: PlayerState[]
+    players: PublicPlayerState[]
+    currentPlayer: PrivatePlayerState
     units: UnitState[]
     towns: TownsState[]
 }
 
-export interface PlayerState {
+export interface PrivatePlayerState extends PublicPlayerState{
+    money: number
+}
+export interface PublicPlayerState {
     name: string,
     income: number,
-    money: number
+    color: string
 }
 
 export interface UnitState {

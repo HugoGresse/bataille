@@ -1,4 +1,4 @@
-import {PlayerState, UnitState} from './GameState'
+import {PrivatePlayerState, PublicPlayerState, UnitState} from './GameState'
 import {BaseUnit} from './actors/units/BaseUnit'
 import {UnitAction} from '../../common/UnitAction'
 import {iterateOnXYMap, xyMapToArray} from '../utils/xyMapToArray'
@@ -55,11 +55,18 @@ abstract class AbstractPlayer {
         }))
     }
 
-    getPlayerState(): PlayerState {
+    getPublicPlayerState(): PublicPlayerState {
         return {
             name: this.name,
+            income: this.income,
+            color: this.color
+        }
+    }
+
+    getPrivatePlayerState(): PrivatePlayerState {
+        return {
+            ...this.getPublicPlayerState(),
             money: this.money,
-            income: this.income
         }
     }
 

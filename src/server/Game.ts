@@ -33,16 +33,17 @@ export class Game {
 
     stopLoop() {
         const player = Object.values(this.players)[0]
-        const units = player.getUnits()
-
-        iterateOnXYMap<Tile>(this.map.getMapTiles(), (tile, x: number, y: number) => {
-            if (tile.isTown) {
-                console.log("town", x, y, tile.player?.name)
-            }
-        })
-        iterateOnXYMap<BaseUnit>(units, (unit, x: number, y: number) => {
-            console.log('unit', x, y)
-        })
+        if(player){
+            const units = player.getUnits()
+            iterateOnXYMap<Tile>(this.map.getMapTiles(), (tile, x: number, y: number) => {
+                if (tile.isTown) {
+                    console.log("town", x, y, tile.player?.name)
+                }
+            })
+            iterateOnXYMap<BaseUnit>(units, (unit, x: number, y: number) => {
+                console.log('unit', x, y)
+            })
+        }
         this.gameLoop.stop()
     }
 
@@ -52,7 +53,7 @@ export class Game {
         }
     }
 
-    getState(): GameState {
+    getState(playerId: string): GameState {
         const units = Object
             .values(this.players)
             .reduce((acc: UnitState[], player) => {
@@ -60,11 +61,14 @@ export class Game {
             }, [])
         const players = Object
             .values(this.players)
-            .map(player => player.getPlayerState())
+            .map(player => player.getPublicPlayerState())
+
+        const currentPlayer = this.players[playerId]
 
         return {
             status: 'running',
             players: players,
+            currentPlayer: currentPlayer.getPrivatePlayerState(),
             units: units,
             towns: this.map.getTownsState()
         }

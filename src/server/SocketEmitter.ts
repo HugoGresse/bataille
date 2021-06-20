@@ -3,6 +3,9 @@ import {DefaultEventsMap} from 'socket.io/dist/typed-events'
 import {Game} from './Game'
 import {GAME_STATE_INIT, GAME_STATE_UPDATE} from '../common/SOCKET_EMIT'
 
+/**
+ * Emit events to a specific Socket room provided at construction
+ */
 export class SocketEmitter {
 
     constructor(private sockets: BroadcastOperator<DefaultEventsMap>) {
@@ -12,8 +15,10 @@ export class SocketEmitter {
         this.sockets.emit(GAME_STATE_INIT, game.export())
     }
 
-    emitGameUpdate(game: Game) {
-        // console.log(game.getState())
-        this.sockets.emit(GAME_STATE_UPDATE, game.getState())
+    async emitGameUpdate(game: Game) {
+        const socketIds = await this.sockets.allSockets()
+        socketIds.forEach((socketId) => {
+            this.sockets.emit(GAME_STATE_UPDATE, game.getState(socketId))
+        })
     }
 }
