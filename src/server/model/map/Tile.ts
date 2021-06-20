@@ -48,7 +48,6 @@ export class Tile {
                 } else {
                     throw new Error('Missing towns data')
                 }
-                console.log(this.data)
                 break
             default:
                 console.log("Tile type not managed", tileNumber)
@@ -70,4 +69,8 @@ export class Tile {
         return exportData
     }
 
+}
+
+export interface Town extends Tile {
+    player: Player
 }

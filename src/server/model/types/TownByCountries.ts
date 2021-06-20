@@ -1,5 +1,5 @@
-import {Tile} from '../map/Tile'
+import {Town} from '../map/Tile'
 
 export type TownByCountries = {
-    [countryId: string]: Tile[]
+    [countryId: string]: Town[]
 }

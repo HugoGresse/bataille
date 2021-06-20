@@ -1,4 +1,4 @@
-import {Tile, TilePublic} from './Tile'
+import {Tile, TilePublic, Town} from './Tile'
 import mapData from '../../../../public/assets/tilemaps/json/map.json'
 import {iterateOnXYMap} from '../../utils/xyMapToArray'
 import {MapTilesPublic} from '../types/MapTilesPublic'
@@ -40,7 +40,14 @@ export class Map {
                     for (let x = 0; x < width; x++) {
                         layerData = layer.data[iter]
                         if (layerData !== 0) {
-                            this.tiles[x][y] = new Tile(layerData, townDataLayer.getByCoordinates(x, y))
+                            const tile = new Tile(layerData, townDataLayer.getByCoordinates(x, y))
+                            this.tiles[x][y] = tile
+                            if(tile.isTown){
+                                if(!this.townByCountries[tile.data!.country]){
+                                    this.townByCountries[tile.data!.country] = []
+                                }
+                                this.townByCountries[tile.data!.country].push(tile as Town)
+                            }
                         }
                         iter++
                     }
@@ -95,5 +102,9 @@ export class Map {
         })
 
         return outputArray
+    }
+
+    getTownsByCountries() {
+        return this.townByCountries
     }
 }

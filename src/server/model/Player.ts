@@ -3,6 +3,7 @@ import {BaseUnit} from './actors/units/BaseUnit'
 import {UnitAction} from '../../common/UnitAction'
 import {iterateOnXYMap, xyMapToArray} from '../utils/xyMapToArray'
 import {v4 as uuidv4} from 'uuid'
+import {COUNTRIES_INCOME} from './map/COUNTRIES_INCOME'
 
 export type UnitTiles = {
     [x: number]: {
@@ -81,8 +82,17 @@ abstract class AbstractPlayer {
 
 export class Player extends AbstractPlayer {
 
+    public income: number = 0
+    public money: number = 4
+
     constructor(protected socketId: string,  color: string, name ?: string,) {
         super(name, color);
+    }
+
+    updateIncome(ownedCountriesIds: string[]) {
+        this.income = ownedCountriesIds.reduce((acc: number, id) => {
+            return acc + COUNTRIES_INCOME[id]
+        }, 0)
     }
 }
 

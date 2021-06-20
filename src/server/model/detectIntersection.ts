@@ -14,12 +14,9 @@ export const detectIntersection = (map: Map, player: Player) => {
             const tile = tileX[y]
             if(tile.isTown && (!tile.player ||tile.player.id !== player.id)) {
                 tile.player = player
-                console.log("capture!")
+                console.log("Tile captured")
             }
         }
 
     })
-
-    // if tile is a town, capture it if possible
-
 }

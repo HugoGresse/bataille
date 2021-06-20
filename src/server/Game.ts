@@ -11,6 +11,7 @@ import {detectIntersection} from './model/detectIntersection'
 import {iterateOnXYMap} from './utils/xyMapToArray'
 import {BaseUnit} from './model/actors/units/BaseUnit'
 import {Tile} from './model/map/Tile'
+import {updatePlayerIncome} from './model/updatePlayerIncome'
 
 const MINIMUM_PLAYER_PER_GAME = 1
 
@@ -113,6 +114,7 @@ export class Game {
         Object.values(this.players).forEach(player => {
             player.update()
             detectIntersection(this.map, player)
+            updatePlayerIncome(this.map.getTownsByCountries(), player)
         })
     }
 }
