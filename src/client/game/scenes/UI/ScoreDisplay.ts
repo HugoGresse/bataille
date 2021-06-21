@@ -1,11 +1,8 @@
 import {BaseScene} from '../BaseScene'
+import {TEXT_STYLE} from '../../../utils/TEXT_STYLE'
 
 const LEFT_MARGIN = 20
 const Y_MARGIN = 20
-
-const textStyle = {
-    color: '#FFFFFF', fontFamily: 'sans-serif',
-}
 
 export class ScoreDisplay {
 
@@ -22,15 +19,15 @@ export class ScoreDisplay {
         let startYPosition = 10
         const rectangle = scene.add.rectangle(80, 100, 160, 200)
         rectangle.setFillStyle(0x000000, 0.5)
-        this.nameText = scene.add.text(LEFT_MARGIN, startYPosition, 'Name: ', textStyle)
+        this.nameText = scene.add.text(LEFT_MARGIN, startYPosition, 'Name: ', TEXT_STYLE)
         startYPosition += Y_MARGIN
-        this.colorText = scene.add.text(LEFT_MARGIN, startYPosition, 'Color:', textStyle)
+        this.colorText = scene.add.text(LEFT_MARGIN, startYPosition, 'Color:', TEXT_STYLE)
         startYPosition += Y_MARGIN
-        this.incomeText = scene.add.text(LEFT_MARGIN, startYPosition, 'Income: ', textStyle)
+        this.incomeText = scene.add.text(LEFT_MARGIN, startYPosition, 'Income: ', TEXT_STYLE)
         startYPosition += Y_MARGIN
-        this.moneyText = scene.add.text(LEFT_MARGIN, startYPosition, 'Money: ', textStyle)
+        this.moneyText = scene.add.text(LEFT_MARGIN, startYPosition, 'Money: ', TEXT_STYLE)
         startYPosition += Y_MARGIN
-        scene.add.text(LEFT_MARGIN, startYPosition, 'Players incomes: ', textStyle)
+        scene.add.text(LEFT_MARGIN, startYPosition, 'Players incomes: ', TEXT_STYLE)
         this.playerYPosition = startYPosition + Y_MARGIN
     }
 
@@ -56,7 +53,7 @@ export class ScoreDisplay {
         players?.forEach(player => {
             const playerText = `- ${player.name}: ${player.income}`
             if(!this.playersTexts[player.name]){
-                this.playersTexts[player.name] = scene.add.text(LEFT_MARGIN, this.playerYPosition, playerText, textStyle)
+                this.playersTexts[player.name] = scene.add.text(LEFT_MARGIN, this.playerYPosition, playerText, TEXT_STYLE)
                 this.playerYPosition = this.playerYPosition + Y_MARGIN
             } else if(this.playersTexts[player.name].text !== playerText) {
                     this.playersTexts[player.name].text = playerText

@@ -110,7 +110,6 @@ export class Game {
             player.addUnit(unit, x, y)
             player.spendMoney(UnitsType.Stick)
         }
-        // TODO : display city name in overlay
     }
 
     unitEvent(playerId: string, event: UnitAction) {
