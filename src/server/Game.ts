@@ -14,6 +14,10 @@ import {Tile} from './model/map/Tile'
 import {updatePlayerIncome} from './model/updatePlayerIncome'
 import {IncomeDispatcher} from './model/income/IncomeDispatcher'
 import {INCOME_MS, MINIMUM_PLAYER_PER_GAME} from '../common/GameSettings'
+import {NewUnitDataEvent} from '../common/NewUnitDataEvent'
+import {StickUnit} from './model/actors/units/StickUnit'
+import {Position} from './model/actors/Position'
+import {TILE_WIDTH_HEIGHT, UnitsType} from '../common/UNITS'
 
 export class Game {
 
@@ -33,7 +37,7 @@ export class Game {
 
     stopLoop() {
         const player = Object.values(this.players)[0]
-        if(player){
+        if (player) {
             const units = player.getUnits()
             iterateOnXYMap<Tile>(this.map.getMapTiles(), (tile, x: number, y: number) => {
                 if (tile.isTown) {
@@ -95,21 +99,25 @@ export class Game {
         return Object.values(this.players)
     }
 
-    addUnit(playerId: string) {
-        if (!this.players[playerId]) {
+    addUnit(playerId: string, {x, y}: NewUnitDataEvent) {
+        if (!this.players[playerId] || !this.gameLoop.isRunning) {
             return
         }
-        // const player = this.players[playerId]
-        // const x = Math.floor(Math.random() * 300)
-        // const y = Math.floor(Math.random() * 300)
-        // player.addUnit(new StickUnit(player, new Position(x, y)))
-        console.log("addUnit, TODO")
+        const player = this.players[playerId]
+
+        if(player.money >= UnitsType.Stick) {
+            const unit = new StickUnit(player, new Position(x + TILE_WIDTH_HEIGHT / 2, y + TILE_WIDTH_HEIGHT / 2))
+            player.addUnit(unit, x, y)
+            player.spendMoney(UnitsType.Stick)
+        }
+        // TODO : display city name in overlay
     }
 
     unitEvent(playerId: string, event: UnitAction) {
-        if (this.players[playerId]) {
-            this.players[playerId].unitAction(event)
+        if (!this.players[playerId] || !this.gameLoop.isRunning) {
+            return
         }
+        this.players[playerId].unitAction(event)
     }
 
     start() {

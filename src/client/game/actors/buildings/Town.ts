@@ -18,6 +18,7 @@ export class Town extends Building {
 
     update(tile: TilePublic) {
         this.setTownColor(tile.player as UIPlayer)
+        this.tileData.player = tile.player
     }
 
     setTownColor(player: UIPlayer) {

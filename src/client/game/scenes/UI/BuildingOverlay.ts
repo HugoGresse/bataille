@@ -1,6 +1,7 @@
 import {UIScene} from './UIScene'
 import {Town} from '../../actors/buildings/Town'
 import {getGameWindowSize} from '../../../utils/getGameWindowSize'
+import {UnitsType} from '../../../../common/UNITS'
 
 const textStyle = {
     color: '#FFFFFF', fontFamily: 'sans-serif',
@@ -23,7 +24,7 @@ export class BuildingOverlay {
         const rectangle = this.scene.add.rectangle(width/2, height - OVERLAY_HEIGHT/2, OVERLAY_WIDTH, OVERLAY_HEIGHT)
         rectangle.setFillStyle(0xFF0000, 1)
 
-        const text = this.scene.add.text(width/2 - OVERLAY_WIDTH/2 + OVERLAY_PADDING, height - OVERLAY_HEIGHT + OVERLAY_PADDING, 'New Unit (1$)', textStyle)
+        const text = this.scene.add.text(width/2 - OVERLAY_WIDTH/2 + OVERLAY_PADDING, height - OVERLAY_HEIGHT + OVERLAY_PADDING,  `New Unit (${UnitsType.Stick}$)`, textStyle)
         text.setInteractive()
         text.on(Phaser.Input.Events.POINTER_UP, () => {
             this.scene.actions.newUnit(town.x, town.y)

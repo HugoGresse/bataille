@@ -10,8 +10,8 @@ export enum TileNumber {
 export const TILE_WIDTH_HEIGHT = 32
 
 export enum UnitsType {
-    Stick,
-    Bar,
-    Medic,
-    Wheelie
+    Stick=1,
+    Bar=2,
+    Medic=3,
+    Wheelie=4
 }

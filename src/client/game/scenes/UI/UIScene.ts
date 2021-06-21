@@ -26,10 +26,12 @@ export class UIScene extends BaseScene {
     }
 
     onBuildingSelected(building: Building) {
-
-        if(building instanceof Town) {
+        if(building instanceof Town ) {
             const town = building as Town
-            this.buildingOverlay.onTownSelected(town)
+            const currentPlayerName = this.getState()?.currentPlayer.name
+            if(town.tileData.player?.name === currentPlayerName){
+                this.buildingOverlay.onTownSelected(town)
+            }
         } else {
             console.log(building)
         }

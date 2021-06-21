@@ -5,6 +5,7 @@ import {iterateOnXYMap, xyMapToArray} from '../utils/xyMapToArray'
 import {v4 as uuidv4} from 'uuid'
 import {COUNTRIES_INCOME} from './map/COUNTRIES_INCOME'
 import {MONEY_START} from '../../common/GameSettings'
+import {UnitsType} from '../../common/UNITS'
 
 export type UnitTiles = {
     [x: number]: {
@@ -94,6 +95,9 @@ abstract class AbstractPlayer {
         this.income = ownedCountriesIds.reduce((acc: number, id) => {
             return acc + COUNTRIES_INCOME[id]
         }, 0)
+    }
+    spendMoney(unitType: UnitsType) {
+        this.money -= unitType
     }
 }
 

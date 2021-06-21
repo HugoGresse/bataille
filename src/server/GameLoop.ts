@@ -16,6 +16,7 @@ export class GameLoop {
 
 
     start(game: Game) {
+        console.log("Loop started")
         this.intervalId = setInterval(() => {
 
             const winner = this.run(game)
