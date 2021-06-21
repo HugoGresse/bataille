@@ -20,7 +20,7 @@ export class ScoreDisplay {
 
     constructor(scene: Phaser.Scene) {
         let startYPosition = 10
-        const rectangle = scene.add.rectangle(0, 0, 350, 400)
+        const rectangle = scene.add.rectangle(80, 100, 160, 200)
         rectangle.setFillStyle(0x000000, 0.5)
         this.nameText = scene.add.text(LEFT_MARGIN, startYPosition, 'Name: ', textStyle)
         startYPosition += Y_MARGIN

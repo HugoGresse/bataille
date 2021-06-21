@@ -1,7 +1,7 @@
 import 'phaser'
 import {StickUnit} from '../actors/StickUnit'
 import {Tilemaps} from 'phaser'
-import {BaseScene} from './BaseScene'
+import {BaseScene, SCENE_UI_KEY} from './BaseScene'
 import {BatailleGame} from '../BatailleGame'
 import {ExportType} from '../../../server/model/types/ExportType'
 import {setupCamera} from '../utils/setupCamera'
@@ -32,7 +32,7 @@ export class BatailleScene extends BaseScene {
     }
 
     create() {
-        this.scene.launch("UI")
+        this.scene.launch(SCENE_UI_KEY)
         setupCamera(this.cameras.main, this)
     }
 

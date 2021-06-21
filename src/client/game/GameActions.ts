@@ -17,8 +17,11 @@ export class GameActions {
         this.socket.emit(PLAYER_START)
     }
 
-    newUnit() {
-        this.socket.emit(PLAYER_NEW_UNIT)
+    newUnit(x: number, y: number) {
+        this.socket.emit(PLAYER_NEW_UNIT, {
+            x,
+            y,
+        })
     }
 
     moveUnit(actor: Actor, tx: number, ty: number) {
