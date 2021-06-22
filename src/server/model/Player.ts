@@ -52,7 +52,8 @@ abstract class AbstractPlayer {
             id: unit.id,
             type: unit.type,
             hp: unit.life.get(),
-            position: unit.position.get()
+            position: unit.position.get(),
+                color: this.color.replace('0x', "#")
         }))
     }
 

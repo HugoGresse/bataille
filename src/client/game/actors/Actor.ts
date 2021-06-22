@@ -1,14 +1,20 @@
 import { Physics, GameObjects } from "phaser";
 import {UnitState} from '../../../server/model/GameState'
+import {TEXT_STYLE} from '../../utils/TEXT_STYLE'
+import {TILE_WIDTH_HEIGHT} from '../../../common/UNITS'
 
 export class Actor extends Phaser.GameObjects.Sprite {
-    protected hp = 100;
+    protected hp = 0;
     protected selectedCircle !: GameObjects.Arc | null
+    private hpText : GameObjects.Text
 
     constructor(scene: Phaser.Scene, public readonly id: string, x: number, y: number, texture: string, frame?: string | number) {
         super(scene, x, y, texture, frame);
 
         scene.add.existing(this);
+        this.hpText = scene.add.text(x, y, "", {
+            ...TEXT_STYLE,
+        })
     }
 
     public update(refUnit: UnitState) {
@@ -17,6 +23,17 @@ export class Actor extends Phaser.GameObjects.Sprite {
             this.selectedCircle.y = this.y
         }
 
+        if(refUnit.hp.current !== this.hp) {
+            this.hp = refUnit.hp.current
+            this.hpText.text = this.hp.toString()
+        }
+        this.hpText.x = this.x - 5
+        this.hpText.y = this.y - 10
+    }
+
+    public setColor(color: string) {
+        console.log(color)
+        this.hpText.setColor(color)
     }
 
     // When unit is selected, emphasis the actor

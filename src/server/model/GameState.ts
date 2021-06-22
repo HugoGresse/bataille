@@ -30,7 +30,7 @@ export interface UnitState {
         x: number,
         y: number
     }
-
+    color: string
 }
 
 
