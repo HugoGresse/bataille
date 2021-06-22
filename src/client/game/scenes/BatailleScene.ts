@@ -47,7 +47,6 @@ export class BatailleScene extends BaseScene {
                 if (this.units[unit.id]) {
                     this.units[unit.id].update(unit)
                 } else {
-                    // TODO : new unit on same town = increase HP
                     const unitObj = new StickUnit(
                         this,
                         unit.id,

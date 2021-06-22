@@ -38,7 +38,11 @@ abstract class AbstractPlayer {
         if(!this.units[x]){
             this.units[x] = {}
         }
-        this.units[x][y] = unit
+        if(this.units[x][y]) {
+            this.units[x][y].life.setHP(this.units[x][y].life.getHP() + unit.life.getHP())
+        } else {
+            this.units[x][y] = unit
+        }
         console.log("add unit", x, y)
     }
 
@@ -84,6 +88,7 @@ abstract class AbstractPlayer {
             unit.update()
             const unitNewPos = unit.position.getRounded()
             if(unitNewPos.x !== x || unitNewPos.y !== y) {
+                // Unit may be wrongfully displayed on the grid, or just moved from one square to another, this align everything
                 delete this.units[x][y]
                 if(!this.units[unitNewPos.x]) {
                     this.units[unitNewPos.x] = {}

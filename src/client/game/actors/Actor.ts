@@ -1,7 +1,6 @@
 import { Physics, GameObjects } from "phaser";
 import {UnitState} from '../../../server/model/GameState'
 import {TEXT_STYLE} from '../../utils/TEXT_STYLE'
-import {TILE_WIDTH_HEIGHT} from '../../../common/UNITS'
 
 export class Actor extends Phaser.GameObjects.Sprite {
     protected hp = 0;
@@ -28,11 +27,10 @@ export class Actor extends Phaser.GameObjects.Sprite {
             this.hpText.text = this.hp.toString()
         }
         this.hpText.x = this.x - 5
-        this.hpText.y = this.y - 10
+        this.hpText.y = this.y - 8
     }
 
     public setColor(color: string) {
-        console.log(color)
         this.hpText.setColor(color)
     }
 

@@ -106,8 +106,10 @@ export class Game {
         const player = this.players[playerId]
 
         if(player.money >= UnitsType.Stick) {
-            const unit = new StickUnit(player, new Position(x + TILE_WIDTH_HEIGHT / 2, y + TILE_WIDTH_HEIGHT / 2))
-            player.addUnit(unit, x, y)
+            const position = new Position(x + TILE_WIDTH_HEIGHT / 2, y + TILE_WIDTH_HEIGHT / 2)
+            const gridPosition = position.getRoundedPosition()
+            const unit = new StickUnit(player, position)
+            player.addUnit(unit, gridPosition.x, gridPosition.y)
             player.spendMoney(UnitsType.Stick)
         }
     }

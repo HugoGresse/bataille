@@ -15,7 +15,7 @@ export class Life {
         }
     }
 
-    protected setHP(life: number) {
+    public setHP(life: number) {
         this.currentHP = life
     }
 

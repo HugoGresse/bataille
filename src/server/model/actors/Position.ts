@@ -24,6 +24,10 @@ export class Position {
             y: round32(this.y)
         }
     }
+    getRoundedPosition(){
+        const rounded = this.getRounded()
+        return new Position(rounded.x, rounded.y)
+    }
 
     /**
      * @return true if the target has been reached

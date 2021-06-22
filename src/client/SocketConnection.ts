@@ -23,7 +23,6 @@ export class SocketConnection {
 
     private handleGameInit(data: ExportType) {
         this.onGameStart(data)
-        console.log(data)
     }
 
     private handleGameState(gameState: GameState) {
