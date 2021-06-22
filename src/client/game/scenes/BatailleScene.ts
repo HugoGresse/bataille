@@ -33,6 +33,7 @@ export class BatailleScene extends BaseScene {
 
     create() {
         this.scene.launch(SCENE_UI_KEY)
+        this.input.setTopOnly(false)
         setupCamera(this.cameras.main, this)
     }
 
