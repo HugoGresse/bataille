@@ -34,6 +34,12 @@ export class Actor extends Phaser.GameObjects.Sprite {
         this.hpText.setColor(color)
     }
 
+    public destroy() {
+        super.destroy()
+        this?.selectedCircle?.destroy()
+        this.hpText.destroy()
+    }
+
     // When unit is selected, emphasis the actor
     protected onSelect() {
         const centerX = this.x

@@ -18,6 +18,7 @@ import {NewUnitDataEvent} from '../common/NewUnitDataEvent'
 import {StickUnit} from './model/actors/units/StickUnit'
 import {Position} from './model/actors/Position'
 import {TILE_WIDTH_HEIGHT, UnitsType} from '../common/UNITS'
+import {detectUnitsIntersections} from './model/detectUnitsIntersections'
 
 export class Game {
 
@@ -129,6 +130,7 @@ export class Game {
     }
 
     update() {
+        detectUnitsIntersections(this.players)
         Object.values(this.players).forEach(player => {
             player.update()
             detectIntersection(this.map, player)

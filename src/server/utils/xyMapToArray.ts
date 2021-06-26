@@ -1,6 +1,11 @@
 export interface XYMap {
     [x: number]: {
-        [x: number]: any
+        [y: number]: any
+    }
+}
+export interface XYMapWithType<T> {
+    [x: number]: {
+        [y: number]: T
     }
 }
 export function xyMapToArray<Type>(map: XYMap): Type[]{

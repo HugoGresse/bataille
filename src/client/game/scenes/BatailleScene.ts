@@ -59,12 +59,14 @@ export class BatailleScene extends BaseScene {
                     this.units[unit.id] = unitObj
                 }
             })
-            const thisUnitsIds = Object.keys(this.units)
-            const deadUnits = aliveUnits.filter((obj) => {
-                return thisUnitsIds.indexOf(obj) === -1
+            const deadUnits = Object.keys(this.units).filter((unitId) => {
+                return aliveUnits.indexOf(unitId) === -1
             })
             if (deadUnits.length > 0) {
-                console.log("dead:", deadUnits)
+                deadUnits.forEach(id => {
+                    this.units[id].destroy()
+                    delete this.units[id]
+                })
             }
 
             newState.towns.forEach(town => {

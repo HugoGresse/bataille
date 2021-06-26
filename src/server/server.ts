@@ -8,18 +8,13 @@ import {GAME_CLEAR, PLAYER_JOINED, PLAYER_NEW_UNIT, PLAYER_START, PLAYER_UNIT} f
 import {UnitAction} from '../common/UnitAction'
 import {pickUnusedColor} from './utils/pickUnusedColor'
 import {NewUnitDataEvent} from '../common/NewUnitDataEvent'
+import {socketIOServer} from './utils/io'
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001
 
-const io = new Server({
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }});
+let game = new Game(newId(), socketIOServer)
 
-let game = new Game(newId(), io)
-
-io.on("connection", (socket: Socket) => {
+socketIOServer.on("connection", (socket: Socket) => {
     socket.on('keydown', handleKeydown(socket.id));
     socket.on(PLAYER_JOINED, handlePlayerJoin(socket))
     socket.on(PLAYER_START, handlePlayerStart(socket))
@@ -28,7 +23,7 @@ io.on("connection", (socket: Socket) => {
     socket.on(GAME_CLEAR, handleClearGame())
 });
 
-io.listen(PORT)
+socketIOServer.listen(PORT)
 
 console.log(`Server listening on port 3001`)
 
@@ -64,7 +59,7 @@ const handlePlayerNewUnit = (socket: Socket) => (data: NewUnitDataEvent) => {
 
 const handleClearGame = () => () => {
     game.stopLoop()
-    game = new Game(newId(), io)
+    game = new Game(newId(), socketIOServer)
     console.log("clearGame")
 }
 

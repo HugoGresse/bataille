@@ -17,7 +17,7 @@ export abstract class BaseUnit extends Actor {
 
     protected constructor(owner: Player,
                           position: Position,
-                          protected damage: number,
+                          public readonly damage: number,
                           hp: number,
                           protected velocity: Velocity) {
         super(owner, position)
