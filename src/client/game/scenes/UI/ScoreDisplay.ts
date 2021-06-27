@@ -4,6 +4,8 @@ import {TEXT_STYLE} from '../../../utils/TEXT_STYLE'
 const LEFT_MARGIN = 20
 const Y_MARGIN = 20
 
+const BACKGROUND_WIDTH = 200
+
 export class ScoreDisplay {
 
     colorText: Phaser.GameObjects.Text
@@ -17,7 +19,7 @@ export class ScoreDisplay {
 
     constructor(scene: Phaser.Scene) {
         let startYPosition = 10
-        const rectangle = scene.add.rectangle(80, 100, 160, 200)
+        const rectangle = scene.add.rectangle(BACKGROUND_WIDTH/2, 100, BACKGROUND_WIDTH, 200)
         rectangle.setFillStyle(0x000000, 0.5)
         this.nameText = scene.add.text(LEFT_MARGIN, startYPosition, 'Name: ', TEXT_STYLE)
         startYPosition += Y_MARGIN
