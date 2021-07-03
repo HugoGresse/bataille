@@ -24,7 +24,7 @@ socketIOServer.on("connection", (socket: Socket) => {
 
 socketIOServer.listen(PORT)
 
-console.log(`Server listening on port 3001`)
+console.log(`Server listening on port ${PORT}`)
 
 
 const handleKeydown = (socketId: string) => (keyCode: string) => {
