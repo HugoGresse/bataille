@@ -3,7 +3,7 @@ import {GameObjects, Input, Scene} from 'phaser'
 type Camera = Phaser.Cameras.Scene2D.Camera
 
 export const setupCamera = (camera: Camera, scene: Scene) => {
-    camera.setBounds(0, 0, 6000, 6000)
+    camera.setBounds(0, 0, 5000, 6000)
     const minZoom = 0.2
     const maxZoom = 2
     camera.zoom = 0.7

@@ -6,6 +6,7 @@ export const COUNTRIES_INCOME: {
     pt: 2,
     it: 6,
     uk: 8,
+    de: 6 ,
     ie: 2,
     ch: 2,
     is: 0,
