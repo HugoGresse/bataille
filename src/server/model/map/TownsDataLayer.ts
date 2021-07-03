@@ -8,6 +8,7 @@ export class TownsDataLayer {
     townsByGrid: XYMap = {}
 
     constructor() {
+        // console.log(mapData.layers.map(layer => layer.name))
         const layer = mapData.layers.find(layer => layer.name === "towns-data")
         if (!layer || !layer.objects) {
             throw new Error('towns-data layer not found in map.json')

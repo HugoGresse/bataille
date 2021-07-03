@@ -5,6 +5,7 @@ import {LoadingScene} from './scenes/LoadingScene'
 import {SocketConnection} from '../SocketConnection'
 import {GameActions} from './GameActions'
 import {ExportType} from '../../server/model/types/ExportType'
+import {SOCKET_URL} from './utils/clientEnv'
 
 export class BatailleGame {
 
@@ -31,7 +32,7 @@ export class BatailleGame {
         };
 
         this.game = new Phaser.Game(config);
-        this.socket = new SocketConnection("localhost:3001", (data) => {
+        this.socket = new SocketConnection(SOCKET_URL, (data) => {
             if(this.game.isRunning){
                 this.onGameStart(data)
             }

@@ -9,10 +9,22 @@ import {ExportType} from '../server/model/types/ExportType'
 export class SocketConnection {
 
     private socket: Socket
-    private gameState : GameState | null = null
+    private gameState: GameState | null = null
 
     constructor(protected socketUrl: string, protected onGameStart: (data: ExportType) => any) {
         this.socket = io(socketUrl)
+
+        this.socket.on("connection", (socket) => {
+            console.log("connected")
+        })
+        this.socket.on('disconnect', function () {
+            console.log("disconnect")
+
+        })
+        this.socket.on('reconnect', () => {
+            console.log("reconnect")
+        })
+
 
         this.handleGameState = this.handleGameState.bind(this)
         this.handleGameInit = this.handleGameInit.bind(this)
