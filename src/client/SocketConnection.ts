@@ -1,4 +1,4 @@
-import {Manager, Socket} from "socket.io-client"
+import {io, Socket} from "socket.io-client"
 import {GameState} from '../server/model/GameState'
 import {GAME_STATE_INIT, GAME_STATE_UPDATE} from '../common/SOCKET_EMIT'
 import {ExportType} from '../server/model/types/ExportType'
@@ -12,12 +12,7 @@ export class SocketConnection {
     private gameState: GameState | null = null
 
     constructor(protected socketUrl: string, protected onGameStart: (data: ExportType) => any) {
-
-        const manager = new Manager(socketUrl, {
-            transports: ["websocket"]
-        });
-
-        this.socket = manager.socket("/")
+        this.socket = io(socketUrl)
 
         this.socket.on("connection", (socket) => {
             console.log("connected")
