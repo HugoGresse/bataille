@@ -32,6 +32,7 @@ export class BatailleGame {
         };
 
         this.game = new Phaser.Game(config);
+        console.log(SOCKET_URL)
         this.socket = new SocketConnection(SOCKET_URL, (data) => {
             if(this.game.isRunning){
                 this.onGameStart(data)
