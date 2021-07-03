@@ -9,9 +9,7 @@ import {UnitAction} from '../common/UnitAction'
 import {pickUnusedColor} from './utils/pickUnusedColor'
 import {NewUnitDataEvent} from '../common/NewUnitDataEvent'
 import {socketIOServer} from './utils/io'
-import {IS_PRODUCTION} from './utils/serverEnv'
-
-const PORT = IS_PRODUCTION ? 443 : 3001
+import {PORT} from './utils/serverEnv'
 
 let game = new Game(newId(), socketIOServer)
 

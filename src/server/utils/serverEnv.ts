@@ -1,1 +1,1 @@
-export const IS_PRODUCTION : boolean = process.env.NODE_ENV === "production"
+export const PORT = parseInt(process.env.PORT as string) || 3001
