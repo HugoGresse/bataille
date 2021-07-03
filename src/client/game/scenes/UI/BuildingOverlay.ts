@@ -14,11 +14,15 @@ export class BuildingOverlay {
 
     shapes: Shapes[] = []
     newUnitText ?: Shapes
+    selectedTown: Town | null = null
 
     constructor(private scene: UIScene) {
     }
 
     onTownSelected(town: Town) {
+        if(this.selectedTown ){
+            this.onEmptyTileSelected()
+        }
         const {width, height} = getGameWindowSize(this.scene)
         const rectangle = this.scene.add.rectangle(width/2, height - OVERLAY_HEIGHT/2, OVERLAY_WIDTH, OVERLAY_HEIGHT)
         rectangle.setFillStyle(0xFF0000, 1)
@@ -26,15 +30,21 @@ export class BuildingOverlay {
         this.newUnitText = this.scene.add.text(width/2 - OVERLAY_WIDTH/2 + OVERLAY_PADDING, height - OVERLAY_HEIGHT + OVERLAY_PADDING,  `New Unit (${UnitsType.Stick}$)`, TEXT_STYLE)
         this.newUnitText.setInteractive()
 
+        this.selectedTown = town
+
         this.newUnitText.on(Phaser.Input.Events.POINTER_UP, () => {
-            this.scene.actions.newUnit(town.x, town.y)
+            if(this.selectedTown) {
+                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+            }
         })
 
         this.shapes.push(rectangle)
         this.shapes.push(this.newUnitText)
 
         this.scene.input.keyboard.on("keyup-R", () => {
-            this.scene.actions.newUnit(town.x, town.y)
+            if(this.selectedTown) {
+                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+            }
         })
     }
 
@@ -45,6 +55,7 @@ export class BuildingOverlay {
             shape.destroy()
         })
         this.shapes = []
+        this.selectedTown = null
 
     }
 }
