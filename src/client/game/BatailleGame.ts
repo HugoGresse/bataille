@@ -18,7 +18,7 @@ export class BatailleGame {
         const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             backgroundColor: '#125555',
-            width: 800,
+            width: 1500,
             height: 800,
             scene: [LoadingScene, BatailleScene, UIScene],
             parent: parent,

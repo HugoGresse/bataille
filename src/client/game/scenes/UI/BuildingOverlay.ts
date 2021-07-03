@@ -13,6 +13,7 @@ type Shapes = Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text
 export class BuildingOverlay {
 
     shapes: Shapes[] = []
+    newUnitText ?: Shapes
 
     constructor(private scene: UIScene) {
     }
@@ -22,20 +23,28 @@ export class BuildingOverlay {
         const rectangle = this.scene.add.rectangle(width/2, height - OVERLAY_HEIGHT/2, OVERLAY_WIDTH, OVERLAY_HEIGHT)
         rectangle.setFillStyle(0xFF0000, 1)
 
-        const text = this.scene.add.text(width/2 - OVERLAY_WIDTH/2 + OVERLAY_PADDING, height - OVERLAY_HEIGHT + OVERLAY_PADDING,  `New Unit (${UnitsType.Stick}$)`, TEXT_STYLE)
-        text.setInteractive()
-        text.on(Phaser.Input.Events.POINTER_UP, () => {
+        this.newUnitText = this.scene.add.text(width/2 - OVERLAY_WIDTH/2 + OVERLAY_PADDING, height - OVERLAY_HEIGHT + OVERLAY_PADDING,  `New Unit (${UnitsType.Stick}$)`, TEXT_STYLE)
+        this.newUnitText.setInteractive()
+
+        this.newUnitText.on(Phaser.Input.Events.POINTER_UP, () => {
             this.scene.actions.newUnit(town.x, town.y)
         })
 
         this.shapes.push(rectangle)
-        this.shapes.push(text)
+        this.shapes.push(this.newUnitText)
+
+        this.scene.input.keyboard.on("keyup-R", () => {
+            this.scene.actions.newUnit(town.x, town.y)
+        })
     }
 
     onEmptyTileSelected() {
         this.shapes.forEach(shape => {
+            this.newUnitText?.off(Phaser.Input.Events.POINTER_UP)
+            this.newUnitText?.off("keyup-R")
             shape.destroy()
         })
         this.shapes = []
+
     }
 }

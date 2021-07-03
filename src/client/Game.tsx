@@ -41,7 +41,6 @@ export const Game = () => {
             }}>Clear server</button>
         </div>
         <div ref={gameContainer} id="gameContainer">
-            Starting the game...
         </div>
     </div>
 }
