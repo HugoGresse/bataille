@@ -1,4 +1,4 @@
-import {io, Manager, Socket} from "socket.io-client"
+import {Manager, Socket} from "socket.io-client"
 import {GameState} from '../server/model/GameState'
 import {GAME_STATE_INIT, GAME_STATE_UPDATE} from '../common/SOCKET_EMIT'
 import {ExportType} from '../server/model/types/ExportType'
