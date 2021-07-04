@@ -34,7 +34,6 @@ export class BatailleScene extends BaseScene {
     create() {
         this.scene.launch(SCENE_UI_KEY)
         this.input.setTopOnly(false)
-        setupCamera(this.cameras.main, this)
     }
 
     update(time: number, delta: number) {
@@ -100,7 +99,7 @@ export class BatailleScene extends BaseScene {
 
         this.tileSelectionDetector = new TileSelection(this, this.map)
         this.tileSelectionDetector.start()
-
+        setupCamera(this.cameras.main, this, this.map)
     }
 
 }

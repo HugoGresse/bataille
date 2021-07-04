@@ -4,7 +4,14 @@ import {TILE_WIDTH_HEIGHT} from '../../../common/UNITS'
 import {DEPTH_UNIT} from '../scenes/depth'
 import {BaseScene} from '../scenes/BaseScene'
 
+export let isUnitDragging = false
+
 export class StickUnit extends Actor {
+
+    public static isDragging () : boolean {
+        return isUnitDragging
+    }
+
     constructor(scene: Phaser.Scene, id: string, x: number, y: number) {
         super(scene, id, x, y, "tilesSpriteSheet", 20);
 
@@ -18,10 +25,12 @@ export class StickUnit extends Actor {
     }
 
     onDragStart() {
+        isUnitDragging = true;
         this.onSelect()
     }
 
     onDragEnd() {
+        isUnitDragging = false;
         this.onUnselect()
     }
 
