@@ -18,7 +18,7 @@ abstract class AbstractPlayer {
     protected _name: string = `${Date.now()}`
     protected units: UnitTiles = {}
     public id: string
-    public income: number = 0
+    public income: number = 2
     public money: number = MONEY_START
 
     protected constructor(name = `${Date.now()}`, public color: string) {
@@ -100,7 +100,7 @@ abstract class AbstractPlayer {
     updateIncome(ownedCountriesIds: string[]) {
         this.income = ownedCountriesIds.reduce((acc: number, id) => {
             return acc + COUNTRIES_INCOME[id]
-        }, 0)
+        }, 2)
     }
     spendMoney(unitType: UnitsType) {
         this.money -= unitType
