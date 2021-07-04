@@ -8,7 +8,6 @@ const BACKGROUND_WIDTH = 200
 
 export class ScoreDisplay {
 
-    colorText: Phaser.GameObjects.Text
     incomeText: Phaser.GameObjects.Text
     moneyText: Phaser.GameObjects.Text
     nameText: Phaser.GameObjects.Text
@@ -22,8 +21,6 @@ export class ScoreDisplay {
         const rectangle = scene.add.rectangle(BACKGROUND_WIDTH/2, 100, BACKGROUND_WIDTH, 200)
         rectangle.setFillStyle(0x000000, 0.5)
         this.nameText = scene.add.text(LEFT_MARGIN, startYPosition, 'Name: ', TEXT_STYLE)
-        startYPosition += Y_MARGIN
-        this.colorText = scene.add.text(LEFT_MARGIN, startYPosition, 'Color:', TEXT_STYLE)
         startYPosition += Y_MARGIN
         this.incomeText = scene.add.text(LEFT_MARGIN, startYPosition, 'Income: ', TEXT_STYLE)
         startYPosition += Y_MARGIN
@@ -40,9 +37,7 @@ export class ScoreDisplay {
         if(currentPlayer) {
             if(!this.nameText.text.endsWith(currentPlayer?.name)) {
                 this.nameText.text= `Name: ${currentPlayer.name}`
-            }
-            if(!this.colorText.text.endsWith(currentPlayer?.color)) {
-                this.colorText.text= `Color: ${currentPlayer.color}`
+                this.nameText.setColor("#"+ currentPlayer.color.replace('0x', ''))
             }
             if(!this.incomeText.text.endsWith(`${currentPlayer?.income}`)) {
                 this.incomeText.text= `Income: ${currentPlayer.income}`
@@ -56,6 +51,7 @@ export class ScoreDisplay {
             const playerText = `- ${player.name}: ${player.income}`
             if(!this.playersTexts[player.name]){
                 this.playersTexts[player.name] = scene.add.text(LEFT_MARGIN, this.playerYPosition, playerText, TEXT_STYLE)
+                this.playersTexts[player.name].setColor("#" + player.color.replace("0x", ""))
                 this.playerYPosition = this.playerYPosition + Y_MARGIN
             } else if(this.playersTexts[player.name].text !== playerText) {
                     this.playersTexts[player.name].text = playerText
