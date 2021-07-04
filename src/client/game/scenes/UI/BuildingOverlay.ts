@@ -10,10 +10,10 @@ const OVERLAY_PADDING = 10
 
 type Shapes = Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text
 
+const NEW_UNIT_SHORTCUT = "keyup-R"
 export class BuildingOverlay {
 
     shapes: Shapes[] = []
-    newUnitText ?: Shapes
     selectedTown: Town | null = null
 
     constructor(private scene: UIScene) {
@@ -27,21 +27,21 @@ export class BuildingOverlay {
         const rectangle = this.scene.add.rectangle(width/2, height - OVERLAY_HEIGHT/2, OVERLAY_WIDTH, OVERLAY_HEIGHT)
         rectangle.setFillStyle(0xFF0000, 1)
 
-        this.newUnitText = this.scene.add.text(width/2 - OVERLAY_WIDTH/2 + OVERLAY_PADDING, height - OVERLAY_HEIGHT + OVERLAY_PADDING,  `New Unit (${UnitsType.Stick}$)`, TEXT_STYLE)
-        this.newUnitText.setInteractive()
+        const newUnitText = this.scene.add.text(width/2 - OVERLAY_WIDTH/2 + OVERLAY_PADDING, height - OVERLAY_HEIGHT + OVERLAY_PADDING,  `New Unit ${UnitsType.Stick}$ (R)`, TEXT_STYLE)
+        newUnitText.setInteractive()
 
         this.selectedTown = town
 
-        this.newUnitText.on(Phaser.Input.Events.POINTER_UP, () => {
+        newUnitText.on(Phaser.Input.Events.POINTER_UP, () => {
             if(this.selectedTown) {
                 this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
             }
         })
 
         this.shapes.push(rectangle)
-        this.shapes.push(this.newUnitText)
+        this.shapes.push(newUnitText)
 
-        this.scene.input.keyboard.on("keyup-R", () => {
+        this.scene.input.keyboard.on(NEW_UNIT_SHORTCUT, () => {
             if(this.selectedTown) {
                 this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
             }
@@ -49,9 +49,9 @@ export class BuildingOverlay {
     }
 
     onEmptyTileSelected() {
+        this.scene.input.keyboard.off(NEW_UNIT_SHORTCUT)
         this.shapes.forEach(shape => {
-            this.newUnitText?.off(Phaser.Input.Events.POINTER_UP)
-            this.newUnitText?.off("keyup-R")
+            shape.removeAllListeners()
             shape.destroy()
         })
         this.shapes = []
