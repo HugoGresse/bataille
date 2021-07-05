@@ -14,6 +14,7 @@ export class Actor extends Phaser.GameObjects.Sprite {
         this.hpText = scene.add.text(x, y, "", {
             ...TEXT_STYLE,
         })
+        this.hpText.setStroke("#000000", 1)
     }
 
     public update(refUnit: UnitState) {
@@ -26,8 +27,12 @@ export class Actor extends Phaser.GameObjects.Sprite {
             this.hp = refUnit.hp.current
             this.hpText.text = this.hp.toString()
         }
-        this.hpText.x = this.x - 5
-        this.hpText.y = this.y - 8
+        if(this.hp > 9) {
+            this.hpText.x = this.x - 11
+        } else {
+            this.hpText.x = this.x - 5
+        }
+        this.hpText.y = this.y - 9
     }
 
     public setColor(color: string) {

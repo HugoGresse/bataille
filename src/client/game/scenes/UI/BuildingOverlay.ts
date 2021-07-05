@@ -10,7 +10,8 @@ const OVERLAY_PADDING = 10
 
 type Shapes = Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text
 
-const NEW_UNIT_SHORTCUT = "keyup-R"
+const NEW_UNIT_SHORTCUT_BIS = "R"
+
 export class BuildingOverlay {
 
     shapes: Shapes[] = []
@@ -41,15 +42,16 @@ export class BuildingOverlay {
         this.shapes.push(rectangle)
         this.shapes.push(newUnitText)
 
-        this.scene.input.keyboard.on(NEW_UNIT_SHORTCUT, () => {
+        const keyObj = this.scene.input.keyboard.addKey(NEW_UNIT_SHORTCUT_BIS, true, true);  // Get key object
+        keyObj.on('down', () =>  {
             if(this.selectedTown) {
                 this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
             }
-        })
+        });
     }
 
     onEmptyTileSelected() {
-        this.scene.input.keyboard.off(NEW_UNIT_SHORTCUT)
+        this.scene.input.keyboard.removeKey(NEW_UNIT_SHORTCUT_BIS);
         this.shapes.forEach(shape => {
             shape.removeAllListeners()
             shape.destroy()

@@ -99,7 +99,7 @@ abstract class AbstractPlayer {
     }
     updateIncome(ownedCountriesIds: string[]) {
         this.income = ownedCountriesIds.reduce((acc: number, id) => {
-            return acc + COUNTRIES_INCOME[id]
+            return acc + (COUNTRIES_INCOME[id] || 0)
         }, 2)
     }
     spendMoney(unitType: UnitsType) {
