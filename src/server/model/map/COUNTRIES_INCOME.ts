@@ -56,5 +56,4 @@ export const COUNTRIES_INCOME: {
     ly: 4,
     tn: 3,
     dz: 5
-
 }

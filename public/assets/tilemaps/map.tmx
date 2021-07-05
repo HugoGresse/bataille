@@ -9357,8 +9357,8 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="71" name="countries-data"/>
- <objectgroup id="23" name="towns-data" locked="1" opacity="0.5" tintcolor="#00ff00">
+ <objectgroup id="71" name="countries-data" locked="1"/>
+ <objectgroup id="23" name="towns-data" opacity="0.5" tintcolor="#00ff00">
   <properties>
    <property name="name" value="Paris"/>
   </properties>
@@ -10504,31 +10504,31 @@
   </object>
   <object id="204" gid="17" x="937" y="4327" width="32" height="32">
    <properties>
-    <property name="country" value="ds"/>
+    <property name="country" value="dz"/>
     <property name="name" value="Oran"/>
    </properties>
   </object>
   <object id="208" gid="17" x="1481" y="4296" width="32" height="32">
    <properties>
-    <property name="country" value="ds"/>
+    <property name="country" value="dz"/>
     <property name="name" value="Constantine"/>
    </properties>
   </object>
   <object id="209" gid="17" x="1159" y="4295" width="32" height="32">
    <properties>
-    <property name="country" value="ds"/>
+    <property name="country" value="dz"/>
     <property name="name" value="Blida"/>
    </properties>
   </object>
   <object id="210" gid="17" x="1190" y="4266" width="32" height="32">
    <properties>
-    <property name="country" value="ds"/>
+    <property name="country" value="dz"/>
     <property name="name" value="Algiers"/>
    </properties>
   </object>
   <object id="211" gid="17" x="1542" y="4230" width="32" height="32">
    <properties>
-    <property name="country" value="ds"/>
+    <property name="country" value="dz"/>
     <property name="name" value="Annaba"/>
    </properties>
   </object>
