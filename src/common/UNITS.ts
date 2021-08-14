@@ -15,3 +15,5 @@ export enum UnitsType {
     Medic=3,
     Wheelie=4
 }
+
+export const MAX_UNIT_LIFE = 100

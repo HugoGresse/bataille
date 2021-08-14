@@ -5,7 +5,7 @@ import {iterateOnXYMap, xyMapToArray} from '../utils/xyMapToArray'
 import {v4 as uuidv4} from 'uuid'
 import {COUNTRIES_INCOME} from './map/COUNTRIES_INCOME'
 import {MONEY_START} from '../../common/GameSettings'
-import {UnitsType} from '../../common/UNITS'
+import {MAX_UNIT_LIFE, UnitsType} from '../../common/UNITS'
 
 export type UnitTiles = {
     [x: number]: {
@@ -35,16 +35,20 @@ abstract class AbstractPlayer {
         return this._name
     }
 
-    addUnit(unit: BaseUnit, x: number, y: number) {
+    addUnit(unit: BaseUnit, x: number, y: number): boolean {
         if(!this.units[x]){
             this.units[x] = {}
         }
         if(this.units[x][y]) {
-            this.units[x][y].life.setHP(this.units[x][y].life.getHP() + unit.life.getHP())
+            const existingUnit = this.units[x][y]
+            if(existingUnit.life.getHP() >= MAX_UNIT_LIFE) {
+                return false
+            }
+            existingUnit.life.setHP(existingUnit.life.getHP() + unit.life.getHP())
         } else {
             this.units[x][y] = unit
         }
-        console.log("add unit", x, y)
+        return true
     }
 
     getUnits() : UnitTiles {

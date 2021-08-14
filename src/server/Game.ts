@@ -114,8 +114,10 @@ export class Game {
                 return
             }
             const unit = new StickUnit(player, position)
-            player.addUnit(unit, gridPosition.x, gridPosition.y)
-            player.spendMoney(UnitsType.Stick)
+            const unitCreated = player.addUnit(unit, gridPosition.x, gridPosition.y)
+            if(unitCreated) {
+                player.spendMoney(UnitsType.Stick)
+            }
         }
     }
 
