@@ -100,15 +100,19 @@ export class Game {
         return Object.values(this.players)
     }
 
-    addUnit(playerId: string, {x, y}: NewUnitDataEvent) {
-        if (!this.players[playerId] || !this.gameLoop.isRunning) {
+    addUnit(socketId: string, {x, y}: NewUnitDataEvent) {
+        if (!this.players[socketId] || !this.gameLoop.isRunning) {
             return
         }
-        const player = this.players[playerId]
+        const player = this.players[socketId]
 
         if(player.money >= UnitsType.Stick) {
             const position = new Position(x + TILE_WIDTH_HEIGHT / 2, y + TILE_WIDTH_HEIGHT / 2)
             const gridPosition = position.getRoundedPosition()
+            const town = this.map.getTownAt(gridPosition.x, gridPosition.y)
+            if(!town || town.player.id !== player.id) {
+                return
+            }
             const unit = new StickUnit(player, position)
             player.addUnit(unit, gridPosition.x, gridPosition.y)
             player.spendMoney(UnitsType.Stick)

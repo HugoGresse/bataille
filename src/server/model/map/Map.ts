@@ -91,6 +91,14 @@ export class Map {
         return towns
     }
 
+    getTownAt(x: number, y: number): Town | null {
+        const tile = this.tiles[x][y]
+        if(tile.isTown) {
+            return <Town> tile
+        }
+        return null
+    }
+
     export(): MapTilesPublic {
         const tiles: MapTilesPublic["tiles"] = {}
 
