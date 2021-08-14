@@ -20,6 +20,7 @@ abstract class AbstractPlayer {
     public id: string
     public income: number = 2
     public money: number = MONEY_START
+    private ownedCountriesIds: string[] = []
 
     protected constructor(name = `${Date.now()}`, public color: string) {
         this.id = uuidv4()
@@ -65,7 +66,8 @@ abstract class AbstractPlayer {
         return {
             name: this.name,
             income: this.income,
-            color: this.color
+            color: this.color,
+            countries: this.ownedCountriesIds
         }
     }
 
@@ -98,6 +100,7 @@ abstract class AbstractPlayer {
         })
     }
     updateIncome(ownedCountriesIds: string[]) {
+        this.ownedCountriesIds = ownedCountriesIds
         this.income = ownedCountriesIds.reduce((acc: number, id) => {
             return acc + (COUNTRIES_INCOME[id] || 0)
         }, 2)

@@ -2,7 +2,6 @@ import {UnitsType} from '../../common/UNITS'
 import {TilePublic} from './map/Tile'
 
 export interface GameState {
-
     status: "running",
     players: PublicPlayerState[]
     currentPlayer: PrivatePlayerState
@@ -16,7 +15,8 @@ export interface PrivatePlayerState extends PublicPlayerState{
 export interface PublicPlayerState {
     name: string,
     income: number,
-    color: string
+    color: string,
+    countries: string[]
 }
 
 export interface UnitState {

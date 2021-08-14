@@ -1,5 +1,5 @@
 import 'phaser'
-import {BatailleScene} from './scenes/BatailleScene'
+import {BatailleScene} from './scenes/bataille/BatailleScene'
 import {UIScene} from './scenes/UI/UIScene'
 import {LoadingScene} from './scenes/LoadingScene'
 import {SocketConnection} from '../SocketConnection'

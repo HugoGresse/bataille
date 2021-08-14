@@ -75,7 +75,7 @@ export class Game {
             players: players,
             currentPlayer: currentPlayer.getPrivatePlayerState(),
             units: units,
-            towns: this.map.getTownsState()
+            towns: this.map.getTownsState(),
         }
     }
 

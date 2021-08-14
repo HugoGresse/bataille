@@ -9,11 +9,13 @@ export class TownsDataLayer {
 
     constructor() {
         // console.log(mapData.layers.map(layer => layer.name))
+        // @ts-ignore
         const layer = mapData.layers.find(layer => layer.name === "towns-data")
         if (!layer || !layer.objects) {
             throw new Error('towns-data layer not found in map.json')
         }
 
+        // @ts-ignore
         layer.objects.forEach(layerObject => {
             const position = new Position(layerObject.x, layerObject.y - layerObject.height).getRounded()
             if(!this.townsByGrid[position.x] ){

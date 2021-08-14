@@ -1,4 +1,5 @@
 import {TilePublic} from '../map/Tile'
+import {PolygonContainer} from './Polygon'
 
 export type MapTilesPublic = {
     tiles: {
@@ -7,4 +8,5 @@ export type MapTilesPublic = {
         }
     },
     layerNames: string[]
+    countries: {  [country: string]: PolygonContainer[] }
 }
