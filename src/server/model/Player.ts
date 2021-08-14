@@ -95,7 +95,13 @@ abstract class AbstractPlayer {
                 if(!this.units[unitNewPos.x]) {
                     this.units[unitNewPos.x] = {}
                 }
-                this.units[unitNewPos.x][unitNewPos.y] = unit
+                if(this.units[unitNewPos.x][unitNewPos.y]) {
+                    // merge unit on same player
+                    this.units[unitNewPos.x][unitNewPos.y].life.heal(unit.life.getHP())
+                    delete this.units[x][y]
+                } else {
+                    this.units[unitNewPos.x][unitNewPos.y] = unit
+                }
             }
         })
     }

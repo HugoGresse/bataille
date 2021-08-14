@@ -1,3 +1,5 @@
+import {validate} from 'uuid'
+
 export class Life {
 
     protected initialHP: number
@@ -26,6 +28,10 @@ export class Life {
     public takeDamage(value: number): boolean {
         this.currentHP -= value
         return this.currentHP > 0; // True if alive
+    }
+
+    public heal(healValue: number) {
+        this.currentHP += healValue
     }
 
 }
