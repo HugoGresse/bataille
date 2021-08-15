@@ -3,7 +3,6 @@
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
-    "type": "module",
     "repository": {
         "type": "git",
         "url": "git+ssh://git@github.com/HugoGresse/bataille.git"
@@ -13,7 +12,9 @@
     "scripts": {
         "start": "react-scripts start",
         "build": "react-scripts build",
-        "start-server": "ts-node-dev --respawn --project src/server/tsconfig.json src/server/server.ts",
+        "start-server": "ts-node-dev --respawn --project src/server/tsconfig.dev.json src/server/server.ts",
+        "server:build": "tsc --build src/server/tsconfig.json",
+        "server:build:run": "npm run server:build && node lib/src/server/server.js",
         "prepare": "husky install"
     },
     "devDependencies": {
