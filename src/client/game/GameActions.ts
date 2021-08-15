@@ -1,4 +1,4 @@
-import {GAME_CLEAR, PLAYER_NEW_UNIT, PLAYER_FORCE_START, PLAYER_UNIT} from '../../common/SOCKET_EMIT'
+import {GAME_CLEAR, PLAYER_NEW_UNIT, PLAYER_UNIT} from '../../common/SOCKET_EMIT'
 import {Socket} from 'socket.io-client'
 import {Actor} from './actors/Actor'
 import {UnitActionType} from '../../common/UnitAction'
@@ -12,10 +12,6 @@ export class GameActions {
 
     setGameId(gameId: string) {
         this.gameId = gameId
-    }
-
-    forceGameStart() {
-        this.socket.emit(PLAYER_FORCE_START, this.gameId)
     }
 
     newUnit(x: number, y: number) {

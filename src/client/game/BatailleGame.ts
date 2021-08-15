@@ -44,11 +44,6 @@ export class BatailleGame {
         this.onGameStart(socketInstance.gameStartData)
     }
 
-    start () {
-        const actions = this.game.registry.get('actions') as GameActions
-        actions.forceGameStart()
-    }
-
     onGameStart (data: ExportType) {
         if(!this.game.isRunning) {
             setTimeout(() => {

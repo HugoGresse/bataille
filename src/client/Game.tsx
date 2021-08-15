@@ -12,13 +12,6 @@ export const Game = () => {
     const gameContainer = useRef<HTMLDivElement>(null);
     const [game, setGame] = useState<BatailleGame>()
 
-
-    const startGame = () => {
-        if(game) {
-            game.start()
-        }
-    }
-
     useEffect(() => {
             if(gameContainer.current) {
                 const game = new BatailleGame(gameContainer.current, gameId)
@@ -32,7 +25,6 @@ export const Game = () => {
 
     return <div>
         <div style={{textAlign: "right"}}>
-            <button onClick={startGame}>start</button>
             <button onClick={() => {
                 game && game.destroy()
                 console.log("destroyed")

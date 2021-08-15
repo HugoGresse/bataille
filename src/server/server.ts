@@ -9,7 +9,6 @@ import {NewUnitDataEvent} from '../common/NewUnitDataEvent'
 import {socketIOServer} from './utils/io'
 import {PORT} from './utils/serverEnv'
 import {GameLobby} from './GameLobby'
-import {MINIMUM_PLAYER_PER_GAME} from '../common/GameSettings'
 import {SocketEmitter} from './SocketEmitter'
 
 const games: {
@@ -19,7 +18,7 @@ let lobby: GameLobby | null
 
 socketIOServer.on("connection", (socket: Socket) => {
     socket.on(PLAYER_JOIN_LOBBY, handlePlayerJoin(socket))
-    socket.on(PLAYER_FORCE_START, handlePlayerStart(socket))
+    socket.on(PLAYER_FORCE_START, handlePlayerForceStart())
     socket.on(PLAYER_NEW_UNIT, handlePlayerNewUnit(socket))
     socket.on(PLAYER_UNIT, handlePlayerUnit(socket))
     socket.on(GAME_CLEAR, handleClearGame())
@@ -51,13 +50,12 @@ const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
         })
     }
     lobby.onPlayerJoin(socket, playerName)
-
 }
 
-const handlePlayerStart = (socket: Socket) => (gameId: string,) => {
-    console.log("Wanting to start game, sid", socket.id)
-    // game.start()
-    // TODO : lobby force start
+const handlePlayerForceStart = () => (shouldForceStart: boolean) => {
+    if(lobby) {
+    lobby.handlePlayerForceStart(shouldForceStart)
+    }
 }
 
 const handlePlayerNewUnit = (socket: Socket) => (gameId: string, data: NewUnitDataEvent) => {

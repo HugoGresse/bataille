@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react'
 import {Box, Button,  Typography} from '@material-ui/core'
 import {DonatingBanner} from './screens/DonatingBanner'
 import {Link as RouterLink, useHistory} from 'react-router-dom'
-import {newSocketConnectionInstance} from './SocketConnection'
+import {getSocketConnectionInstance, newSocketConnectionInstance} from './SocketConnection'
 import {ArrowBack} from '@material-ui/icons'
 import {LobbyState} from '../server/GameLobby'
 
@@ -13,6 +13,16 @@ export const Lobby = () => {
         requiredPlayerCount: 0,
         playerCount: 0
     })
+    const [forceStart, setForceStart]  = useState(false)
+
+    const onForceStartPress = () => {
+        const forceStartValue = !forceStart
+        setForceStart(forceStartValue)
+        const socketConnection = getSocketConnectionInstance()
+        if(socketConnection) {
+            socketConnection.sendForceStart(forceStartValue)
+        }
+    }
 
     useEffect(() => {
         newSocketConnectionInstance(
@@ -37,7 +47,7 @@ export const Lobby = () => {
         <Box>
             <Typography variant="h3">Waiting for more players... {lobbyState.playerCount}/{lobbyState.requiredPlayerCount}</Typography>
             <br/>
-            <Button variant="outlined" size="large">
+            <Button variant={forceStart? "contained": "outlined"} size="large" onClick={onForceStartPress}>
                 Force start ({lobbyState.playerCountForceStart}/{lobbyState.playerCount})
             </Button>
 

@@ -25,7 +25,6 @@ export class TilesColorsUpdater {
      * @param players
      */
     update(players: PublicPlayerState[]) {
-        console.log(players)
         players.forEach(player => {
             player.countries.forEach(countryId => {
                 this.countriesPolygons[countryId].setColor(player.color)

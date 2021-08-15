@@ -1,6 +1,12 @@
 import {io, Socket} from "socket.io-client"
 import {GameState} from '../server/model/GameState'
-import {GAME_STATE_INIT, GAME_STATE_UPDATE, LOBBY_STATE, PLAYER_JOIN_LOBBY} from '../common/SOCKET_EMIT'
+import {
+    GAME_STATE_INIT,
+    GAME_STATE_UPDATE,
+    LOBBY_STATE,
+    PLAYER_FORCE_START,
+    PLAYER_JOIN_LOBBY
+} from '../common/SOCKET_EMIT'
 import {ExportType} from '../server/model/types/ExportType'
 import {SOCKET_URL} from './game/utils/clientEnv'
 import {LOTR_NAMES} from './utils/LOTR_NAMES'
@@ -46,6 +52,10 @@ export class SocketConnection {
         this.socket.on(GAME_STATE_INIT, this.handleGameInit)
         this.socket.on(GAME_STATE_UPDATE, this.handleGameState)
         this.socket.emit(PLAYER_JOIN_LOBBY, LOTR_NAMES[Math.floor(Math.random() * LOTR_NAMES.length)])
+    }
+
+    public sendForceStart(shouldForceStart: boolean) {
+        this.socket.emit(PLAYER_FORCE_START, shouldForceStart)
     }
 
     private handleLobbyState(state: LobbyState) {
