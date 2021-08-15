@@ -1,14 +1,12 @@
-import {GAME_CLEAR, PLAYER_NEW_UNIT, PLAYER_UNIT} from '../../common/SOCKET_EMIT'
-import {Socket} from 'socket.io-client'
-import {Actor} from './actors/Actor'
-import {UnitActionType} from '../../common/UnitAction'
+import { GAME_CLEAR, PLAYER_NEW_UNIT, PLAYER_UNIT } from '../../common/SOCKET_EMIT'
+import { Socket } from 'socket.io-client'
+import { Actor } from './actors/Actor'
+import { UnitActionType } from '../../common/UnitAction'
 
 export class GameActions {
-
     gameId: string | null = null
 
-    constructor(protected socket: Socket) {
-    }
+    constructor(protected socket: Socket) {}
 
     setGameId(gameId: string) {
         this.gameId = gameId
@@ -28,9 +26,9 @@ export class GameActions {
             data: {
                 destination: {
                     x: tx,
-                    y: ty
-                }
-            }
+                    y: ty,
+                },
+            },
         })
     }
 

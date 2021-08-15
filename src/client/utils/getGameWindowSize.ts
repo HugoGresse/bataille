@@ -1,1 +1,1 @@
-export const getGameWindowSize = (scene: Phaser.Scene) =>  scene.sys.game.canvas;
+export const getGameWindowSize = (scene: Phaser.Scene) => scene.sys.game.canvas

@@ -1,26 +1,19 @@
-import {Tilemaps, Input} from 'phaser'
-import {BatailleScene} from './BatailleScene'
-import {TileNumber} from '../../../../common/UNITS'
+import { Tilemaps, Input } from 'phaser'
+import { BatailleScene } from './BatailleScene'
+import { TileNumber } from '../../../../common/UNITS'
 
 type Tile = Tilemaps.Tile
 
 export class TileSelection {
-
     private selectedTile: Tile | null = null
 
-    constructor(private scene: BatailleScene, private map: Phaser.Tilemaps.Tilemap) {
-    }
+    constructor(private scene: BatailleScene, private map: Phaser.Tilemaps.Tilemap) {}
 
     start(): void {
         this.scene.input.on('pointerup', (pointer: Input.Pointer) => {
             const layersReverse = [...this.map.layers].reverse()
             for (const layer of layersReverse) {
-                const tile = this.map.getTileAtWorldXY(
-                    pointer.worldX,
-                    pointer.worldY,
-                    false,
-                    undefined,
-                    layer.name)
+                const tile = this.map.getTileAtWorldXY(pointer.worldX, pointer.worldY, false, undefined, layer.name)
 
                 if (tile) {
                     this.onTilePress(tile)
@@ -45,5 +38,4 @@ export class TileSelection {
             this.scene.getUIScene().onEmptyTileSelected()
         }
     }
-
 }

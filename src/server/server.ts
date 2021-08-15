@@ -1,22 +1,22 @@
-import {Socket} from "socket.io"
-import {newId} from './utils/newId'
-import {Game} from './Game'
-import {Player} from './model/Player'
-import {GAME_CLEAR, PLAYER_JOIN_LOBBY, PLAYER_NEW_UNIT, PLAYER_FORCE_START, PLAYER_UNIT} from '../common/SOCKET_EMIT'
-import {UnitAction} from '../common/UnitAction'
-import {pickUnusedColor} from './utils/pickUnusedColor'
-import {NewUnitDataEvent} from '../common/NewUnitDataEvent'
-import {socketIOServer} from './utils/io'
-import {PORT} from './utils/serverEnv'
-import {GameLobby} from './GameLobby'
-import {SocketEmitter} from './SocketEmitter'
+import { Socket } from 'socket.io'
+import { newId } from './utils/newId'
+import { Game } from './Game'
+import { Player } from './model/Player'
+import { GAME_CLEAR, PLAYER_JOIN_LOBBY, PLAYER_NEW_UNIT, PLAYER_FORCE_START, PLAYER_UNIT } from '../common/SOCKET_EMIT'
+import { UnitAction } from '../common/UnitAction'
+import { pickUnusedColor } from './utils/pickUnusedColor'
+import { NewUnitDataEvent } from '../common/NewUnitDataEvent'
+import { socketIOServer } from './utils/io'
+import { PORT } from './utils/serverEnv'
+import { GameLobby } from './GameLobby'
+import { SocketEmitter } from './SocketEmitter'
 
 const games: {
     [gameId: string]: Game
 } = {}
 let lobby: GameLobby | null
 
-socketIOServer.on("connection", (socket: Socket) => {
+socketIOServer.on('connection', (socket: Socket) => {
     socket.on(PLAYER_JOIN_LOBBY, handlePlayerJoin(socket))
     socket.on(PLAYER_FORCE_START, handlePlayerForceStart())
     socket.on(PLAYER_NEW_UNIT, handlePlayerNewUnit(socket))
@@ -38,7 +38,11 @@ const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
             games[game.id] = game
 
             for (const waitingPlayer of waitingPlayers) {
-                const player = new Player(waitingPlayer.socketId, pickUnusedColor(game.getPlayers()), waitingPlayer.name,)
+                const player = new Player(
+                    waitingPlayer.socketId,
+                    pickUnusedColor(game.getPlayers()),
+                    waitingPlayer.name
+                )
                 game.addPlayer(player, waitingPlayer.socketId)
             }
 
@@ -54,8 +58,8 @@ const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
 }
 
 const handlePlayerForceStart = () => (shouldForceStart: boolean) => {
-    if(lobby) {
-    lobby.handlePlayerForceStart(shouldForceStart)
+    if (lobby) {
+        lobby.handlePlayerForceStart(shouldForceStart)
     }
 }
 
@@ -67,13 +71,13 @@ const handlePlayerNewUnit = (socket: Socket) => (gameId: string, data: NewUnitDa
     game.addUnit(socket.id, data)
 }
 
-const handleClearGame = () => (gameId: string,) => {
+const handleClearGame = () => (gameId: string) => {
     const game = games[gameId]
     if (!game) {
         return
     }
     game.stopLoop()
-    console.log("clearGame")
+    console.log('clearGame')
 }
 
 const handlePlayerUnit = (socket: Socket) => (gameId: string, event: UnitAction) => {

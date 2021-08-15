@@ -1,27 +1,26 @@
-import {Server, Socket} from 'socket.io'
-import {Player} from './model/Player'
-import {GameLoop} from './GameLoop'
-import {GameState, UnitState} from './model/GameState'
-import {UnitAction} from '../common/UnitAction'
-import {Map} from './model/map/Map'
-import {SocketEmitter} from './SocketEmitter'
-import {ExportType} from './model/types/ExportType'
-import {townAssignation} from './utils/townAssignation'
-import {detectIntersection} from './model/detectIntersection'
-import {iterateOnXYMap} from './utils/xyMapToArray'
-import {BaseUnit} from './model/actors/units/BaseUnit'
-import {Tile} from './model/map/Tile'
-import {updatePlayerIncome} from './model/updatePlayerIncome'
-import {IncomeDispatcher} from './model/income/IncomeDispatcher'
-import {INCOME_MS, } from '../common/GameSettings'
-import {NewUnitDataEvent} from '../common/NewUnitDataEvent'
-import {StickUnit} from './model/actors/units/StickUnit'
-import {Position} from './model/actors/Position'
-import {TILE_WIDTH_HEIGHT, UnitsType} from '../common/UNITS'
-import {detectUnitsIntersections} from './model/detectUnitsIntersections'
+import { Server, Socket } from 'socket.io'
+import { Player } from './model/Player'
+import { GameLoop } from './GameLoop'
+import { GameState, UnitState } from './model/GameState'
+import { UnitAction } from '../common/UnitAction'
+import { Map } from './model/map/Map'
+import { SocketEmitter } from './SocketEmitter'
+import { ExportType } from './model/types/ExportType'
+import { townAssignation } from './utils/townAssignation'
+import { detectIntersection } from './model/detectIntersection'
+import { iterateOnXYMap } from './utils/xyMapToArray'
+import { BaseUnit } from './model/actors/units/BaseUnit'
+import { Tile } from './model/map/Tile'
+import { updatePlayerIncome } from './model/updatePlayerIncome'
+import { IncomeDispatcher } from './model/income/IncomeDispatcher'
+import { INCOME_MS } from '../common/GameSettings'
+import { NewUnitDataEvent } from '../common/NewUnitDataEvent'
+import { StickUnit } from './model/actors/units/StickUnit'
+import { Position } from './model/actors/Position'
+import { TILE_WIDTH_HEIGHT, UnitsType } from '../common/UNITS'
+import { detectUnitsIntersections } from './model/detectUnitsIntersections'
 
 export class Game {
-
     protected players: {
         [id: string]: Player
     } = {}
@@ -40,7 +39,7 @@ export class Game {
             const units = player.getUnits()
             iterateOnXYMap<Tile>(this.map.getMapTiles(), (tile, x: number, y: number) => {
                 if (tile.isTown) {
-                    console.log("town", x, y, tile.player?.name)
+                    console.log('town', x, y, tile.player?.name)
                 }
             })
             iterateOnXYMap<BaseUnit>(units, (unit, x: number, y: number) => {
@@ -53,19 +52,15 @@ export class Game {
     export(): ExportType {
         return {
             gameId: this.id,
-            map: this.map.export()
+            map: this.map.export(),
         }
     }
 
     getState(playerId: string): GameState {
-        const units = Object
-            .values(this.players)
-            .reduce((acc: UnitState[], player) => {
-                return acc.concat(player.getUnitsState())
-            }, [])
-        const players = Object
-            .values(this.players)
-            .map(player => player.getPublicPlayerState())
+        const units = Object.values(this.players).reduce((acc: UnitState[], player) => {
+            return acc.concat(player.getUnitsState())
+        }, [])
+        const players = Object.values(this.players).map((player) => player.getPublicPlayerState())
 
         const currentPlayer = this.players[playerId]
 
@@ -81,35 +76,35 @@ export class Game {
 
     addPlayer(player: Player, socketId: string) {
         if (this.gameLoop.isRunning) {
-            console.log("Attempt to join a game but is already started...")
+            console.log('Attempt to join a game but is already started...')
             return
         }
         if (!this.players[socketId]) {
             this.players[socketId] = player
         }
-        console.log("add player")
+        console.log('add player')
     }
 
     getPlayers(): Player[] {
         return Object.values(this.players)
     }
 
-    addUnit(socketId: string, {x, y}: NewUnitDataEvent) {
+    addUnit(socketId: string, { x, y }: NewUnitDataEvent) {
         if (!this.players[socketId] || !this.gameLoop.isRunning) {
             return
         }
         const player = this.players[socketId]
 
-        if(player.money >= UnitsType.Stick) {
+        if (player.money >= UnitsType.Stick) {
             const position = new Position(x + TILE_WIDTH_HEIGHT / 2, y + TILE_WIDTH_HEIGHT / 2)
             const gridPosition = position.getRoundedPosition()
             const town = this.map.getTownAt(gridPosition.x, gridPosition.y)
-            if(!town || town.player.id !== player.id) {
+            if (!town || town.player.id !== player.id) {
                 return
             }
             const unit = new StickUnit(player, position)
             const unitCreated = player.addUnit(unit, gridPosition.x, gridPosition.y)
-            if(unitCreated) {
+            if (unitCreated) {
                 player.spendMoney(UnitsType.Stick)
             }
         }
@@ -132,7 +127,7 @@ export class Game {
 
     update() {
         detectUnitsIntersections(this.players)
-        Object.values(this.players).forEach(player => {
+        Object.values(this.players).forEach((player) => {
             player.update()
             detectIntersection(this.map, player)
             updatePlayerIncome(this.map.getTownsByCountries(), player)

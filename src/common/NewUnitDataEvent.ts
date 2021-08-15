@@ -1,4 +1,4 @@
 export type NewUnitDataEvent = {
-    x: number,
+    x: number
     y: number
 }

@@ -1,9 +1,9 @@
 export type Polygon = {
-    x: number,
+    x: number
     y: number
 }[]
 export type PolygonContainer = {
-    polygon: Polygon,
-    x: number,
+    polygon: Polygon
+    x: number
     y: number
 }

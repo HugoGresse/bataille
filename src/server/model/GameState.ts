@@ -1,40 +1,37 @@
-import {UnitsType} from '../../common/UNITS'
-import {TilePublic} from './map/Tile'
+import { UnitsType } from '../../common/UNITS'
+import { TilePublic } from './map/Tile'
 
 export interface GameState {
-    status: "running",
-    nextIncome: number,
+    status: 'running'
+    nextIncome: number
     players: PublicPlayerState[]
     currentPlayer: PrivatePlayerState
     units: UnitState[]
     towns: TownsState[]
 }
 
-export interface PrivatePlayerState extends PublicPlayerState{
+export interface PrivatePlayerState extends PublicPlayerState {
     money: number
 }
 export interface PublicPlayerState {
-    name: string,
-    income: number,
-    color: string,
+    name: string
+    income: number
+    color: string
     countries: string[]
 }
 
 export interface UnitState {
-    id: string,
-    type: UnitsType,
+    id: string
+    type: UnitsType
     hp: {
-        current: number,
+        current: number
         initial: number
-    },
+    }
     position: {
-        x: number,
+        x: number
         y: number
     }
     color: string
 }
 
-
-export interface TownsState extends TilePublic{
-
-}
+export interface TownsState extends TilePublic {}

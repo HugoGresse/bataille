@@ -1,4 +1,4 @@
-import {Tile} from '../map/Tile'
+import { Tile } from '../map/Tile'
 
 export type MapTiles = {
     [x: number]: {

@@ -6,7 +6,7 @@ export const COUNTRIES_INCOME: {
     pt: 2,
     it: 6,
     uk: 8,
-    de: 6 ,
+    de: 6,
     ie: 2,
     ch: 2,
     is: 3,
@@ -55,5 +55,5 @@ export const COUNTRIES_INCOME: {
     eg: 4,
     ly: 4,
     tn: 3,
-    dz: 5
+    dz: 5,
 }

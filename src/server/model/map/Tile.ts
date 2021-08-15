@@ -1,38 +1,37 @@
-import {NeutralPlayerInstance, Player} from '../Player'
-import {v4 as uuidv4} from 'uuid'
-import {TownsData} from '../types/TownsData'
+import { NeutralPlayerInstance, Player } from '../Player'
+import { v4 as uuidv4 } from 'uuid'
+import { TownsData } from '../types/TownsData'
 
 export enum TileType {
     None = 0,
     Ground = 1,
     GroundBorder = 3,
-    Town= 17,
-    Port= 19,
+    Town = 17,
+    Port = 19,
 }
 
 export type TilePublic = {
     id: string
-    player ?: {
-        name: string,
+    player?: {
+        name: string
         color: string
-    },
+    }
     isTerrain: boolean
     isTown: boolean
     name?: string
 }
 
 export class Tile {
-
     public readonly id: string
     public isTerrain = false
     public isTown = false
-    public player ?: Player
+    public player?: Player
     public isNeutral = true
-    public readonly data ?: TownsData
+    public readonly data?: TownsData
 
-    constructor(tileNumber: number | undefined, townsData : TownsData | null = null) {
-        this.id=uuidv4()
-        switch(tileNumber){
+    constructor(tileNumber: number | undefined, townsData: TownsData | null = null) {
+        this.id = uuidv4()
+        switch (tileNumber) {
             case TileType.None:
                 this.isNeutral = true
                 break
@@ -44,14 +43,14 @@ export class Tile {
             case TileType.Port:
                 this.player = NeutralPlayerInstance
                 this.isTown = true
-                if(townsData){
-                this.data = townsData
+                if (townsData) {
+                    this.data = townsData
                 } else {
                     throw new Error('Missing towns data')
                 }
                 break
             default:
-                console.log("Tile type not managed", tileNumber)
+                console.log('Tile type not managed', tileNumber)
         }
     }
 
@@ -60,17 +59,16 @@ export class Tile {
             id: this.id,
             isTerrain: this.isTerrain,
             isTown: this.isTown,
-            name: this.data?.name
+            name: this.data?.name,
         }
-        if(this.player) {
+        if (this.player) {
             exportData.player = {
                 name: this.player.name,
-                color: this.player.color
+                color: this.player.color,
             }
         }
         return exportData
     }
-
 }
 
 export interface Town extends Tile {

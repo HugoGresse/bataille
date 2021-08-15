@@ -1,20 +1,22 @@
-import {io, Socket} from "socket.io-client"
-import {GameState} from '../server/model/GameState'
+import { io, Socket } from 'socket.io-client'
+import { GameState } from '../server/model/GameState'
 import {
     GAME_STATE_INIT,
     GAME_STATE_UPDATE,
     LOBBY_STATE,
     PLAYER_FORCE_START,
-    PLAYER_JOIN_LOBBY
+    PLAYER_JOIN_LOBBY,
 } from '../common/SOCKET_EMIT'
-import {ExportType} from '../server/model/types/ExportType'
-import {SOCKET_URL} from './game/utils/clientEnv'
-import {LOTR_NAMES} from './utils/LOTR_NAMES'
-import {LobbyState} from '../server/GameLobby'
-
+import { ExportType } from '../server/model/types/ExportType'
+import { SOCKET_URL } from './game/utils/clientEnv'
+import { LOTR_NAMES } from './utils/LOTR_NAMES'
+import { LobbyState } from '../server/GameLobby'
 
 let socketConnectionInstance: SocketConnection | null = null
-export const newSocketConnectionInstance = (onLobbyState: (state: LobbyState) => void, onGameStart: (gameId: string) => void) => {
+export const newSocketConnectionInstance = (
+    onLobbyState: (state: LobbyState) => void,
+    onGameStart: (gameId: string) => void
+) => {
     if (socketConnectionInstance) {
         socketConnectionInstance.disconnect()
     }
@@ -25,23 +27,25 @@ export const getSocketConnectionInstance = () => {
 }
 
 export class SocketConnection {
-
     private socket: Socket
     private gameState: GameState | null = null
     public gameStartData: ExportType | null = null
 
-    constructor(protected socketUrl: string, protected onLobbyState: (state: LobbyState) => void, protected onGameStart: (gameId: string) => void) {
+    constructor(
+        protected socketUrl: string,
+        protected onLobbyState: (state: LobbyState) => void,
+        protected onGameStart: (gameId: string) => void
+    ) {
         this.socket = io(socketUrl)
 
-        this.socket.on("connection", () => {
-            console.log("connected")
+        this.socket.on('connection', () => {
+            console.log('connected')
         })
         this.socket.on('disconnect', function () {
-            console.log("disconnect")
-
+            console.log('disconnect')
         })
         this.socket.on('reconnect', () => {
-            console.log("reconnect")
+            console.log('reconnect')
         })
 
         this.handleLobbyState = this.handleLobbyState.bind(this)
@@ -69,7 +73,7 @@ export class SocketConnection {
 
     private handleGameState(gameState: GameState) {
         this.gameState = {
-            ...gameState
+            ...gameState,
         }
     }
 
@@ -84,5 +88,4 @@ export class SocketConnection {
     public getSocketIO() {
         return this.socket
     }
-
 }

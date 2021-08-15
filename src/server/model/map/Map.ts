@@ -1,28 +1,72 @@
-import {Tile, TilePublic, Town} from './Tile'
+import { Tile, TilePublic, Town } from './Tile'
 import mapData from '../../../../public/assets/tilemaps/json/map.json'
-import {iterateOnXYMap} from '../../utils/xyMapToArray'
-import {MapTilesPublic} from '../types/MapTilesPublic'
-import {MapTiles} from '../types/MapTiles'
-import {TownByCountries} from '../types/TownByCountries'
-import {TownsDataLayer} from './TownsDataLayer'
-import {PolygonContainer} from '../types/Polygon'
-import {RawMapLayerObject} from '../types/RawMapLayerObject'
+import { iterateOnXYMap } from '../../utils/xyMapToArray'
+import { MapTilesPublic } from '../types/MapTilesPublic'
+import { MapTiles } from '../types/MapTiles'
+import { TownByCountries } from '../types/TownByCountries'
+import { TownsDataLayer } from './TownsDataLayer'
+import { PolygonContainer } from '../types/Polygon'
+import { RawMapLayerObject } from '../types/RawMapLayerObject'
 
-const EXPORTED_LAYER_NAMES = ["g-water", 'c-ch', 'c-it',
-    'c-uk', 'c-is', 'c-gl', 'c-ie',
-    'c-fr', 'c-ma', 'c-es', 'c-pt',
-    'c-de', 'c-at', 'c-li', 'c-dk',
-    'c-be', 'c-nl', 'c-pl', 'c-cz',
-    'c-si', 'c-hr', 'c-sk', 'c-hu',
-    'c-ba', 'c-me', 'c-rs', 'c-mk',
-    'c-al', 'c-bg', 'c-ro', 'c-md',
-    'c-ua', 'c-by', 'c-no', 'c-se',
-    'c-fi', 'c-ruk', 'c-lt', 'c-lv',
-    'c-ee', 'c-sval', 'c-ru', 'c-ge',
-    'c-am', 'c-gr', 'c-tr', 'c-sy',
-    'c-iq', 'c-ae', 'c-jo', 'c-il',
-    'c-lb', 'c-eg', 'c-ly', 'c-tn',
-    'c-dz', 'towns',]
+const EXPORTED_LAYER_NAMES = [
+    'g-water',
+    'c-ch',
+    'c-it',
+    'c-uk',
+    'c-is',
+    'c-gl',
+    'c-ie',
+    'c-fr',
+    'c-ma',
+    'c-es',
+    'c-pt',
+    'c-de',
+    'c-at',
+    'c-li',
+    'c-dk',
+    'c-be',
+    'c-nl',
+    'c-pl',
+    'c-cz',
+    'c-si',
+    'c-hr',
+    'c-sk',
+    'c-hu',
+    'c-ba',
+    'c-me',
+    'c-rs',
+    'c-mk',
+    'c-al',
+    'c-bg',
+    'c-ro',
+    'c-md',
+    'c-ua',
+    'c-by',
+    'c-no',
+    'c-se',
+    'c-fi',
+    'c-ruk',
+    'c-lt',
+    'c-lv',
+    'c-ee',
+    'c-sval',
+    'c-ru',
+    'c-ge',
+    'c-am',
+    'c-gr',
+    'c-tr',
+    'c-sy',
+    'c-iq',
+    'c-ae',
+    'c-jo',
+    'c-il',
+    'c-lb',
+    'c-eg',
+    'c-ly',
+    'c-tn',
+    'c-dz',
+    'towns',
+]
 
 export class Map {
     private tiles: MapTiles = {}
@@ -43,8 +87,8 @@ export class Map {
 
         const townDataLayer = new TownsDataLayer()
 
-        mapData.layers.forEach(layer => {
-            if (layer.name.startsWith("c-") || layer.name === "towns") {
+        mapData.layers.forEach((layer) => {
+            if (layer.name.startsWith('c-') || layer.name === 'towns') {
                 const width = layer.width || 0
                 const height = layer.height || 0
                 if (!layer.data) {
@@ -93,14 +137,14 @@ export class Map {
 
     getTownAt(x: number, y: number): Town | null {
         const tile = this.tiles[x][y]
-        if(tile.isTown) {
-            return <Town> tile
+        if (tile.isTown) {
+            return <Town>tile
         }
         return null
     }
 
     export(): MapTilesPublic {
-        const tiles: MapTilesPublic["tiles"] = {}
+        const tiles: MapTilesPublic['tiles'] = {}
 
         for (let x = 0; x < this.mapWidth; x++) {
             tiles[x] = {}
@@ -111,21 +155,17 @@ export class Map {
             }
         }
         // @ts-ignore
-        const countriesPolygons: {  [country: string]: PolygonContainer[] } = <RawMapLayerObject []>mapData.layers
+        const countriesPolygons: { [country: string]: PolygonContainer[] } = <RawMapLayerObject[]>mapData.layers
             // @ts-ignore
-            .filter(layer => layer.name.startsWith('c-') && layer.name.endsWith('-o'))
+            .filter((layer) => layer.name.startsWith('c-') && layer.name.endsWith('-o'))
             // @ts-ignore
-            .reduce((acc: {[country: string]: PolygonContainer[]}, layer: RawMapLayerObject) => {
+            .reduce((acc: { [country: string]: PolygonContainer[] }, layer: RawMapLayerObject) => {
                 const country = layer.name.split('-')[1]
-                acc[country] = layer.objects.map((obj: {
-                    x: number,
-                    y: number,
-                    polygon: any[]
-                }) => {
+                acc[country] = layer.objects.map((obj: { x: number; y: number; polygon: any[] }) => {
                     return {
                         x: obj.x,
                         y: obj.y,
-                        polygon: obj.polygon
+                        polygon: obj.polygon,
                     }
                 })
                 return acc
@@ -134,7 +174,7 @@ export class Map {
         return {
             tiles,
             layerNames: EXPORTED_LAYER_NAMES,
-            countries: countriesPolygons
+            countries: countriesPolygons,
         }
     }
 

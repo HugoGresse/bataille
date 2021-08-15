@@ -1,4 +1,4 @@
-import {MapTilesPublic} from './MapTilesPublic'
+import { MapTilesPublic } from './MapTilesPublic'
 
 export type ExportType = {
     gameId: string

@@ -1,8 +1,6 @@
-import {Player} from '../Player'
-import {Position} from './Position'
+import { Player } from '../Player'
+import { Position } from './Position'
 
 export class Actor {
-
-    constructor(protected owner: Player, public position: Position) {
-    }
+    constructor(protected owner: Player, public position: Position) {}
 }

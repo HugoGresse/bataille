@@ -1,17 +1,15 @@
-import {BroadcastOperator} from 'socket.io'
-import {DefaultEventsMap} from 'socket.io/dist/typed-events'
-import {Game} from './Game'
-import {GAME_STATE_INIT, GAME_STATE_UPDATE, LOBBY_STATE} from '../common/SOCKET_EMIT'
-import {socketIOServer} from './utils/io'
-import {GameLobby} from './GameLobby'
+import { BroadcastOperator } from 'socket.io'
+import { DefaultEventsMap } from 'socket.io/dist/typed-events'
+import { Game } from './Game'
+import { GAME_STATE_INIT, GAME_STATE_UPDATE, LOBBY_STATE } from '../common/SOCKET_EMIT'
+import { socketIOServer } from './utils/io'
+import { GameLobby } from './GameLobby'
 
 /**
  * Emit events to a specific Socket room provided at construction
  */
 export class SocketEmitter {
-
-    constructor(private sockets: BroadcastOperator<DefaultEventsMap>) {
-    }
+    constructor(private sockets: BroadcastOperator<DefaultEventsMap>) {}
 
     emitLobbyState(lobby: GameLobby) {
         this.sockets.emit(LOBBY_STATE, lobby.export())

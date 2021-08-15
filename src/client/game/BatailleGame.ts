@@ -1,20 +1,19 @@
 import 'phaser'
-import {BatailleScene} from './scenes/bataille/BatailleScene'
-import {UIScene} from './scenes/UI/UIScene'
-import {LoadingScene} from './scenes/LoadingScene'
-import {getSocketConnectionInstance, SocketConnection} from '../SocketConnection'
-import {GameActions} from './GameActions'
-import {ExportType} from '../../server/model/types/ExportType'
+import { BatailleScene } from './scenes/bataille/BatailleScene'
+import { UIScene } from './scenes/UI/UIScene'
+import { LoadingScene } from './scenes/LoadingScene'
+import { getSocketConnectionInstance, SocketConnection } from '../SocketConnection'
+import { GameActions } from './GameActions'
+import { ExportType } from '../../server/model/types/ExportType'
 
 export class BatailleGame {
-
     static instance: BatailleGame
 
     game: Phaser.Game
     socket: SocketConnection
 
     constructor(parent: HTMLElement, gameId: any) {
-        console.log("New game, id: ", gameId)
+        console.log('New game, id: ', gameId)
         const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             backgroundColor: '#125555',
@@ -23,30 +22,30 @@ export class BatailleGame {
             scene: [LoadingScene, BatailleScene, UIScene],
             parent: parent,
             dom: {
-                createContainer: false
+                createContainer: false,
             },
             scale: {
                 mode: Phaser.Scale.RESIZE,
                 width: '100%',
-                height: '100%'
+                height: '100%',
             },
             fps: {
                 // target: 2,
                 // forceSetTimeOut: true
-            }
-        };
+            },
+        }
 
-        this.game = new Phaser.Game(config);
+        this.game = new Phaser.Game(config)
         const socketInstance = getSocketConnectionInstance()
-        if(!socketInstance || !socketInstance.gameStartData) {
+        if (!socketInstance || !socketInstance.gameStartData) {
             console.log(socketInstance)
             alert('Unable to join this game, ¯\\_(ツ)_/¯')
-            window.location.href ='/'
-            throw Error("Pas content")
+            window.location.href = '/'
+            throw Error('Pas content')
         }
         this.socket = socketInstance
         const gameActions = new GameActions(this.socket.getSocketIO())
-        this.game.registry.set("actions", gameActions)
+        this.game.registry.set('actions', gameActions)
         this.onGameStart(socketInstance.gameStartData)
     }
 
@@ -54,8 +53,8 @@ export class BatailleGame {
         // this.game.resize()
     }
 
-    onGameStart (data: ExportType) {
-        if(!this.game.isRunning) {
+    onGameStart(data: ExportType) {
+        if (!this.game.isRunning) {
             setTimeout(() => {
                 this.onGameStart(data)
             }, 20)
@@ -66,25 +65,25 @@ export class BatailleGame {
 
         const batailleScene: BatailleScene = this.game.scene.getScene('BatailleScene') as BatailleScene
 
-        if(batailleScene.scene.settings.active && batailleScene.scene.settings.visible) {
+        if (batailleScene.scene.settings.active && batailleScene.scene.settings.visible) {
             batailleScene.initSceneWithData(data)
         } else {
-            batailleScene.events.on('start', function(){
+            batailleScene.events.on('start', function () {
                 batailleScene.initSceneWithData(data)
                 batailleScene.events.off('start')
-            });
+            })
             batailleScene.events.on('destroy', () => {
                 batailleScene.events.off('start')
-            });
+            })
         }
     }
 
     destroy() {
-        if(this.game) {
+        if (this.game) {
             this.game.destroy(true)
             this.socket.disconnect()
         } else {
-            console.log("Failed to destroy")
+            console.log('Failed to destroy')
         }
     }
 
@@ -93,7 +92,7 @@ export class BatailleGame {
         actions.clearGame()
     }
 
-    getSocket() : SocketConnection {
+    getSocket(): SocketConnection {
         return this.socket
     }
 

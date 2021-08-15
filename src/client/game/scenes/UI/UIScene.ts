@@ -1,14 +1,13 @@
 import 'phaser'
-import {BaseScene} from '../BaseScene'
-import {ScoreDisplay} from './ScoreDisplay'
-import {BuildingOverlay} from './BuildingOverlay'
-import {Building} from '../../actors/buildings/Building'
-import {Town} from '../../actors/buildings/Town'
+import { BaseScene } from '../BaseScene'
+import { ScoreDisplay } from './ScoreDisplay'
+import { BuildingOverlay } from './BuildingOverlay'
+import { Building } from '../../actors/buildings/Building'
+import { Town } from '../../actors/buildings/Town'
 
 export class UIScene extends BaseScene {
-
-    scoreDisplay !: ScoreDisplay
-    buildingOverlay !: BuildingOverlay
+    scoreDisplay!: ScoreDisplay
+    buildingOverlay!: BuildingOverlay
 
     constructor() {
         super('UI')
@@ -26,20 +25,18 @@ export class UIScene extends BaseScene {
     }
 
     onBuildingSelected(building: Building) {
-        if(building instanceof Town ) {
+        if (building instanceof Town) {
             const town = building as Town
             const currentPlayerName = this.getState()?.currentPlayer.name
-            if(town.tileData.player?.name === currentPlayerName){
+            if (town.tileData.player?.name === currentPlayerName) {
                 this.buildingOverlay.onTownSelected(town)
             }
         } else {
             console.log(building)
         }
-
     }
 
-    onEmptyTileSelected () {
+    onEmptyTileSelected() {
         this.buildingOverlay.onEmptyTileSelected()
     }
-
 }

@@ -1,11 +1,11 @@
-import {PrivatePlayerState, PublicPlayerState, UnitState} from './GameState'
-import {BaseUnit} from './actors/units/BaseUnit'
-import {UnitAction} from '../../common/UnitAction'
-import {iterateOnXYMap, xyMapToArray} from '../utils/xyMapToArray'
-import {v4 as uuidv4} from 'uuid'
-import {COUNTRIES_INCOME} from './map/COUNTRIES_INCOME'
-import {MONEY_START} from '../../common/GameSettings'
-import {MAX_UNIT_LIFE, UnitsType} from '../../common/UNITS'
+import { PrivatePlayerState, PublicPlayerState, UnitState } from './GameState'
+import { BaseUnit } from './actors/units/BaseUnit'
+import { UnitAction } from '../../common/UnitAction'
+import { iterateOnXYMap, xyMapToArray } from '../utils/xyMapToArray'
+import { v4 as uuidv4 } from 'uuid'
+import { COUNTRIES_INCOME } from './map/COUNTRIES_INCOME'
+import { MONEY_START } from '../../common/GameSettings'
+import { MAX_UNIT_LIFE, UnitsType } from '../../common/UNITS'
 
 export type UnitTiles = {
     [x: number]: {
@@ -14,7 +14,6 @@ export type UnitTiles = {
 }
 
 abstract class AbstractPlayer {
-
     protected _name: string = `${Date.now()}`
     protected units: UnitTiles = {}
     public id: string
@@ -36,12 +35,12 @@ abstract class AbstractPlayer {
     }
 
     addUnit(unit: BaseUnit, x: number, y: number): boolean {
-        if(!this.units[x]){
+        if (!this.units[x]) {
             this.units[x] = {}
         }
-        if(this.units[x][y]) {
+        if (this.units[x][y]) {
             const existingUnit = this.units[x][y]
-            if(existingUnit.life.getHP() >= MAX_UNIT_LIFE) {
+            if (existingUnit.life.getHP() >= MAX_UNIT_LIFE) {
                 return false
             }
             existingUnit.life.setHP(existingUnit.life.getHP() + unit.life.getHP())
@@ -51,18 +50,17 @@ abstract class AbstractPlayer {
         return true
     }
 
-    getUnits() : UnitTiles {
+    getUnits(): UnitTiles {
         return this.units
     }
 
     getUnitsState(): UnitState[] {
-        return xyMapToArray<BaseUnit>(this.units)
-            .map((unit: BaseUnit) => ({
+        return xyMapToArray<BaseUnit>(this.units).map((unit: BaseUnit) => ({
             id: unit.id,
             type: unit.type,
             hp: unit.life.get(),
             position: unit.position.get(),
-                color: this.color.replace('0x', "#")
+            color: this.color.replace('0x', '#'),
         }))
     }
 
@@ -71,7 +69,7 @@ abstract class AbstractPlayer {
             name: this.name,
             income: this.income,
             color: this.color,
-            countries: this.ownedCountriesIds
+            countries: this.ownedCountriesIds,
         }
     }
 
@@ -83,8 +81,8 @@ abstract class AbstractPlayer {
     }
 
     unitAction(action: UnitAction) {
-        const unit = xyMapToArray<BaseUnit>(this.units).find(unit => unit.id === action.unitId)
-        if(unit){
+        const unit = xyMapToArray<BaseUnit>(this.units).find((unit) => unit.id === action.unitId)
+        if (unit) {
             unit.addAction(action)
         }
     }
@@ -93,13 +91,13 @@ abstract class AbstractPlayer {
         iterateOnXYMap<BaseUnit>(this.units, (unit, x, y) => {
             unit.update()
             const unitNewPos = unit.position.getRounded()
-            if(unitNewPos.x !== x || unitNewPos.y !== y) {
+            if (unitNewPos.x !== x || unitNewPos.y !== y) {
                 // Unit may be wrongfully displayed on the grid, or just moved from one square to another, this align everything
                 delete this.units[x][y]
-                if(!this.units[unitNewPos.x]) {
+                if (!this.units[unitNewPos.x]) {
                     this.units[unitNewPos.x] = {}
                 }
-                if(this.units[unitNewPos.x][unitNewPos.y]) {
+                if (this.units[unitNewPos.x][unitNewPos.y]) {
                     // merge unit on same player
                     this.units[unitNewPos.x][unitNewPos.y].life.heal(unit.life.getHP())
                     delete this.units[x][y]
@@ -121,16 +119,14 @@ abstract class AbstractPlayer {
 }
 
 export class Player extends AbstractPlayer {
-    constructor(protected socketId: string, color: string, name ?: string,) {
-        super(name, color);
+    constructor(protected socketId: string, color: string, name?: string) {
+        super(name, color)
     }
 }
 
 export class NeutralPlayer extends Player {
-
     constructor() {
-        super("Neutral", "0x888888");
+        super('Neutral', '0x888888')
     }
-
 }
 export const NeutralPlayerInstance = new NeutralPlayer()

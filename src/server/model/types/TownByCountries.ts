@@ -1,4 +1,4 @@
-import {Town} from '../map/Tile'
+import { Town } from '../map/Tile'
 
 export type TownByCountries = {
     [countryId: string]: Town[]

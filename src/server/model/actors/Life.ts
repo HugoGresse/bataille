@@ -1,7 +1,6 @@
-import {validate} from 'uuid'
+import { validate } from 'uuid'
 
 export class Life {
-
     protected initialHP: number
     protected currentHP: number
 
@@ -13,7 +12,7 @@ export class Life {
     get() {
         return {
             current: this.currentHP,
-            initial: this.initialHP
+            initial: this.initialHP,
         }
     }
 
@@ -27,11 +26,10 @@ export class Life {
 
     public takeDamage(value: number): boolean {
         this.currentHP -= value
-        return this.currentHP > 0; // True if alive
+        return this.currentHP > 0 // True if alive
     }
 
     public heal(healValue: number) {
         this.currentHP += healValue
     }
-
 }
