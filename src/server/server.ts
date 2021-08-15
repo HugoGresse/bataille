@@ -48,6 +48,7 @@ const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
                 lobby = null
             }
         })
+        console.log(`Number of games: ${Object.keys(games).length}`)
     }
     lobby.onPlayerJoin(socket, playerName)
 }
