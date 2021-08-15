@@ -11,6 +11,7 @@ const OVERLAY_PADDING = 10
 type Shapes = Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text
 
 const NEW_UNIT_SHORTCUT_BIS = "R"
+const NEW_UNIT_10X_SHORTCUT_BIS = "T"
 
 export class BuildingOverlay {
 
@@ -28,7 +29,7 @@ export class BuildingOverlay {
         const rectangle = this.scene.add.rectangle(width/2, height - OVERLAY_HEIGHT/2, OVERLAY_WIDTH, OVERLAY_HEIGHT)
         rectangle.setFillStyle(0xFF0000, 1)
 
-        const newUnitText = this.scene.add.text(width/2 - OVERLAY_WIDTH/2 + OVERLAY_PADDING, height - OVERLAY_HEIGHT + OVERLAY_PADDING,  `New Unit ${UnitsType.Stick}$ (R)`, TEXT_STYLE)
+        const newUnitText = this.scene.add.text(width/2 - OVERLAY_WIDTH/2 + OVERLAY_PADDING, height - OVERLAY_HEIGHT + OVERLAY_PADDING,  `New Unit ${UnitsType.Stick}$ (R) (T: 10x)`, TEXT_STYLE)
         newUnitText.setInteractive()
 
         this.selectedTown = town
@@ -42,9 +43,24 @@ export class BuildingOverlay {
         this.shapes.push(rectangle)
         this.shapes.push(newUnitText)
 
-        const keyObj = this.scene.input.keyboard.addKey(NEW_UNIT_SHORTCUT_BIS, true, true);  // Get key object
-        keyObj.on('down', () =>  {
+        const newUnitKey = this.scene.input.keyboard.addKey(NEW_UNIT_SHORTCUT_BIS, true, true);
+        newUnitKey.on('down', () =>  {
             if(this.selectedTown) {
+                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+            }
+        });
+        const newUnit10XKey = this.scene.input.keyboard.addKey(NEW_UNIT_10X_SHORTCUT_BIS, true, true);
+
+        newUnit10XKey.on('down', () =>  {
+            if(this.selectedTown) { this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
                 this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
             }
         });
@@ -52,6 +68,7 @@ export class BuildingOverlay {
 
     onEmptyTileSelected() {
         this.scene.input.keyboard.removeKey(NEW_UNIT_SHORTCUT_BIS);
+        this.scene.input.keyboard.removeKey(NEW_UNIT_10X_SHORTCUT_BIS);
         this.shapes.forEach(shape => {
             shape.removeAllListeners()
             shape.destroy()
