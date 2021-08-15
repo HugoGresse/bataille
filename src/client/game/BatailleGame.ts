@@ -25,6 +25,11 @@ export class BatailleGame {
             dom: {
                 createContainer: false
             },
+            scale: {
+                mode: Phaser.Scale.RESIZE,
+                width: '100%',
+                height: '100%'
+            },
             fps: {
                 // target: 2,
                 // forceSetTimeOut: true
@@ -36,12 +41,17 @@ export class BatailleGame {
         if(!socketInstance || !socketInstance.gameStartData) {
             console.log(socketInstance)
             alert('Unable to join this game, ¯\\_(ツ)_/¯')
-            throw Error('Unable to join this game, ¯\\_(ツ)_/¯')
+            window.location.href ='/'
+            throw Error("Pas content")
         }
         this.socket = socketInstance
         const gameActions = new GameActions(this.socket.getSocketIO())
         this.game.registry.set("actions", gameActions)
         this.onGameStart(socketInstance.gameStartData)
+    }
+
+    setFullscreen() {
+        // this.game.resize()
     }
 
     onGameStart (data: ExportType) {
@@ -73,6 +83,8 @@ export class BatailleGame {
         if(this.game) {
             this.game.destroy(true)
             this.socket.disconnect()
+        } else {
+            console.log("Failed to destroy")
         }
     }
 

@@ -26,8 +26,12 @@ export const Game = () => {
     return <div>
         <div style={{textAlign: "right"}}>
             <button onClick={() => {
+                gameContainer.current?.requestFullscreen()
+                game?.setFullscreen()
+            }}>Fullscreen</button>
+            <button onClick={() => {
                 game && game.destroy()
-                console.log("destroyed")
+                console.log("destroyed", game)
             }}>Destroy</button>
             <button onClick={() => {
                 game && game.clearGame()
