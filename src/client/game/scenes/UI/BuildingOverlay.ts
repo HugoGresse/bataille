@@ -50,7 +50,6 @@ export class BuildingOverlay {
             }
         });
         const newUnit10XKey = this.scene.input.keyboard.addKey(NEW_UNIT_10X_SHORTCUT_BIS, true, true);
-
         newUnit10XKey.on('down', () =>  {
             if(this.selectedTown) { this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
                 this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
