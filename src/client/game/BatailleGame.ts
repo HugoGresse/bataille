@@ -64,8 +64,10 @@ export class BatailleGame {
     }
 
     destroy() {
-        this.game.destroy(true)
-        this.socket.disconnect()
+        if(this.game) {
+            this.game.destroy(true)
+            this.socket.disconnect()
+        }
     }
 
     clearGame() {
