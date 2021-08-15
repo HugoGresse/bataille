@@ -10,7 +10,7 @@ export class GameLoop {
     intervalId: NodeJS.Timeout | null = null
     public isRunning = false
 
-    constructor(protected emitter: SocketEmitter, private map: Map) {
+    constructor(protected emitter: SocketEmitter) {
 
     }
 

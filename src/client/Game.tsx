@@ -1,21 +1,17 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {BatailleGame} from './game/BatailleGame'
 import "./game.css"
+import {useParams} from 'react-router-dom'
+
+type GameParams = {
+    gameId: string
+}
 
 export const Game = () => {
+    const { gameId } = useParams<GameParams>();
     const gameContainer = useRef<HTMLDivElement>(null);
     const [game, setGame] = useState<BatailleGame>()
 
-    const newGame = () => {
-        if(gameContainer.current) {
-            const game = new BatailleGame(gameContainer.current)
-            BatailleGame.setCurrentGame(game)
-            setGame(game)
-            return () => {
-                game.destroy()
-            }
-        }
-    }
 
     const startGame = () => {
         if(game) {
@@ -24,12 +20,18 @@ export const Game = () => {
     }
 
     useEffect(() => {
-        return newGame()
-    }, [gameContainer])
+            if(gameContainer.current) {
+                const game = new BatailleGame(gameContainer.current, gameId)
+                BatailleGame.setCurrentGame(game)
+                setGame(game)
+                return () => {
+                    game.destroy()
+                }
+            }
+    }, [gameId, gameContainer])
 
     return <div>
         <div style={{textAlign: "right"}}>
-            <button onClick={newGame        }>new</button>
             <button onClick={startGame}>start</button>
             <button onClick={() => {
                 game && game.destroy()

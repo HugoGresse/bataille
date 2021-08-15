@@ -2,10 +2,9 @@ import 'phaser'
 import {BatailleScene} from './scenes/bataille/BatailleScene'
 import {UIScene} from './scenes/UI/UIScene'
 import {LoadingScene} from './scenes/LoadingScene'
-import {SocketConnection} from '../SocketConnection'
+import {getSocketConnectionInstance, SocketConnection} from '../SocketConnection'
 import {GameActions} from './GameActions'
 import {ExportType} from '../../server/model/types/ExportType'
-import {SOCKET_URL} from './utils/clientEnv'
 
 export class BatailleGame {
 
@@ -14,7 +13,8 @@ export class BatailleGame {
     game: Phaser.Game
     socket: SocketConnection
 
-    constructor(parent: HTMLElement) {
+    constructor(parent: HTMLElement, gameId: any) {
+        console.log("New game, id: ", gameId)
         const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             backgroundColor: '#125555',
@@ -32,22 +32,27 @@ export class BatailleGame {
         };
 
         this.game = new Phaser.Game(config);
-        this.socket = new SocketConnection(SOCKET_URL, (data) => {
-            if(this.game.isRunning){
-                this.onGameStart(data)
-            }
-        })
+        const socketInstance = getSocketConnectionInstance()
+        if(!socketInstance || !socketInstance.gameStartData) {
+            console.log(socketInstance)
+            alert('Unable to join this game, ¯\\_(ツ)_/¯')
+            throw Error('Unable to join this game, ¯\\_(ツ)_/¯')
+        }
+        this.socket = socketInstance
         const gameActions = new GameActions(this.socket.getSocketIO())
         this.game.registry.set("actions", gameActions)
-        gameActions.joinGame()
+        this.onGameStart(socketInstance.gameStartData)
     }
 
     start () {
         const actions = this.game.registry.get('actions') as GameActions
-        actions.startGame()
+        actions.forceGameStart()
     }
 
     onGameStart (data: ExportType) {
+        const actions = this.game.registry.get('actions') as GameActions
+        actions.setGameId(data.gameId)
+
         const batailleScene: BatailleScene = this.game.scene.getScene('BatailleScene') as BatailleScene
 
         if(batailleScene.scene.settings.active && batailleScene.scene.settings.visible) {

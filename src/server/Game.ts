@@ -13,7 +13,7 @@ import {BaseUnit} from './model/actors/units/BaseUnit'
 import {Tile} from './model/map/Tile'
 import {updatePlayerIncome} from './model/updatePlayerIncome'
 import {IncomeDispatcher} from './model/income/IncomeDispatcher'
-import {INCOME_MS, MINIMUM_PLAYER_PER_GAME} from '../common/GameSettings'
+import {INCOME_MS, } from '../common/GameSettings'
 import {NewUnitDataEvent} from '../common/NewUnitDataEvent'
 import {StickUnit} from './model/actors/units/StickUnit'
 import {Position} from './model/actors/Position'
@@ -28,12 +28,10 @@ export class Game {
     protected gameLoop: GameLoop
     protected map: Map
     protected incomeDispatcher: IncomeDispatcher = new IncomeDispatcher(INCOME_MS)
-    private emitter: SocketEmitter
 
-    constructor(protected id: string, protected ioServer: Server) {
-        this.emitter = new SocketEmitter(ioServer.to(id))
+    constructor(public readonly id: string, protected emitter: SocketEmitter) {
         this.map = new Map()
-        this.gameLoop = new GameLoop(this.emitter, this.map)
+        this.gameLoop = new GameLoop(this.emitter)
     }
 
     stopLoop() {
@@ -54,6 +52,7 @@ export class Game {
 
     export(): ExportType {
         return {
+            gameId: this.id,
             map: this.map.export()
         }
     }
@@ -79,21 +78,15 @@ export class Game {
         }
     }
 
-    addPlayer(player: Player, socket: Socket) {
+    addPlayer(player: Player, socketId: string) {
         if (this.gameLoop.isRunning) {
             console.log("Attempt to join a game but is already started...")
             return
         }
-        if (!this.players[socket.id]) {
-            this.players[socket.id] = player
+        if (!this.players[socketId]) {
+            this.players[socketId] = player
         }
-        socket.join(this.id)
         console.log("add player")
-
-        if (Object.keys(this.players).length >= MINIMUM_PLAYER_PER_GAME) {
-            this.start()
-        }
-        this.emitter.emitInitialGameState(this)
     }
 
     getPlayers(): Player[] {
@@ -129,6 +122,7 @@ export class Game {
     }
 
     start() {
+        this.emitter.emitInitialGameState(this)
         townAssignation(this.getPlayers(), this.map)
         if (!this.gameLoop.isRunning) {
             this.gameLoop.start(this)
