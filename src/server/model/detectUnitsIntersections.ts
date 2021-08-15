@@ -54,7 +54,6 @@ export const detectUnitsIntersections = (players: { [id: string]: Player }) => {
         const units = player.getUnits()
         iterateOnXYMap<BaseUnit>(units, (unit, x: number, y: number) => {
             if (units[x][y].life.getHP() <= 0) {
-                console.log('dead units removed')
                 delete units[x][y]
             }
         })

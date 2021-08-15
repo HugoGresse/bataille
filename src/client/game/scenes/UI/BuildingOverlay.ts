@@ -61,16 +61,9 @@ export class BuildingOverlay {
 
         newUnit10XKey.on('down', () => {
             if (this.selectedTown) {
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+                for (let i = 0; i < 10; i++) {
+                    this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+                }
             }
         })
     }

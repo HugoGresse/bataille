@@ -31,7 +31,12 @@ export class TilesColorsUpdater {
     update(players: PublicPlayerState[]) {
         players.forEach((player) => {
             player.countries.forEach((countryId) => {
-                this.countriesPolygons[countryId].setColor(player.color)
+                if (this.countriesPolygons[countryId]) {
+                    this.countriesPolygons[countryId].setColor(player.color)
+                } else {
+                    console.log('This country id is missing in polygon', countryId)
+                }
+
                 this.lastCountries = this.lastCountries.filter((id) => id !== countryId)
             })
         })
