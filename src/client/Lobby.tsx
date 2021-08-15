@@ -1,18 +1,29 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Box, Button,  Typography} from '@material-ui/core'
 import {DonatingBanner} from './screens/DonatingBanner'
 import {Link as RouterLink, useHistory} from 'react-router-dom'
 import {newSocketConnectionInstance} from './SocketConnection'
 import {ArrowBack} from '@material-ui/icons'
+import {LobbyState} from '../server/GameLobby'
 
 export const Lobby = () => {
     const history = useHistory();
+    const [lobbyState, setLobbyState] = useState<LobbyState>({
+        playerCountForceStart: 0,
+        requiredPlayerCount: 0,
+        playerCount: 0
+    })
 
     useEffect(() => {
-        newSocketConnectionInstance((gameId: string) => {
-            history.push(`/g/${gameId}/`)
-        })
+        newSocketConnectionInstance(
+            (lobbyState) => {
+                setLobbyState(lobbyState)
+        },(gameId: string) => {
+                history.push(`/g/${gameId}/`)
+            }
+        )
     }, [history])
+
 
     return <Box display="flex" flex={1} minHeight="100vh" alignItems="center" justifyContent="space-between"
                 flexDirection="column">
@@ -24,10 +35,10 @@ export const Lobby = () => {
         </Box>
 
         <Box>
-            <Typography variant="h3">Waiting for more players... 29/112</Typography>
+            <Typography variant="h3">Waiting for more players... {lobbyState.playerCount}/{lobbyState.requiredPlayerCount}</Typography>
             <br/>
             <Button variant="outlined" size="large">
-                Force start (1/2)
+                Force start ({lobbyState.playerCountForceStart}/{lobbyState.playerCount})
             </Button>
 
         </Box>

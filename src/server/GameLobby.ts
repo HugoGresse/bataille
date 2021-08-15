@@ -13,21 +13,23 @@ export class GameLobby {
     }
 
     onPlayerJoin(socket: Socket, name: string) {
-        console.log(`Player join lobby, ${this.waitingPlayers.length}/${this.requiredPlayerToStart}`)
-
         const socketId = socket.id
+        this.sockets[socketId] = socket
         socket.join(this.futureGameId)
 
         this.waitingPlayers.push({
             socketId, name
         })
+        console.log(`Player join lobby, ${this.waitingPlayers.length}/${this.requiredPlayerToStart}`)
 
         socket.on("disconnect", () => {
-            console.log(`Player left lobby, ${this.waitingPlayers.length}/${this.requiredPlayerToStart}`)
+            delete this.sockets[socketId]
             this.waitingPlayers = this.waitingPlayers.filter(p => p.socketId !== socketId)
+            this.socketEmitter.emitLobbyState(this)
+            console.log(`Player left lobby, ${this.waitingPlayers.length}/${this.requiredPlayerToStart}`)
         })
 
-        if(socketId.length === this.requiredPlayerToStart) {
+        if(this.waitingPlayers.length === this.requiredPlayerToStart) {
             this.onLobbyReady(this.waitingPlayers)
         }  else {
             this.socketEmitter.emitLobbyState(this)
@@ -36,6 +38,7 @@ export class GameLobby {
 
     //Close listeners for disconnecting
     close() {
+        console.log(this.waitingPlayers)
         this.waitingPlayers.forEach(p => {
             this.sockets[p.socketId].removeAllListeners("disconnect")
         })

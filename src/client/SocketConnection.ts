@@ -8,11 +8,11 @@ import {LobbyState} from '../server/GameLobby'
 
 
 let socketConnectionInstance: SocketConnection | null = null
-export const newSocketConnectionInstance = (onGameStart: (gameId: string) => void) => {
+export const newSocketConnectionInstance = (onLobbyState: (state: LobbyState) => void, onGameStart: (gameId: string) => void) => {
     if (socketConnectionInstance) {
         socketConnectionInstance.disconnect()
     }
-    socketConnectionInstance = new SocketConnection(SOCKET_URL, onGameStart)
+    socketConnectionInstance = new SocketConnection(SOCKET_URL, onLobbyState, onGameStart)
 }
 export const getSocketConnectionInstance = () => {
     return socketConnectionInstance
@@ -24,10 +24,10 @@ export class SocketConnection {
     private gameState: GameState | null = null
     public gameStartData: ExportType | null = null
 
-    constructor(protected socketUrl: string, protected onGameStart: (gameId: string) => void) {
+    constructor(protected socketUrl: string, protected onLobbyState: (state: LobbyState) => void, protected onGameStart: (gameId: string) => void) {
         this.socket = io(socketUrl)
 
-        this.socket.on("connection", (socket) => {
+        this.socket.on("connection", () => {
             console.log("connected")
         })
         this.socket.on('disconnect', function () {
@@ -38,7 +38,7 @@ export class SocketConnection {
             console.log("reconnect")
         })
 
-
+        this.handleLobbyState = this.handleLobbyState.bind(this)
         this.handleGameState = this.handleGameState.bind(this)
         this.handleGameInit = this.handleGameInit.bind(this)
 
@@ -49,7 +49,7 @@ export class SocketConnection {
     }
 
     private handleLobbyState(state: LobbyState) {
-        console.log(state)
+        this.onLobbyState(state)
     }
 
     private handleGameInit(data: ExportType) {
