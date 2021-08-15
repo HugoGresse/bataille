@@ -65,8 +65,9 @@ export class BatailleScene extends BaseScene {
                 })
             }
 
+            const currentPlayerName = this.getState()?.currentPlayer.name
             newState.towns.forEach((town) => {
-                this.towns[town.id].update(town)
+                this.towns[town.id].update(town, currentPlayerName)
             })
             this.tilesColorsUpdater.update(newState.players)
         }
