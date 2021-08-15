@@ -5,6 +5,7 @@ import { LoadingScene } from './scenes/LoadingScene'
 import { getSocketConnectionInstance, SocketConnection } from '../SocketConnection'
 import { GameActions } from './GameActions'
 import { ExportType } from '../../server/model/types/ExportType'
+import { playStartSound } from './utils/sounds'
 
 export class BatailleGame {
     static instance: BatailleGame
@@ -76,6 +77,7 @@ export class BatailleGame {
                 batailleScene.events.off('start')
             })
         }
+        playStartSound()
     }
 
     destroy() {
