@@ -39,9 +39,8 @@ const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
             games[game.id] = game
 
             for (const waitingPlayer of waitingPlayers) {
-                const player = new Player(socket.id, pickUnusedColor(game.getPlayers()), playerName,)
-
-                game.addPlayer(player, socket.id)
+                const player = new Player(waitingPlayer.socketId, pickUnusedColor(game.getPlayers()), waitingPlayer.name,)
+                game.addPlayer(player, waitingPlayer.socketId)
             }
 
             game.start()

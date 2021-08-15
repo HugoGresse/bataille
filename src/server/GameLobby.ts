@@ -38,7 +38,6 @@ export class GameLobby {
 
     //Close listeners for disconnecting
     close() {
-        console.log(this.waitingPlayers)
         this.waitingPlayers.forEach(p => {
             this.sockets[p.socketId].removeAllListeners("disconnect")
         })

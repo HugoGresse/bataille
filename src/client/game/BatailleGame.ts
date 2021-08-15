@@ -50,6 +50,12 @@ export class BatailleGame {
     }
 
     onGameStart (data: ExportType) {
+        if(!this.game.isRunning) {
+            setTimeout(() => {
+                this.onGameStart(data)
+            }, 20)
+            return
+        }
         const actions = this.game.registry.get('actions') as GameActions
         actions.setGameId(data.gameId)
 
