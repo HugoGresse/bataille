@@ -11,6 +11,7 @@ export class ScoreDisplay {
     incomeText: Phaser.GameObjects.Text
     moneyText: Phaser.GameObjects.Text
     nameText: Phaser.GameObjects.Text
+    nextIncomeText: Phaser.GameObjects.Text
     playersTexts: {
         [playerId: string]: Phaser.GameObjects.Text
     } = {}
@@ -18,9 +19,11 @@ export class ScoreDisplay {
 
     constructor(scene: Phaser.Scene) {
         let startYPosition = 10
-        const rectangle = scene.add.rectangle(BACKGROUND_WIDTH/2, 100, BACKGROUND_WIDTH, 200)
+        const rectangle = scene.add.rectangle(BACKGROUND_WIDTH/2, 100, BACKGROUND_WIDTH, 220)
         rectangle.setFillStyle(0x000000, 0.5)
         this.nameText = scene.add.text(LEFT_MARGIN, startYPosition, 'Name: ', TEXT_STYLE)
+        startYPosition += Y_MARGIN
+        this.nextIncomeText = scene.add.text(LEFT_MARGIN, startYPosition, 'Next income: ', TEXT_STYLE)
         startYPosition += Y_MARGIN
         this.incomeText = scene.add.text(LEFT_MARGIN, startYPosition, 'Income: ', TEXT_STYLE)
         startYPosition += Y_MARGIN
@@ -31,9 +34,10 @@ export class ScoreDisplay {
     }
 
     update(scene: BaseScene) {
-        const players = scene.getState()?.players
+        const state = scene.getState()
+        const players = state?.players
 
-        const currentPlayer = scene.getState()?.currentPlayer
+        const currentPlayer = state?.currentPlayer
         if(currentPlayer) {
             if(!this.nameText.text.endsWith(currentPlayer?.name)) {
                 this.nameText.text= `Name: ${currentPlayer.name}`
@@ -46,6 +50,8 @@ export class ScoreDisplay {
                 this.moneyText.text= `Money: ${currentPlayer.money}`
             }
         }
+
+        this.nextIncomeText.text = `Next income: ${state?.nextIncome}s`
 
         players?.forEach(player => {
             const playerText = `- ${player.name}: ${player.income}`

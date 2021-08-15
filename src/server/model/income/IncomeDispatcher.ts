@@ -14,7 +14,11 @@ export class IncomeDispatcher {
             })
             this.lastIncomeDispatched = Date.now()
         }
+        this.getNextIncomeDelay()
     }
 
-
+    getNextIncomeDelay() {
+        const delay =  this.incomeEveryXXMilliseconds -   (Date.now() - this.lastIncomeDispatched)
+        return ~~(delay /1000)
+    }
 }

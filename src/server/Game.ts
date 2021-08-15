@@ -71,6 +71,7 @@ export class Game {
 
         return {
             status: 'running',
+            nextIncome: this.incomeDispatcher.getNextIncomeDelay(),
             players: players,
             currentPlayer: currentPlayer.getPrivatePlayerState(),
             units: units,

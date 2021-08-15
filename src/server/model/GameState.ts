@@ -3,6 +3,7 @@ import {TilePublic} from './map/Tile'
 
 export interface GameState {
     status: "running",
+    nextIncome: number,
     players: PublicPlayerState[]
     currentPlayer: PrivatePlayerState
     units: UnitState[]
