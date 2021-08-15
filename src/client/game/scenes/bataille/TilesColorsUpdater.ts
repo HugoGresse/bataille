@@ -8,6 +8,8 @@ export class TilesColorsUpdater {
         [country: string]: CountryPolygons
     } = {}
 
+    private lastCountries: string[] = []
+
     constructor(private scene: Phaser.Scene, countries: { [p: string]: PolygonContainer[] }) {
         this.countriesPolygons = Object.keys(countries)
             .reduce((acc:{
@@ -18,10 +20,26 @@ export class TilesColorsUpdater {
             }, {})
     }
 
+    /**
+     * Color the country polygon to the player. Also check the past coloration loop to uncolor them.
+     * @param players
+     */
     update(players: PublicPlayerState[]) {
+        console.log(players)
         players.forEach(player => {
             player.countries.forEach(countryId => {
                 this.countriesPolygons[countryId].setColor(player.color)
+                this.lastCountries = this.lastCountries.filter(id => id !== countryId)
+            })
+        })
+
+        this.lastCountries.forEach(countryId => this.countriesPolygons[countryId].unColor())
+
+        // Store last countries to un-color them on when lost at war
+        this.lastCountries = []
+        players.forEach(player => {
+            player.countries.forEach(countryId => {
+                this.lastCountries.push(countryId)
             })
         })
     }
@@ -32,18 +50,21 @@ class CountryPolygons {
     private polygons: GameObjects.Polygon[] = []
 
     constructor(scene: Phaser.Scene, polygons: PolygonContainer[]) {
-
-        polygons.map(polygon => {
+        polygons.forEach(polygon => {
             const phaserPoly = scene.add.polygon(polygon.x, polygon.y, polygon.polygon, 0xff0000, 0)
             phaserPoly.setOrigin(0, 0)
             this.polygons.push(phaserPoly)
         })
-
     }
 
     public setColor(color: string) {
         this.polygons.forEach(polygon => {
             polygon.setFillStyle(Number(color), 200)
+        })
+    }
+    public unColor() {
+        this.polygons.forEach(polygon => {
+            polygon.setFillStyle(0x000000, 0)
         })
     }
 }
