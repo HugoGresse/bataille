@@ -1,6 +1,6 @@
 {
     "name": "bataille-front",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "description": "",
     "main": "index.js",
     "repository": {
@@ -15,6 +15,7 @@
         "start-server": "ts-node-dev --respawn --project src/server/tsconfig.dev.json src/server/server.ts",
         "server:build": "tsc --build src/server/tsconfig.json",
         "server:build:run": "npm run server:build && node lib/src/server/server.js",
+        "release:patch": "npm version patch && npm run server:build",
         "prepare": "husky install"
     },
     "devDependencies": {

@@ -1,5 +1,6 @@
 import React from 'react'
 import {Box, Button, Link, Typography} from '@material-ui/core'
+import packageJson from '../../../package.json';
 
 export const DonatingBanner = () => {
 
@@ -12,6 +13,10 @@ export const DonatingBanner = () => {
         </Typography>
         <br/>
         <Button variant="contained" href="https://github.com/sponsors/HugoGresse?frequency=one-time" target="_blank">DONATE anything</Button>
+
+        <br/>
+        <br/>
+        <Typography variant="body2">v{packageJson.version}</Typography>
     </Box>
 
 }
