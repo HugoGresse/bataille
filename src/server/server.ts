@@ -10,6 +10,7 @@ import { socketIOServer } from './utils/io'
 import { PORT } from './utils/serverEnv'
 import { GameLobby } from './GameLobby'
 import { SocketEmitter } from './SocketEmitter'
+import {trackGameEnd, trackGameStart} from './utils/trackings'
 
 const games: {
     [gameId: string]: Game
@@ -32,25 +33,32 @@ const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
     if (!lobby) {
         const futureGameId = newId()
         const socketEmitter = new SocketEmitter(socketIOServer.to(futureGameId))
-        lobby = new GameLobby(socketEmitter, futureGameId, (waitingPlayers) => {
+        lobby = new GameLobby(socketEmitter, futureGameId, (waitingPlayers, sockets) => {
             console.log(`> Lobby ready, starting game with ${waitingPlayers.length} players.`)
+            if (lobby) {
+                lobby.close()
+                lobby = null
+            }
+
             const game = new Game(futureGameId, socketEmitter)
             games[game.id] = game
 
             for (const waitingPlayer of waitingPlayers) {
                 const player = new Player(
-                    waitingPlayer.socketId,
+                    sockets[waitingPlayer.socketId],
                     pickUnusedColor(game.getPlayers()),
                     waitingPlayer.name
                 )
                 game.addPlayer(player, waitingPlayer.socketId)
             }
 
-            game.start()
-            if (lobby) {
-                lobby.close()
-                lobby = null
-            }
+            game.start((gameDurationSeconds) => {
+                console.log(`> Game ended, duration: ${gameDurationSeconds}s`)
+                delete games[futureGameId]
+                trackGameEnd(gameDurationSeconds)
+            })
+
+            trackGameStart(game.getPlayers().length)
         })
         console.log(`Number of games: ${Object.keys(games).length}`)
     }

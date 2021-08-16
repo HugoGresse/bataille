@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { COUNTRIES_INCOME } from './map/COUNTRIES_INCOME'
 import { MONEY_START } from '../../common/GameSettings'
 import { MAX_UNIT_LIFE, UnitsType } from '../../common/UNITS'
+import {Socket} from 'socket.io'
 
 export type UnitTiles = {
     [x: number]: {
@@ -13,12 +14,13 @@ export type UnitTiles = {
     }
 }
 
-abstract class AbstractPlayer {
+export abstract class AbstractPlayer {
     protected _name: string = `${Date.now()}`
     protected units: UnitTiles = {}
     public id: string
     public income: number = 2
     public money: number = MONEY_START
+    public isConnected: boolean = true
     private ownedCountriesIds: string[] = []
 
     protected constructor(name = `${Date.now()}`, public color: string) {
@@ -32,6 +34,10 @@ abstract class AbstractPlayer {
 
     get name() {
         return this._name
+    }
+
+    setConnected(isConnected: boolean) {
+        this.isConnected = isConnected
     }
 
     addUnit(unit: BaseUnit, x: number, y: number): boolean {
@@ -119,12 +125,19 @@ abstract class AbstractPlayer {
 }
 
 export class Player extends AbstractPlayer {
-    constructor(protected socketId: string, color: string, name?: string) {
+    constructor(protected socket: Socket, color: string, name?: string) {
         super(name, color)
+        this.listenForDisconnect()
+    }
+
+    private listenForDisconnect() {
+        this.socket.on('disconnect', () => {
+            this.setConnected(false)
+        })
     }
 }
 
-export class NeutralPlayer extends Player {
+export class NeutralPlayer extends AbstractPlayer {
     constructor() {
         super('Neutral', '0x888888')
     }

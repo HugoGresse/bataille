@@ -1,5 +1,5 @@
 import { Actor } from '../Actor'
-import { Player } from '../../Player'
+import {AbstractPlayer} from '../../Player'
 import { Position } from '../Position'
 import { Life } from '../Life'
 import { UnitsType } from '../../../../common/UNITS'
@@ -14,7 +14,7 @@ export abstract class BaseUnit extends Actor {
     private actions: UnitAction[] = []
 
     protected constructor(
-        owner: Player,
+        owner: AbstractPlayer,
         position: Position,
         public readonly damage: number,
         hp: number,

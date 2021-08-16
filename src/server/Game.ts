@@ -1,4 +1,3 @@
-import { Server, Socket } from 'socket.io'
 import { Player } from './model/Player'
 import { GameLoop } from './GameLoop'
 import { GameState, UnitState } from './model/GameState'
@@ -74,7 +73,7 @@ export class Game {
         }
     }
 
-    addPlayer(player: Player, socketId: string) {
+    addPlayer(player: Player, socketId: string ) {
         if (this.gameLoop.isRunning) {
             console.log('Attempt to join a game but is already started...')
             return
@@ -82,7 +81,6 @@ export class Game {
         if (!this.players[socketId]) {
             this.players[socketId] = player
         }
-        console.log('add player')
     }
 
     getPlayers(): Player[] {
@@ -117,15 +115,15 @@ export class Game {
         this.players[playerId].unitAction(event)
     }
 
-    start() {
+    start(onGameEnded: (gameDurationSeconds: number) => void) {
         this.emitter.emitInitialGameState(this)
         townAssignation(this.getPlayers(), this.map)
         if (!this.gameLoop.isRunning) {
-            this.gameLoop.start(this)
+            this.gameLoop.start(this, onGameEnded)
         }
     }
 
-    update() {
+    update() : boolean {
         detectUnitsIntersections(this.players)
         Object.values(this.players).forEach((player) => {
             player.update()
@@ -133,5 +131,8 @@ export class Game {
             updatePlayerIncome(this.map.getTownsByCountries(), player)
         })
         this.incomeDispatcher.update(this.players)
+
+        const connectedPlayers = Object.values(this.players).filter(player => player.isConnected)
+        return connectedPlayers.length === 0 // No more player connected
     }
 }

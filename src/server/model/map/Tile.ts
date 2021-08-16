@@ -1,4 +1,4 @@
-import { NeutralPlayerInstance, Player } from '../Player'
+import {AbstractPlayer, NeutralPlayerInstance, Player} from '../Player'
 import { v4 as uuidv4 } from 'uuid'
 import { TownsData } from '../types/TownsData'
 
@@ -25,7 +25,7 @@ export class Tile {
     public readonly id: string
     public isTerrain = false
     public isTown = false
-    public player?: Player
+    public player?: AbstractPlayer
     public isNeutral = true
     public readonly data?: TownsData
 

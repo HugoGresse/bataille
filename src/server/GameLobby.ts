@@ -12,7 +12,7 @@ export class GameLobby {
     constructor(
         private readonly socketEmitter: SocketEmitter,
         private futureGameId: string,
-        private onLobbyReady: (socketIds: PlayerWaiting[]) => void,
+        private onLobbyReady: (socketIds: PlayerWaiting[], sockets: { [p: string]: Socket }) => void,
         private requiredPlayerToStart: number = MINIMUM_PLAYER_PER_GAME
     ) {}
 
@@ -35,7 +35,7 @@ export class GameLobby {
         })
 
         if (this.waitingPlayers.length === this.requiredPlayerToStart) {
-            this.onLobbyReady(this.waitingPlayers)
+            this.onLobbyReady(this.waitingPlayers, this.sockets)
         } else {
             this.socketEmitter.emitLobbyState(this)
         }
@@ -62,7 +62,7 @@ export class GameLobby {
         } else this.forceStartCount--
         this.socketEmitter.emitLobbyState(this)
         if (this.forceStartCount === this.waitingPlayers.length && this.forceStartCount > 1) {
-            this.onLobbyReady(this.waitingPlayers)
+            this.onLobbyReady(this.waitingPlayers, this.sockets)
         }
     }
 }
