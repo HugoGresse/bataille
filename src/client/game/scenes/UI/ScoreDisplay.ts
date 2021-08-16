@@ -53,7 +53,7 @@ export class ScoreDisplay {
         this.nextIncomeText.text = `Next income: ${state?.nextIncome}s`
 
         players?.forEach((player) => {
-            const playerText = `- ${player.name}: ${player.income}`
+            const playerText = `- ${player.name}: ${player.income}${player.connected ? '' : ' ❌'}`
             if (!this.playersTexts[player.name]) {
                 this.playersTexts[player.name] = scene.add.text(
                     LEFT_MARGIN,

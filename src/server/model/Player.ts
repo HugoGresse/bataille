@@ -76,6 +76,7 @@ export abstract class AbstractPlayer {
             income: this.income,
             color: this.color,
             countries: this.ownedCountriesIds,
+            connected: this.isConnected
         }
     }
 

@@ -5,6 +5,7 @@ const collector = process.env.SUMOLOGIC_COLLECTOR
 console.log(collector)
 export const trackGameStart = (players: number) => {
     if(!collector){
+        console.warn("No sumologic collector")
         return
     }
     fetch(collector, {

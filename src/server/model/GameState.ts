@@ -18,6 +18,7 @@ export interface PublicPlayerState {
     income: number
     color: string
     countries: string[]
+    connected: boolean
 }
 
 export interface UnitState {
