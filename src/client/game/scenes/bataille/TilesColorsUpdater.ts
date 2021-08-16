@@ -41,7 +41,11 @@ export class TilesColorsUpdater {
             })
         })
 
-        this.lastCountries.forEach((countryId) => this.countriesPolygons[countryId].unColor())
+        this.lastCountries.forEach((countryId) => {
+            if (this.countriesPolygons[countryId]) {
+                this.countriesPolygons[countryId].unColor()
+            }
+        })
 
         // Store last countries to un-color them on when lost at war
         this.lastCountries = []
