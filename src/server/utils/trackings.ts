@@ -2,7 +2,11 @@ import fetch from 'node-fetch'
 
 const collector = process.env.SUMOLOGIC_COLLECTOR
 
+console.log(collector)
 export const trackGameStart = (players: number) => {
+    if(!collector){
+        return
+    }
     fetch(collector, {
         method: "POST",
         body: JSON.stringify({
@@ -14,6 +18,9 @@ export const trackGameStart = (players: number) => {
 }
 
 export const trackGameEnd = (duration: number) => {
+    if(!collector){
+        return
+    }
     fetch(collector, {
         method: "POST",
         body: JSON.stringify({
