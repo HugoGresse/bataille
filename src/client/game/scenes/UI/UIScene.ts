@@ -1,12 +1,14 @@
 import 'phaser'
 import { BaseScene } from '../BaseScene'
-import { ScoreDisplay } from './ScoreDisplay'
+import { CurrentUserStats } from './CurrentUserStats'
 import { BuildingOverlay } from './BuildingOverlay'
 import { Building } from '../../actors/buildings/Building'
 import { Town } from '../../actors/buildings/Town'
+import { ScoresStats } from './ScoresStats'
 
 export class UIScene extends BaseScene {
-    scoreDisplay!: ScoreDisplay
+    currentUserStats!: CurrentUserStats
+    scoresStats!: ScoresStats
     buildingOverlay!: BuildingOverlay
 
     constructor() {
@@ -14,14 +16,16 @@ export class UIScene extends BaseScene {
     }
 
     create() {
-        this.scoreDisplay = new ScoreDisplay(this)
+        this.currentUserStats = new CurrentUserStats(this)
+        this.scoresStats = new ScoresStats(this)
         this.buildingOverlay = new BuildingOverlay(this)
     }
 
     update(time: number, delta: number) {
         super.update(time, delta)
 
-        this.scoreDisplay.update(this)
+        this.currentUserStats.update(this)
+        this.scoresStats.update(this)
     }
 
     onBuildingSelected(building: Building) {
