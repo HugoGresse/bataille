@@ -1,4 +1,3 @@
-import { Velocity } from './Velocity'
 import { TILE_WIDTH_HEIGHT } from '../../../common/UNITS'
 
 export class Position {
@@ -31,7 +30,7 @@ export class Position {
     /**
      * @return true if the target has been reached
      */
-    move(target: Position, velocity: Velocity): boolean {
+    move(target: Position, speed: number): boolean {
         const vector = pointMakeVector(new Position(this.rX, this.rY), target)
         const vLength = length(vector)
 
@@ -39,7 +38,7 @@ export class Position {
             return false
         }
 
-        const factor = velocity.speed / vLength
+        const factor = speed / vLength
 
         this.rX = this.rX + factor * vector.x
         this.rY = this.rY + factor * vector.y

@@ -9,7 +9,7 @@ import { townAssignation } from './utils/townAssignation'
 import { detectIntersection } from './model/detectIntersection'
 import { iterateOnXYMap } from './utils/xyMapToArray'
 import { BaseUnit } from './model/actors/units/BaseUnit'
-import { Tile } from './model/map/Tile'
+import { Tile, Town } from './model/map/Tile'
 import { updatePlayerIncome } from './model/updatePlayerIncome'
 import { IncomeDispatcher } from './model/income/IncomeDispatcher'
 import { INCOME_MS } from '../common/GameSettings'
@@ -73,7 +73,7 @@ export class Game {
         }
     }
 
-    addPlayer(player: Player, socketId: string ) {
+    addPlayer(player: Player, socketId: string) {
         if (this.gameLoop.isRunning) {
             console.log('Attempt to join a game but is already started...')
             return
@@ -96,7 +96,7 @@ export class Game {
         if (player.money >= UnitsType.Stick) {
             const position = new Position(x + TILE_WIDTH_HEIGHT / 2, y + TILE_WIDTH_HEIGHT / 2)
             const gridPosition = position.getRoundedPosition()
-            const town = this.map.getTownAt(gridPosition.x, gridPosition.y)
+            const town = this.map.getTileAt<Town>(gridPosition.x, gridPosition.y)
             if (!town || town.player.id !== player.id) {
                 return
             }
@@ -123,16 +123,16 @@ export class Game {
         }
     }
 
-    update() : boolean {
+    update(): boolean {
         detectUnitsIntersections(this.players)
         Object.values(this.players).forEach((player) => {
-            player.update()
+            player.update(this.map)
             detectIntersection(this.map, player)
             updatePlayerIncome(this.map.getTownsByCountries(), player)
         })
         this.incomeDispatcher.update(this.players)
 
-        const connectedPlayers = Object.values(this.players).filter(player => player.isConnected)
+        const connectedPlayers = Object.values(this.players).filter((player) => player.isConnected)
         return connectedPlayers.length === 0 // No more player connected
     }
 }

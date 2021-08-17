@@ -1,14 +1,7 @@
-import {AbstractPlayer, NeutralPlayerInstance, Player} from '../Player'
+import { AbstractPlayer, NeutralPlayerInstance, Player } from '../Player'
 import { v4 as uuidv4 } from 'uuid'
 import { TownsData } from '../types/TownsData'
-
-export enum TileType {
-    None = 0,
-    Ground = 1,
-    GroundBorder = 3,
-    Town = 17,
-    Port = 19,
-}
+import { TileType } from '../../../common/TileType'
 
 export type TilePublic = {
     id: string
@@ -28,6 +21,7 @@ export class Tile {
     public player?: AbstractPlayer
     public isNeutral = true
     public readonly data?: TownsData
+    public readonly velocityFactor: number = 1
 
     constructor(tileNumber: number | undefined, townsData: TownsData | null = null) {
         this.id = uuidv4()
@@ -48,6 +42,17 @@ export class Tile {
                 } else {
                     throw new Error('Missing towns data')
                 }
+                break
+            case TileType.Water:
+                this.velocityFactor = 0.15
+                break
+            case TileType.WaterDeep:
+                this.velocityFactor = 0.1
+                break
+            case TileType.WaterDeepSelected:
+            case TileType.WaterSelected:
+            case TileType.TownSelected:
+                // ignored
                 break
             default:
                 console.log('Tile type not managed', tileNumber)

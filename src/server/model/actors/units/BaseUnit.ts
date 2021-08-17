@@ -1,11 +1,12 @@
 import { Actor } from '../Actor'
-import {AbstractPlayer} from '../../Player'
+import { AbstractPlayer } from '../../Player'
 import { Position } from '../Position'
 import { Life } from '../Life'
 import { UnitsType } from '../../../../common/UNITS'
 import { v4 as uuidv4 } from 'uuid'
 import { UnitAction, UnitActionType } from '../../../../common/UnitAction'
 import { Velocity } from '../Velocity'
+import { Map } from '../../map/Map'
 
 export abstract class BaseUnit extends Actor {
     public readonly id: string
@@ -38,11 +39,12 @@ export abstract class BaseUnit extends Actor {
         }
     }
 
-    update() {
+    update(map: Map) {
+        const currentSpeed = this.velocity.modulate(this.position, map)
         this.actions = this.actions.reduce((acc: UnitAction[], action) => {
             switch (action.type) {
                 case UnitActionType.Move:
-                    const isDestinationReached = this.position.move(action.data.destination, this.velocity)
+                    const isDestinationReached = this.position.move(action.data.destination, currentSpeed)
                     if (!isDestinationReached) {
                         acc.push(action)
                     }

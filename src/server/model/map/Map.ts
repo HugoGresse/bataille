@@ -87,8 +87,8 @@ export class Map {
 
         const townDataLayer = new TownsDataLayer()
 
-        mapData.layers.forEach((layer) => {
-            if (layer.name.startsWith('c-') || layer.name === 'towns') {
+        mapData.layers.forEach((layer: any) => {
+            if (EXPORTED_LAYER_NAMES.includes(layer.name)) {
                 const width = layer.width || 0
                 const height = layer.height || 0
                 if (!layer.data) {
@@ -135,12 +135,12 @@ export class Map {
         return towns
     }
 
-    getTownAt(x: number, y: number): Town | null {
-        const tile = this.tiles[x][y]
-        if (tile.isTown) {
-            return <Town>tile
+    getTileAt<T extends Tile>(x: number, y: number): T | null {
+        if (!this.tiles[x]) {
+            return null
         }
-        return null
+        const tile = this.tiles[x][y]
+        return <T>tile
     }
 
     export(): MapTilesPublic {

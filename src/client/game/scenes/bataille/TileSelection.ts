@@ -1,6 +1,6 @@
 import { Tilemaps, Input } from 'phaser'
 import { BatailleScene } from './BatailleScene'
-import { TileNumber } from '../../../../common/UNITS'
+import { TileType } from '../../../../common/TileType'
 
 type Tile = Tilemaps.Tile
 
@@ -34,7 +34,7 @@ export class TileSelection {
         this.selectedTile = tile
         this.selectedTile.index += 1 // Update the display tile from the tilemap image
 
-        if (tile.index !== TileNumber.Town) {
+        if (tile.index !== TileType.TownSelected) {
             this.scene.getUIScene().onEmptyTileSelected()
         }
     }

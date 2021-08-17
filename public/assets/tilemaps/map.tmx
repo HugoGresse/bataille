@@ -10104,13 +10104,13 @@
   </object>
   <object id="82" gid="17" x="2310.67" y="3590.67" width="32" height="32">
    <properties>
-    <property name="country" value="si"/>
+    <property name="country" value="hr"/>
     <property name="name" value="Split"/>
    </properties>
   </object>
   <object id="83" gid="17" x="2312" y="3270.67" width="32" height="32">
    <properties>
-    <property name="country" value="si"/>
+    <property name="country" value="hr"/>
     <property name="name" value="Zagreb"/>
    </properties>
   </object>

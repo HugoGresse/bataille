@@ -6,7 +6,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { COUNTRIES_INCOME } from './map/COUNTRIES_INCOME'
 import { MONEY_START } from '../../common/GameSettings'
 import { MAX_UNIT_LIFE, UnitsType } from '../../common/UNITS'
-import {Socket} from 'socket.io'
+import { Socket } from 'socket.io'
+import { Map } from './map/Map'
 
 export type UnitTiles = {
     [x: number]: {
@@ -76,7 +77,7 @@ export abstract class AbstractPlayer {
             income: this.income,
             color: this.color,
             countries: this.ownedCountriesIds,
-            connected: this.isConnected
+            connected: this.isConnected,
         }
     }
 
@@ -94,9 +95,9 @@ export abstract class AbstractPlayer {
         }
     }
 
-    update() {
+    update(map: Map) {
         iterateOnXYMap<BaseUnit>(this.units, (unit, x, y) => {
-            unit.update()
+            unit.update(map)
             const unitNewPos = unit.position.getRounded()
             if (unitNewPos.x !== x || unitNewPos.y !== y) {
                 // Unit may be wrongfully displayed on the grid, or just moved from one square to another, this align everything
