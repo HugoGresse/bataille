@@ -1,7 +1,6 @@
 import { BaseScene } from '../BaseScene'
 import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
 
-const LEFT_MARGIN = 20
 const Y_MARGIN = 20
 
 const BACKGROUND_WIDTH = 200
