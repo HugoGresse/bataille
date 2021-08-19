@@ -28,20 +28,15 @@ export class ScoresStats {
         const state = scene.getState()
         const players = state?.players
 
-        players?.forEach((player) => {
-            const playerText = `- ${player.name}: ${player.income}${player.connected ? '' : ' ❌'}`
-            if (!this.playersTexts[player.name]) {
-                this.playersTexts[player.name] = scene.add.text(
-                    this.startX,
-                    this.playerYPosition,
-                    playerText,
-                    TEXT_STYLE
-                )
-                this.playersTexts[player.name].setColor('#' + player.color.replace('0x', ''))
+        players?.forEach((player, index) => {
+            const playerText = `${index + 1}. ${player.name}: ${player.income}${player.connected ? '' : ' ❌'}`
+            if (!this.playersTexts[index]) {
+                this.playersTexts[index] = scene.add.text(this.startX, this.playerYPosition, playerText, TEXT_STYLE)
                 this.playerYPosition = this.playerYPosition + Y_MARGIN
-            } else if (this.playersTexts[player.name].text !== playerText) {
-                this.playersTexts[player.name].text = playerText
+            } else if (this.playersTexts[index].text !== playerText) {
+                this.playersTexts[index].text = playerText
             }
+            this.playersTexts[index].setColor('#' + player.color.replace('0x', ''))
         })
         if (!this.backgroundAdjusted && players) {
             this.background.height = players?.length * Y_MARGIN + Y_MARGIN * 2

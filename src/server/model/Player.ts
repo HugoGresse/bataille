@@ -119,7 +119,7 @@ export abstract class AbstractPlayer {
         this.ownedCountriesIds = ownedCountriesIds
         this.income = ownedCountriesIds.reduce((acc: number, id) => {
             return acc + (COUNTRIES_INCOME[id] || 0)
-        }, 2)
+        }, 4)
     }
     spendMoney(unitType: UnitsType) {
         this.money -= unitType

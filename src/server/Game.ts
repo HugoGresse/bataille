@@ -59,7 +59,11 @@ export class Game {
         const units = Object.values(this.players).reduce((acc: UnitState[], player) => {
             return acc.concat(player.getUnitsState())
         }, [])
-        const players = Object.values(this.players).map((player) => player.getPublicPlayerState())
+        const players = Object.values(this.players)
+            .map((player) => player.getPublicPlayerState())
+            .sort((p1, p2) => {
+                return p2.income - p1.income
+            })
 
         const currentPlayer = this.players[playerId]
 
