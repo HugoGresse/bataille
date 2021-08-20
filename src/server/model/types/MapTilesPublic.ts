@@ -1,5 +1,6 @@
 import { TilePublic } from '../map/Tile'
 import { PolygonContainer } from './Polygon'
+import { CountryInfo } from './CountryInfo'
 
 export type MapTilesPublic = {
     tiles: {
@@ -9,4 +10,5 @@ export type MapTilesPublic = {
     }
     layerNames: string[]
     countries: { [country: string]: PolygonContainer[] }
+    countriesInfos: CountryInfo[]
 }

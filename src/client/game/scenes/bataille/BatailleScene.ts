@@ -9,6 +9,7 @@ import { TileSelection } from './TileSelection'
 import { Town } from '../../actors/buildings/Town'
 import { TILE_WIDTH_HEIGHT } from '../../../../common/UNITS'
 import { TilesColorsUpdater } from './TilesColorsUpdater'
+import { displayCountriesInfo } from './displayCountriesInfo'
 
 export class BatailleScene extends BaseScene {
     private map!: Tilemaps.Tilemap
@@ -99,5 +100,6 @@ export class BatailleScene extends BaseScene {
         this.tileSelectionDetector.start()
         this.tilesColorsUpdater = new TilesColorsUpdater(this, data.map.countries)
         setupCamera(this.cameras.main, this, this.map)
+        displayCountriesInfo(data.map.countriesInfos, this)
     }
 }

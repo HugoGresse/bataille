@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.6.0" orientation="orthogonal" renderorder="right-down" width="136" height="160" tilewidth="32" tileheight="32" infinite="0" nextlayerid="128" nextobjectid="290">
+<map version="1.5" tiledversion="1.6.0" orientation="orthogonal" renderorder="right-down" width="136" height="160" tilewidth="32" tileheight="32" infinite="0" nextlayerid="128" nextobjectid="345">
  <editorsettings>
   <export target="json/map.json" format="json"/>
  </editorsettings>
@@ -8988,7 +8988,7 @@
    <polygon points="0,0 0,-416 -64,-416 -64,-448 -160,-448 -160,-480 -256,-480 -256,-448 -352,-448 -352,-416 -384,-416 -384,-288 -352,-288 -352,-256 -384,-256 -384,-224 -448,-224 -448,-256 -512,-256 -512,-288 -576,-288 -576,-320 -672,-320 -672,-416 -736,-416 -736,-448 -800,-448 -800,-480 -896,-480 -896,-512 -960,-512 -960,-480 -992,-480 -992,-416 -1024,-416 -1024,-384 -1056,-384 -1056,-352 -1088,-352 -1088,-320 -1088,-288 -1120,-288 -1120,-256 -1152,-256 -1152,-224 -1184,-224 -1184,0"/>
   </object>
  </objectgroup>
- <layer id="69" name="c-tn" width="136" height="160" locked="1">
+ <layer id="69" name="c-tn" width="136" height="160" visible="0" locked="1">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -9659,8 +9659,394 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="71" name="countries-data" locked="1"/>
- <objectgroup id="23" name="towns-data" opacity="0.5" tintcolor="#00ff00">
+ <objectgroup id="71" name="countries-data" tintcolor="#ff0000">
+  <object id="290" x="1345.33" y="3129.33">
+   <properties>
+    <property name="income" type="int" value="8"/>
+    <property name="name" value="France"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="291" x="754.667" y="3824">
+   <properties>
+    <property name="income" type="int" value="6"/>
+    <property name="name" value="Spain (España)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="292" x="412" y="3921.33">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Portugal"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="293" x="417.333" y="4756">
+   <properties>
+    <property name="income" type="int" value="4"/>
+    <property name="name" value="Morocco (لمملكة المغربية) "/>
+   </properties>
+   <point/>
+  </object>
+  <object id="294" x="1170.67" y="4750.67">
+   <properties>
+    <property name="income" type="int" value="5"/>
+    <property name="name" value="Algeria (الجمهورية الجزائرية الديمقراطية الشعبية)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="295" x="1658.67" y="4510.67">
+   <properties>
+    <property name="income" type="int" value="3"/>
+    <property name="name" value="Tunisia (لجمهورية التونسية)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="296" x="2237.33" y="4962.67">
+   <properties>
+    <property name="income" type="int" value="4"/>
+    <property name="name" value="Libya (ليبيا)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="297" x="3173.33" y="4986.67">
+   <properties>
+    <property name="income" type="int" value="4"/>
+    <property name="name" value="Egypt (مصر)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="298" x="3536" y="4837.33">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Israel (إِسْرَائِيل)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="299" x="3674.67" y="4933.33">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Jordan (الأردن)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="300" x="4216" y="4553.33">
+   <properties>
+    <property name="income" type="int" value="3"/>
+    <property name="name" value="Iraq (الْعِرَاق‎)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="301" x="3965.33" y="4990.67">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Saudi Arabia (ٱلْمَمْلَكَة ٱلْعَرَبِيَّة ٱلسَّعُوْدِيَّة)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="302" x="3613.33" y="4577.33">
+   <properties>
+    <property name="income" type="int" value="1"/>
+    <property name="name" value="Lebanon (لُبْنَان‎)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="303" x="3881.33" y="4424">
+   <properties>
+    <property name="income" type="int" value="4"/>
+    <property name="name" value="Syria (سُورِيَا‎)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="304" x="3600" y="3976">
+   <properties>
+    <property name="income" type="int" value="7"/>
+    <property name="name" value="Turkey (Türkiye)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="305" x="4117.33" y="3618.67">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Georgia (საქართველო)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="306" x="4318.67" y="3726.67">
+   <properties>
+    <property name="income" type="int" value="1"/>
+    <property name="name" value="Armenia (Հայաստան)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="307" x="2680" y="3970.67">
+   <properties>
+    <property name="income" type="int" value="4"/>
+    <property name="name" value="Greece (Ελλάδα)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="308" x="2968" y="3553.33">
+   <properties>
+    <property name="income" type="int" value="4"/>
+    <property name="name" value="Bulgaria (България)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="309" x="2940" y="3236">
+   <properties>
+    <property name="income" type="int" value="5"/>
+    <property name="name" value="Romania (România)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="310" x="3162.67" y="3094.67">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Moldova"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="311" x="2626.67" y="3468">
+   <properties>
+    <property name="income" type="int" value="3"/>
+    <property name="name" value="Serbia (Srbija)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="312" x="2513.33" y="3558.67">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Montenegro (Црна Гора)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="313" x="2674.67" y="3690.67">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="North Macedonia (Република Северна Македонија)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="314" x="2544" y="3853.33">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Albania (Shqipëri)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="315" x="2400" y="3438.67">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Bosnia and Herzegovina (Bosna i Hercegovina)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="316" x="2222.67" y="3410.67">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Croatia (Hrvatska)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="317" x="2214.67" y="3277.33">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Slovenia (Slovenija)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="318" x="2522.67" y="3114.67">
+   <properties>
+    <property name="income" type="int" value="3"/>
+    <property name="name" value="Hungary (Magyarország)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="319" x="2541.33" y="2914.67">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Slovakia (Slovensko)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="320" x="2233.33" y="3020">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Austria (Österreich)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="321" x="2280" y="2792">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Czech Republic (Česká republika)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="322" x="1897.33" y="3342.67">
+   <properties>
+    <property name="income" type="int" value="6"/>
+    <property name="name" value="Italy (Italia)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="323" x="1765.33" y="3137.33">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Switzerland (Swiss Confederation)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="324" x="1936" y="3056">
+   <properties>
+    <property name="income" type="int" value="1"/>
+    <property name="name" value="Liechtenstein"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="325" x="1977.33" y="2630.67">
+   <properties>
+    <property name="income" type="int" value="6"/>
+    <property name="name" value="Germany (Deutschland)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="326" x="2588" y="2492">
+   <properties>
+    <property name="income" type="int" value="6"/>
+    <property name="name" value="Poland (Polska)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="327" x="1201.33" y="2449.33">
+   <properties>
+    <property name="income" type="int" value="8"/>
+    <property name="name" value="United Kingdom"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="328" x="1670.67" y="2502.67">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Netherlands (Nederlanden)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="329" x="2016" y="2106.67">
+   <properties>
+    <property name="income" type="int" value="3"/>
+    <property name="name" value="Denmark (Danmark)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="330" x="3337.33" y="2832">
+   <properties>
+    <property name="income" type="int" value="8"/>
+    <property name="name" value="Ukraine (Україна)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="331" x="3194.67" y="2409.33">
+   <properties>
+    <property name="income" type="int" value="5"/>
+    <property name="name" value="Belarus (Беларусь)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="332" x="2780" y="2237.33">
+   <properties>
+    <property name="income" type="int" value="1"/>
+    <property name="name" value="Kaliningrad (part of Russia IRL)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="333" x="2962.67" y="2141.33">
+   <properties>
+    <property name="income" type="int" value="3"/>
+    <property name="name" value="Lithuania (Lietuvos)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="334" x="3037.33" y="1968">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Latvia (Latvija)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="335" x="3104" y="1760">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Estonia (Eesti)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="336" x="3696" y="1878.67">
+   <properties>
+    <property name="income" type="int" value="9"/>
+    <property name="name" value="Russia (Россия)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="337" x="2994.67" y="1306.67">
+   <properties>
+    <property name="income" type="int" value="5"/>
+    <property name="name" value="Finland (Suomi)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="338" x="2430.67" y="1437.33">
+   <properties>
+    <property name="income" type="int" value="6"/>
+    <property name="name" value="Sweden (Sverige)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="339" x="2048" y="1493.33">
+   <properties>
+    <property name="income" type="int" value="6"/>
+    <property name="name" value="Norway (Norge)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="340" x="586.667" y="992">
+   <properties>
+    <property name="income" type="int" value="3"/>
+    <property name="name" value="Iceland (Ísland)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="341" x="478.667" y="192">
+   <properties>
+    <property name="income" type="int" value="3"/>
+    <property name="name" value="Greenland (Kalaallit Nunaat)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="342" x="3002.67" y="61.3333">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Svalbard (part of Norway IRL)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="343" x="1588" y="2694.67">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Belgium (België)"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="344" x="740" y="2470.67">
+   <properties>
+    <property name="income" type="int" value="2"/>
+    <property name="name" value="Ireland (Éire)"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
+ <objectgroup id="23" name="towns-data" locked="1" opacity="0.5" tintcolor="#00ff00">
   <properties>
    <property name="name" value="Paris"/>
   </properties>

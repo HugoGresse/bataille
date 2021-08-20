@@ -6,7 +6,9 @@ import { MapTiles } from '../types/MapTiles'
 import { TownByCountries } from '../types/TownByCountries'
 import { TownsDataLayer } from './TownsDataLayer'
 import { PolygonContainer } from '../types/Polygon'
-import { RawMapLayerObject } from '../types/RawMapLayerObject'
+import { RawMapLayerObjectPolygons } from '../types/RawMapLayerObjectPolygons'
+import { CountryInfo } from '../types/CountryInfo'
+import { RawMapLayerObjectProperties } from '../types/RawMapLayerObjectProperties'
 
 const EXPORTED_LAYER_NAMES = [
     'g-water',
@@ -155,11 +157,11 @@ export class Map {
             }
         }
         // @ts-ignore
-        const countriesPolygons: { [country: string]: PolygonContainer[] } = <RawMapLayerObject[]>mapData.layers
+        const countriesPolygons: { [country: string]: PolygonContainer[] } = <RawMapLayerObjectPolygons[]>mapData.layers
             // @ts-ignore
             .filter((layer) => layer.name.startsWith('c-') && layer.name.endsWith('-o'))
             // @ts-ignore
-            .reduce((acc: { [country: string]: PolygonContainer[] }, layer: RawMapLayerObject) => {
+            .reduce((acc: { [country: string]: PolygonContainer[] }, layer: RawMapLayerObjectPolygons) => {
                 const country = layer.name.split('-')[1]
                 acc[country] = layer.objects.map((obj: { x: number; y: number; polygon: any[] }) => {
                     return {
@@ -171,10 +173,33 @@ export class Map {
                 return acc
             }, {})
 
+        // @ts-ignore
+        const countriesInfo: CountryInfo[] = <RawMapLayerObjectProperties[]>mapData.layers
+            // @ts-ignore
+            .filter((layer) => layer.name === 'countries-data')
+            // @ts-ignore
+            .reduce((acc: CountryInfo[], layer: RawMapLayerObjectProperties) => {
+                layer.objects.forEach((obj) => {
+                    const fullName = <string>obj.properties.find((property) => property.name === 'name')!.value
+                    const fullNameSplit = fullName.split('(')
+                    const name = fullNameSplit[0]
+                    const localName = fullNameSplit[1] ? fullNameSplit[1].replace(')', '') : ''
+                    acc.push({
+                        name: name,
+                        localName: localName,
+                        income: <number>obj.properties.find((property) => property.name === 'income')!.value,
+                        x: ~~obj.x,
+                        y: ~~obj.y,
+                    })
+                })
+                return acc
+            }, [])
+
         return {
             tiles,
             layerNames: EXPORTED_LAYER_NAMES,
             countries: countriesPolygons,
+            countriesInfos: countriesInfo,
         }
     }
 

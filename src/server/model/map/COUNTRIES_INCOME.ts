@@ -11,10 +11,9 @@ export const COUNTRIES_INCOME: {
     ch: 2,
     is: 3,
     gl: 3,
-    ma: 4,
     at: 2,
     li: 1,
-    dk: 2,
+    dk: 3,
     be: 2,
     nl: 2,
     pl: 6,
@@ -56,4 +55,5 @@ export const COUNTRIES_INCOME: {
     ly: 4,
     tn: 3,
     dz: 5,
+    ma: 4,
 }
