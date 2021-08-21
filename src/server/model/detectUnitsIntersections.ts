@@ -1,6 +1,7 @@
 import { Player } from './Player'
 import { iterateOnXYMap, XYMapWithType } from '../utils/xyMapToArray'
 import { BaseUnit } from './actors/units/BaseUnit'
+import { getKeys } from '../utils/getKeys'
 
 /**
  * Detect unit collision to make them fight
@@ -31,26 +32,22 @@ export const detectUnitsIntersections = (players: { [id: string]: Player }) => {
     let tempUnits = null
     let unit = null
     let pastUnit = null
-    Object.keys(unitsMaps)
-        .map(Number)
-        .forEach((x) => {
-            Object.keys(unitsMaps[x])
-                .map(Number)
-                .forEach((y) => {
-                    tempUnits = unitsMaps[x][y]
-                    if (tempUnits.length < 2) {
-                        return
-                    }
+    getKeys(unitsMaps).forEach((x) => {
+        getKeys(unitsMaps[x]).forEach((y) => {
+            tempUnits = unitsMaps[x][y]
+            if (tempUnits.length < 2) {
+                return
+            }
 
-                    pastUnit = unitsMaps[x][y][0]
-                    unit = unitsMaps[x][y][1]
+            pastUnit = unitsMaps[x][y][0]
+            unit = unitsMaps[x][y][1]
 
-                    pastUnit.life.takeDamage(unit.damage)
-                    unit.life.takeDamage(pastUnit.damage)
-                    pastUnit.postponeAction()
-                    unit.postponeAction()
-                })
+            pastUnit.life.takeDamage(unit.damage)
+            unit.life.takeDamage(pastUnit.damage)
+            pastUnit.postponeAction()
+            unit.postponeAction()
         })
+    })
 
     // 3.
     playersValues.forEach((player) => {

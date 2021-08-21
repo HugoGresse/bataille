@@ -45,6 +45,9 @@ export abstract class BaseUnit extends Actor {
     }
 
     update(map: Map) {
+        if (this.actions.length === 0) {
+            return
+        }
         if (this.postponedAction) {
             this.postponedAction = false
             return

@@ -18,8 +18,6 @@ import { StickUnit } from './model/actors/units/StickUnit'
 import { Position } from './model/actors/Position'
 import { TILE_WIDTH_HEIGHT, UnitsType } from '../common/UNITS'
 import { detectUnitsIntersections } from './model/detectUnitsIntersections'
-import { Simulate } from 'react-dom/test-utils'
-import play = Simulate.play
 
 export class Game {
     protected players: {
@@ -28,6 +26,10 @@ export class Game {
     protected gameLoop: GameLoop
     protected map: Map
     protected incomeDispatcher: IncomeDispatcher = new IncomeDispatcher(INCOME_MS)
+
+    playersIntersections: Array<number> = []
+    townsIntersections: Array<number> = []
+    playerUpdates: Array<number> = []
 
     constructor(public readonly id: string, protected emitter: SocketEmitter) {
         this.map = new Map()
@@ -130,11 +132,24 @@ export class Game {
     }
 
     update(): boolean {
+        let now = Date.now()
         detectUnitsIntersections(this.players)
+        this.playersIntersections.push(Date.now() - now)
+        const step1 = Date.now()
+
         const playersValues = Object.values(this.players)
+
         playersValues.forEach((player) => {
             player.update(this.map)
+
+            const step2 = Date.now()
+            this.playerUpdates.push(Date.now() - step1)
+
             detectTownIntersections(this.map, player)
+
+            const step3 = Date.now() - step2
+            this.townsIntersections.push(step3)
+
             updatePlayerIncome(this.map.getTownsByCountries(), player)
         })
         this.incomeDispatcher.update(this.players)
@@ -142,10 +157,22 @@ export class Game {
         const connectedPlayers = playersValues.filter((player) => player.isConnected) // No more player connected
         const deadPlayers = playersValues.filter((player) => player.isDead).length
         const oneOrNoAlivePlayers = deadPlayers >= playersValues.length - 1 // one player cannot play alone
-        return connectedPlayers.length === 0 || oneOrNoAlivePlayers
+        return connectedPlayers.length === 0 || (oneOrNoAlivePlayers && playersValues.length > 1) // also check if we are playing alone (in dev)
     }
 
     getWinner(): Player | undefined {
+        const averageStep1 = average(this.playersIntersections) * 1000
+        const averageStep2 = average(this.playerUpdates) * 1000
+        const averageStep3 = average(this.townsIntersections) * 1000
+
+        console.log(`
+            step1: ${averageStep1} \n
+            step2: ${averageStep2} \n
+            step3: ${averageStep3} \n
+        `)
+
         return Object.values(this.players).find((player) => !player.isDead)
     }
 }
+
+const average = (arr: Array<number>) => arr.reduce((p, c) => p + c, 0) / arr.length
