@@ -1,4 +1,4 @@
-import { GAME_CLEAR, PLAYER_NEW_UNIT, PLAYER_UNIT } from '../../common/SOCKET_EMIT'
+import { PLAYER_NEW_UNIT, PLAYER_UNIT } from '../../common/SOCKET_EMIT'
 import { Socket } from 'socket.io-client'
 import { Actor } from './actors/Actor'
 import { UnitActionType } from '../../common/UnitAction'
@@ -30,9 +30,5 @@ export class GameActions {
                 },
             },
         })
-    }
-
-    clearGame() {
-        this.socket.emit(GAME_CLEAR, this.gameId)
     }
 }

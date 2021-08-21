@@ -89,11 +89,6 @@ export class BatailleGame {
         }
     }
 
-    clearGame() {
-        const actions = this.game.registry.get('actions') as GameActions
-        actions.clearGame()
-    }
-
     getSocket(): SocketConnection {
         return this.socket
     }

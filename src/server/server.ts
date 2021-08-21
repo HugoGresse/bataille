@@ -2,7 +2,7 @@ import { Socket } from 'socket.io'
 import { newId } from './utils/newId'
 import { Game } from './Game'
 import { Player } from './model/Player'
-import { GAME_CLEAR, PLAYER_JOIN_LOBBY, PLAYER_NEW_UNIT, PLAYER_FORCE_START, PLAYER_UNIT } from '../common/SOCKET_EMIT'
+import { PLAYER_JOIN_LOBBY, PLAYER_NEW_UNIT, PLAYER_FORCE_START, PLAYER_UNIT } from '../common/SOCKET_EMIT'
 import { UnitAction } from '../common/UnitAction'
 import { pickUnusedColor } from './utils/pickUnusedColor'
 import { NewUnitDataEvent } from '../common/NewUnitDataEvent'
@@ -10,7 +10,7 @@ import { socketIOServer } from './utils/io'
 import { PORT } from './utils/serverEnv'
 import { GameLobby } from './GameLobby'
 import { SocketEmitter } from './SocketEmitter'
-import {trackGameEnd, trackGameStart} from './utils/trackings'
+import { trackGameEnd, trackGameStart } from './utils/trackings'
 
 const games: {
     [gameId: string]: Game
@@ -22,7 +22,6 @@ socketIOServer.on('connection', (socket: Socket) => {
     socket.on(PLAYER_FORCE_START, handlePlayerForceStart())
     socket.on(PLAYER_NEW_UNIT, handlePlayerNewUnit(socket))
     socket.on(PLAYER_UNIT, handlePlayerUnit(socket))
-    socket.on(GAME_CLEAR, handleClearGame())
 })
 
 socketIOServer.listen(PORT)
@@ -77,15 +76,6 @@ const handlePlayerNewUnit = (socket: Socket) => (gameId: string, data: NewUnitDa
         return
     }
     game.addUnit(socket.id, data)
-}
-
-const handleClearGame = () => (gameId: string) => {
-    const game = games[gameId]
-    if (!game) {
-        return
-    }
-    game.stopLoop()
-    console.log('clearGame')
 }
 
 const handlePlayerUnit = (socket: Socket) => (gameId: string, event: UnitAction) => {
