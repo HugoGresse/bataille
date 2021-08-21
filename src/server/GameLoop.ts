@@ -14,11 +14,12 @@ export class GameLoop {
         console.log('Loop started')
         const startTime = Date.now()
         this.intervalId = setInterval(() => {
-            const winner = this.run(game)
+            const results = this.run(game)
 
-            if (!winner) {
+            if (!results) {
                 this.emitGameState(game)
             } else {
+                console.log(results)
                 this.stop()
                 onGameEnded((Date.now() - startTime) / 1000)
             }
@@ -33,10 +34,22 @@ export class GameLoop {
         }
     }
 
-    run(game: Game): boolean {
+    run(game: Game): { result: string } | null {
         const endedGame = game.update()
 
-        return endedGame
+        if (endedGame) {
+            const winner = game.getWinner()
+            if (!winner) {
+                return {
+                    result: 'No winner, all players disconnected',
+                }
+            }
+            return {
+                result: `${winner.name} has won the game!`,
+            }
+        }
+
+        return null
     }
 
     emitGameState(game: Game) {

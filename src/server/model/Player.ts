@@ -22,7 +22,9 @@ export abstract class AbstractPlayer {
     public income: number = 2
     public money: number = MONEY_START
     public isConnected: boolean = true
+    public isDead: boolean = false
     private ownedCountriesIds: string[] = []
+    private unitCount = 0
 
     protected constructor(name = `${Date.now()}`, public color: string) {
         this.id = uuidv4()
@@ -77,7 +79,7 @@ export abstract class AbstractPlayer {
             income: this.income,
             color: this.color,
             countries: this.ownedCountriesIds,
-            connected: this.isConnected,
+            alive: this.isConnected && !this.isDead,
         }
     }
 
@@ -96,6 +98,10 @@ export abstract class AbstractPlayer {
     }
 
     update(map: Map) {
+        if (this.isDead) {
+            return
+        }
+        this.unitCount = 0
         iterateOnXYMap<BaseUnit>(this.units, (unit, x, y) => {
             unit.update(map)
             const unitNewPos = unit.position.getRounded()
@@ -113,13 +119,20 @@ export abstract class AbstractPlayer {
                     this.units[unitNewPos.x][unitNewPos.y] = unit
                 }
             }
+            this.unitCount += unit.life.getHP()
         })
     }
     updateIncome(ownedCountriesIds: string[]) {
+        if (this.isDead) {
+            return
+        }
         this.ownedCountriesIds = ownedCountriesIds
         this.income = ownedCountriesIds.reduce((acc: number, id) => {
             return acc + (COUNTRIES_INCOME[id] || 0)
-        }, 4)
+        }, MONEY_START)
+        if (this.income === MONEY_START && this.ownedCountriesIds.length === 0 && this.unitCount === 0) {
+            this.isDead = true
+        }
     }
     spendMoney(unitType: UnitsType) {
         this.money -= unitType

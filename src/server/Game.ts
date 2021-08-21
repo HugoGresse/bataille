@@ -18,6 +18,8 @@ import { StickUnit } from './model/actors/units/StickUnit'
 import { Position } from './model/actors/Position'
 import { TILE_WIDTH_HEIGHT, UnitsType } from '../common/UNITS'
 import { detectUnitsIntersections } from './model/detectUnitsIntersections'
+import { Simulate } from 'react-dom/test-utils'
+import play = Simulate.play
 
 export class Game {
     protected players: {
@@ -129,14 +131,21 @@ export class Game {
 
     update(): boolean {
         detectUnitsIntersections(this.players)
-        Object.values(this.players).forEach((player) => {
+        const playersValues = Object.values(this.players)
+        playersValues.forEach((player) => {
             player.update(this.map)
             detectIntersection(this.map, player)
             updatePlayerIncome(this.map.getTownsByCountries(), player)
         })
         this.incomeDispatcher.update(this.players)
 
-        const connectedPlayers = Object.values(this.players).filter((player) => player.isConnected)
-        return connectedPlayers.length === 0 // No more player connected
+        const connectedPlayers = playersValues.filter((player) => player.isConnected) // No more player connected
+        const deadPlayers = playersValues.filter((player) => player.isDead).length
+        const oneOrNoAlivePlayers = deadPlayers >= playersValues.length - 1 // one player cannot play alone
+        return connectedPlayers.length === 0 || oneOrNoAlivePlayers
+    }
+
+    getWinner(): Player | undefined {
+        return Object.values(this.players).find((player) => !player.isDead)
     }
 }

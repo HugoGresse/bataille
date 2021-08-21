@@ -29,7 +29,7 @@ export class ScoresStats {
         const players = state?.players
 
         players?.forEach((player, index) => {
-            const playerText = `${index + 1}. ${player.name}: ${player.income}${player.connected ? '' : ' ❌'}`
+            const playerText = `${index + 1}. ${player.name}: ${player.income}${player.alive ? '' : ' ❌'}`
             if (!this.playersTexts[index]) {
                 this.playersTexts[index] = scene.add.text(this.startX, this.playerYPosition, playerText, TEXT_STYLE)
                 this.playerYPosition = this.playerYPosition + Y_MARGIN
