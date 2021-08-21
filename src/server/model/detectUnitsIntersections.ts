@@ -10,8 +10,9 @@ import { BaseUnit } from './actors/units/BaseUnit'
  */
 export const detectUnitsIntersections = (players: { [id: string]: Player }) => {
     const unitsMaps: XYMapWithType<BaseUnit[]> = {}
+    const playersValues = Object.values(players)
     // 1.
-    Object.values(players).forEach((player) => {
+    playersValues.forEach((player) => {
         const units = player.getUnits()
         iterateOnXYMap<BaseUnit>(units, (unit, x: number, y: number) => {
             if (!unitsMaps[x]) {
@@ -52,7 +53,7 @@ export const detectUnitsIntersections = (players: { [id: string]: Player }) => {
         })
 
     // 3.
-    Object.values(players).forEach((player) => {
+    playersValues.forEach((player) => {
         const units = player.getUnits()
         iterateOnXYMap<BaseUnit>(units, (unit, x: number, y: number) => {
             if (units[x][y].life.getHP() <= 0) {

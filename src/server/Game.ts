@@ -6,7 +6,7 @@ import { Map } from './model/map/Map'
 import { SocketEmitter } from './SocketEmitter'
 import { ExportType } from './model/types/ExportType'
 import { townAssignation } from './utils/townAssignation'
-import { detectIntersection } from './model/detectIntersection'
+import { detectTownIntersections } from './model/detectTownIntersections'
 import { iterateOnXYMap } from './utils/xyMapToArray'
 import { BaseUnit } from './model/actors/units/BaseUnit'
 import { Tile, Town } from './model/map/Tile'
@@ -134,7 +134,7 @@ export class Game {
         const playersValues = Object.values(this.players)
         playersValues.forEach((player) => {
             player.update(this.map)
-            detectIntersection(this.map, player)
+            detectTownIntersections(this.map, player)
             updatePlayerIncome(this.map.getTownsByCountries(), player)
         })
         this.incomeDispatcher.update(this.players)

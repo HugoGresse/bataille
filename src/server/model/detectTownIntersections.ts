@@ -3,7 +3,7 @@ import { Map } from './map/Map'
 import { iterateOnXYMap } from '../utils/xyMapToArray'
 import { BaseUnit } from './actors/units/BaseUnit'
 
-export const detectIntersection = (map: Map, player: Player) => {
+export const detectTownIntersections = (map: Map, player: Player) => {
     // Detect unit on a tile
     const units = player.getUnits()
 
