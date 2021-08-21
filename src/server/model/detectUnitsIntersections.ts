@@ -46,6 +46,8 @@ export const detectUnitsIntersections = (players: { [id: string]: Player }) => {
 
                     pastUnit.life.takeDamage(unit.damage)
                     unit.life.takeDamage(pastUnit.damage)
+                    pastUnit.postponeAction()
+                    unit.postponeAction()
                 })
         })
 

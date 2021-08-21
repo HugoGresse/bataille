@@ -13,6 +13,7 @@ export abstract class BaseUnit extends Actor {
     public type = UnitsType.Stick
     public life: Life
     private actions: UnitAction[] = []
+    private postponedAction: boolean = false
 
     protected constructor(
         owner: AbstractPlayer,
@@ -39,7 +40,15 @@ export abstract class BaseUnit extends Actor {
         }
     }
 
+    postponeAction() {
+        this.postponedAction = true
+    }
+
     update(map: Map) {
+        if (this.postponedAction) {
+            this.postponedAction = false
+            return
+        }
         const currentSpeed = this.velocity.modulate(this.position, map)
         this.actions = this.actions.reduce((acc: UnitAction[], action) => {
             switch (action.type) {
