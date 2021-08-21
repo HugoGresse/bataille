@@ -9,6 +9,7 @@ import { PolygonContainer } from '../types/Polygon'
 import { RawMapLayerObjectPolygons } from '../types/RawMapLayerObjectPolygons'
 import { CountryInfo } from '../types/CountryInfo'
 import { RawMapLayerObjectProperties } from '../types/RawMapLayerObjectProperties'
+import { COUNTRIES_INCOME } from './COUNTRIES_INCOME'
 
 const EXPORTED_LAYER_NAMES = [
     'g-water',
@@ -184,10 +185,11 @@ export class Map {
                     const fullNameSplit = fullName.split('(')
                     const name = fullNameSplit[0]
                     const localName = fullNameSplit[1] ? fullNameSplit[1].replace(')', '') : ''
+                    const countryId = <string>obj.properties.find((property) => property.name === 'cid')!.value
                     acc.push({
                         name: name,
                         localName: localName,
-                        income: <number>obj.properties.find((property) => property.name === 'income')!.value,
+                        income: COUNTRIES_INCOME[countryId],
                         x: ~~obj.x,
                         y: ~~obj.y,
                     })

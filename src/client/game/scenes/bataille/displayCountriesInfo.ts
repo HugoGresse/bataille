@@ -19,8 +19,9 @@ export const displayCountriesInfo = (countriesInfos: CountryInfo[], scene: Batai
         const text = scene.add.text(info.x, info.y, textToDisplay, textStyle)
         text.setOrigin(text.width / 200, 0)
         if (info.localName) {
-            const text2 = scene.add.text(info.x, info.y + text.height + 5, `${info.localName}`, textStyleLocalName)
-            text2.setOrigin(text.originX, text.originY)
+            const text2 = scene.add.text(info.x, info.y + text.height - 5, `${info.localName}`, textStyleLocalName)
+            text2.setOrigin(text.originX, 0)
+            text2.width = text.width
         }
     })
 }
