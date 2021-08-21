@@ -13,8 +13,8 @@
         "start": "react-scripts start",
         "build": "react-scripts build",
         "start-server": "ts-node-dev --respawn --project src/server/tsconfig.dev.json src/server/server.ts",
-        "server:build": "rm -rf lib && tsc --build src/server/tsconfig.json",
-        "server:build:run": "npm run server:build && node lib/src/server/server.js",
+        "build:server": "rm -rf lib && tsc --build src/server/tsconfig.json",
+        "build:server:run": "npm run build:server && node lib/src/server/server.js",
         "release:patch": "npm version patch && npm run server:build",
         "release:minor": "npm version minor && npm run server:build",
         "prepare": "husky install"
