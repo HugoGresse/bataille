@@ -16,7 +16,8 @@ export class CurrentUserStats {
         let startYPosition = 10
         const rectangle = scene.add.rectangle(BACKGROUND_WIDTH / 2, 50, BACKGROUND_WIDTH, 100)
         rectangle.setFillStyle(0x000000, 0.5)
-        this.nameText = scene.add.text(LEFT_MARGIN, startYPosition, 'Name: ', TEXT_STYLE)
+        const nameLabel = scene.add.text(LEFT_MARGIN, startYPosition, 'Name: ', TEXT_STYLE)
+        this.nameText = scene.add.text(LEFT_MARGIN + nameLabel.width, startYPosition, '', TEXT_STYLE)
         startYPosition += Y_MARGIN
         this.moneyText = scene.add.text(LEFT_MARGIN, startYPosition, 'Money: ', TEXT_STYLE)
         startYPosition += Y_MARGIN
@@ -31,7 +32,7 @@ export class CurrentUserStats {
         const currentPlayer = state?.currentPlayer
         if (currentPlayer) {
             if (!this.nameText.text.endsWith(currentPlayer?.name)) {
-                this.nameText.text = `Name: ${currentPlayer.name}`
+                this.nameText.text = `${currentPlayer.name}`
                 this.nameText.setColor('#' + currentPlayer.color.replace('0x', ''))
             }
             if (!this.incomeText.text.endsWith(`${currentPlayer?.income}`)) {

@@ -1,6 +1,5 @@
 #gameContainer {
-    display: flex; align-content: center; justify-content: flex-end;
-    max-height:95vh;
+    display: flex;
 }
 #gameContainer:fullscreen {
     width: 100vw;

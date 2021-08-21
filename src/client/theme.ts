@@ -13,7 +13,7 @@ export const theme = createTheme({
         divider: '#BDBDBD',
         text: {
             primary: '#FFFFFF',
-            secondary: '#757575',
+            secondary: '#FFFFFF',
         },
         mode: 'dark',
     },
