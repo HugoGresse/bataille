@@ -166,9 +166,9 @@ export class Game {
         const averageStep3 = average(this.townsIntersections) * 1000
 
         console.log(`
-            step1: ${averageStep1} \n
-            step2: ${averageStep2} \n
-            step3: ${averageStep3} \n
+            step1: ${averageStep1}
+            step2: ${averageStep2}
+            step3: ${averageStep3}
         `)
 
         return Object.values(this.players).find((player) => !player.isDead)

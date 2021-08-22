@@ -52,7 +52,7 @@ const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
             }
 
             game.start((gameDurationSeconds) => {
-                console.log(`> Game ended, duration: ${gameDurationSeconds}s`)
+                console.log(`> Game ended, duration: ${gameDurationSeconds} minutes`)
                 delete games[futureGameId]
                 trackGameEnd(gameDurationSeconds)
             })

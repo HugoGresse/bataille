@@ -21,7 +21,7 @@ export class GameLoop {
             } else {
                 console.log(results)
                 this.stop()
-                onGameEnded((Date.now() - startTime) / 1000)
+                onGameEnded((Date.now() - startTime) / 1000 / 60)
             }
         }, INTERVAL_SPEED)
         this.isRunning = true
