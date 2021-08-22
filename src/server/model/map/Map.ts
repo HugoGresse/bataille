@@ -12,7 +12,13 @@ import { RawMapLayerObjectProperties } from '../types/RawMapLayerObjectPropertie
 import { COUNTRIES_INCOME } from './COUNTRIES_INCOME'
 import { EXPORTED_LAYER_NAMES } from './EXPORTED_LAYER_NAMES'
 
-export const CountryIdToName: { [name: string]: string } = {}
+export const CountryIdToInfo: {
+    [name: string]: {
+        name: string
+        localName: string
+        income: number
+    }
+} = {}
 
 export class Map {
     private tiles: MapTiles = {}
@@ -139,8 +145,12 @@ export class Map {
                         x: ~~obj.x,
                         y: ~~obj.y,
                     })
-                    if (!CountryIdToName[countryId]) {
-                        CountryIdToName[countryId] = name
+                    if (!CountryIdToInfo[countryId]) {
+                        CountryIdToInfo[countryId] = {
+                            name,
+                            localName,
+                            income: COUNTRIES_INCOME[countryId],
+                        }
                     }
                 })
                 return acc

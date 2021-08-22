@@ -1,7 +1,7 @@
 import { TownByCountries } from './types/TownByCountries'
 import { NeutralPlayer, Player } from './Player'
 import { SocketEmitter } from '../SocketEmitter'
-import { CountryIdToName } from './map/Map'
+import { CountryIdToInfo } from './map/Map'
 
 export const updatePlayerIncome = (townByCountries: TownByCountries, currentPlayer: Player, emitter: SocketEmitter) => {
     const prevOwnedCountries = currentPlayer.ownedCountriesIds
@@ -31,7 +31,8 @@ export const updatePlayerIncome = (townByCountries: TownByCountries, currentPlay
     if (prevOwnedCountries.length < ownedCountriesIds.length) {
         const capturedCountries = ownedCountriesIds.filter((x) => !prevOwnedCountries.includes(x))
         capturedCountries.forEach((id) => {
-            const countryName = CountryIdToName[id] || id
+            const countryInfo = CountryIdToInfo[id]
+            const countryName = countryInfo ? `${countryInfo.name} (+${countryInfo.income})` : id
             emitter.emitMessage(`${countryName} was captured by ${currentPlayer.name}`, currentPlayer)
         })
     }
