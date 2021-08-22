@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client'
-import { GameState } from '../server/model/GameState'
+import { GameState } from '../../server/model/GameState'
 import {
     GAME_MESSAGE,
     GAME_STATE_INIT,
@@ -7,12 +7,12 @@ import {
     LOBBY_STATE,
     PLAYER_FORCE_START,
     PLAYER_JOIN_LOBBY,
-} from '../common/SOCKET_EMIT'
-import { ExportType } from '../server/model/types/ExportType'
-import { SOCKET_URL } from './game/utils/clientEnv'
-import { LOTR_NAMES } from './utils/LOTR_NAMES'
-import { LobbyState } from '../server/GameLobby'
-import { Message } from '../server/model/types/Message'
+} from '../../common/SOCKET_EMIT'
+import { ExportType } from '../../server/model/types/ExportType'
+import { SOCKET_URL } from './utils/clientEnv'
+import { LOTR_NAMES } from '../utils/LOTR_NAMES'
+import { LobbyState } from '../../server/GameLobby'
+import { Message } from '../../server/model/types/Message'
 
 let socketConnectionInstance: SocketConnection | null = null
 export const newSocketConnectionInstance = (

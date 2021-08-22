@@ -1,25 +1,21 @@
-import { Game } from './Game'
-import {
-    BrowserRouter as Router,
-    Switch,
-    Route,
-} from "react-router-dom";
-import React from 'react';
-import { Home } from './Home';
-import {Lobby} from './Lobby'
+import { Game } from './screens/Game'
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
+import React from 'react'
+import { Home } from './screens/Home'
+import { Lobby } from './screens/Lobby'
 
 function App() {
     return (
         <Router>
             <Switch>
                 <Route exact path="/">
-                    <Home/>
+                    <Home />
                 </Route>
                 <Route exact path="/lobby">
-                    <Lobby/>
+                    <Lobby />
                 </Route>
                 <Route path="/g/:gameId">
-                    <Game/>
+                    <Game />
                 </Route>
             </Switch>
         </Router>

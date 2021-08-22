@@ -32,6 +32,10 @@ export abstract class BaseScene extends Phaser.Scene {
         return BatailleGame.getCurrentGame().getSocket().getLatestState()
     }
 
+    public getCurrentGame(): BatailleGame {
+        return BatailleGame.getCurrentGame()
+    }
+
     public getUIScene(): UIScene {
         return this.scene.manager.getScene(SCENE_UI_KEY) as UIScene
     }

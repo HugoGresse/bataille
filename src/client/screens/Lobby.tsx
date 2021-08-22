@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Button, Typography } from '@material-ui/core'
-import { DonatingBanner } from './screens/DonatingBanner'
+import { DonatingBanner } from './DonatingBanner'
 import { Link as RouterLink, useHistory } from 'react-router-dom'
-import { getSocketConnectionInstance, newSocketConnectionInstance } from './SocketConnection'
+import { getSocketConnectionInstance, newSocketConnectionInstance } from '../game/SocketConnection'
 import { ArrowBack } from '@material-ui/icons'
-import { LobbyState } from '../server/GameLobby'
+import { LobbyState } from '../../server/GameLobby'
 
 export const Lobby = () => {
     const history = useHistory()

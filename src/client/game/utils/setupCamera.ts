@@ -1,5 +1,6 @@
 import { GameObjects, Input, Scene } from 'phaser'
 import { StickUnit } from '../actors/StickUnit'
+import { INPUT_ENABLE } from '../BatailleGame'
 
 type Camera = Phaser.Cameras.Scene2D.Camera
 
@@ -76,6 +77,9 @@ const keyMovements = (camera: Camera, scene: Scene) => {
     const movementSteps = 400
 
     scene.input.keyboard.on('keydown', (event: { code: string }) => {
+        if (!INPUT_ENABLE) {
+            return
+        }
         // TODO : use scene.input.keyboard.addKey('W') in a scene to mvoe the camera directly
         const { code } = event
 

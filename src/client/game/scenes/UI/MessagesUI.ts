@@ -1,6 +1,8 @@
 import { Message } from '../../../../server/model/types/Message'
 import { PublicPlayerState } from '../../../../server/model/GameState'
 import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
+import { UIScene } from './UIScene'
+import { BatailleGame } from '../../BatailleGame'
 
 type UIMessage = {
     content: string
@@ -15,15 +17,41 @@ const MOVE_Y = 60
 const WIDTH_UI = 300
 const PADDING = 16
 
+const ENTER_KEY = 'ENTER'
+
 export class MessagesUI {
     private messages: UIMessage[] = []
     private readonly intervalId: NodeJS.Timeout
-    // private background: Phaser.GameObjects.Rectangle
+    private enterKey
 
-    constructor(private scene: Phaser.Scene) {
+    constructor(private scene: UIScene) {
+        this.onEnterPress = this.onEnterPress.bind(this)
         this.intervalId = setInterval(() => this.update(), 1000)
-        // this.background = scene.add.rectangle(this.scene.sys.canvas.width /2 - PADDING, this.scene.sys.canvas.height - 300, WIDTH_UI, 300 + PADDING)
-        // this.background.setFillStyle(0x000000, 200)
+
+        this.enterKey = this.scene.input.keyboard.addKey(ENTER_KEY, true, false)
+        this.enterKey.on('up', this.onEnterPress)
+    }
+
+    async onEnterPress() {
+        console.log('up press')
+        const promise = this.scene.getCurrentGame().onTextRequested()
+        this.enterKey.removeAllListeners()
+        this.enterKey.off('up', this.onEnterPress)
+        BatailleGame.setInputEnable(false)
+        this.scene.input.keyboard.disableGlobalCapture()
+
+        const result = await promise
+
+        console.log('here')
+        // TODO : send result
+
+        setTimeout(() => {
+            // Prevent the onTextRequested to be called directly because this is too fast...
+            this.enterKey.on('up', this.onEnterPress)
+            this.scene.input.keyboard.enableGlobalCapture()
+            BatailleGame.setInputEnable(true)
+            console.log('enable enter')
+        }, 200)
     }
 
     onMessageReceived(message: Message) {

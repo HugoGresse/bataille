@@ -2,20 +2,25 @@ import 'phaser'
 import { BatailleScene } from './scenes/bataille/BatailleScene'
 import { UIScene } from './scenes/UI/UIScene'
 import { LoadingScene } from './scenes/LoadingScene'
-import { getSocketConnectionInstance, SocketConnection } from '../SocketConnection'
+import { getSocketConnectionInstance, SocketConnection } from './SocketConnection'
 import { GameActions } from './GameActions'
 import { ExportType } from '../../server/model/types/ExportType'
 import { playStartSound } from './utils/sounds'
 import { SCENE_UI_KEY } from './scenes/BaseScene'
+import { TextRequestListener } from './types/TextRequestListener'
+
+export let INPUT_ENABLE = true
 
 export class BatailleGame {
     static instance: BatailleGame
 
-    game: Phaser.Game
-    socket: SocketConnection
+    private onTextRequestListener: TextRequestListener | null = null
+    private readonly game: Phaser.Game
+    private readonly socket: SocketConnection
 
-    constructor(parent: HTMLElement, gameId: any) {
+    constructor(parent: HTMLElement, gameId: any, onTextRequestListener: TextRequestListener) {
         console.log('New game, id: ', gameId)
+        this.onTextRequestListener = onTextRequestListener
         const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             backgroundColor: '#125555',
@@ -85,6 +90,15 @@ export class BatailleGame {
         }
     }
 
+    /**
+     * A Scene has requested some text input from the user
+     */
+    async onTextRequested() {
+        if (this.onTextRequestListener) {
+            return this.onTextRequestListener()
+        }
+    }
+
     getSocket(): SocketConnection {
         return this.socket
     }
@@ -94,5 +108,9 @@ export class BatailleGame {
     }
     public static getCurrentGame() {
         return this.instance
+    }
+
+    public static setInputEnable(enable: boolean) {
+        INPUT_ENABLE = enable
     }
 }
