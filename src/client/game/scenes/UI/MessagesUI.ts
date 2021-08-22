@@ -33,7 +33,6 @@ export class MessagesUI {
     }
 
     async onEnterPress() {
-        console.log('up press')
         const promise = this.scene.getCurrentGame().onTextRequested()
         this.enterKey.removeAllListeners()
         this.enterKey.off('up', this.onEnterPress)
@@ -42,15 +41,16 @@ export class MessagesUI {
 
         const result = await promise
 
-        console.log('here')
-        // TODO : send result
+        if (result) {
+            // @ts-ignore
+            this.scene.sendMessage((result as string).trim())
+        }
 
         setTimeout(() => {
             // Prevent the onTextRequested to be called directly because this is too fast...
             this.enterKey.on('up', this.onEnterPress)
             this.scene.input.keyboard.enableGlobalCapture()
             BatailleGame.setInputEnable(true)
-            console.log('enable enter')
         }, 200)
     }
 
@@ -91,15 +91,23 @@ export class MessagesUI {
         clearInterval(this.intervalId)
     }
 
-    private getNewText(scene: Phaser.Scene, message: Message): Phaser.GameObjects.Group {
-        let msg = message.content
+    private getTextMessage(message: Message): string[] {
         if (message.player) {
-            msg = msg.replace(message.player.name, '')
+            if (message.isUserMessage) {
+                return [message.player.name + ': ', message.content]
+            } else {
+                return [message.content.replace(message.player.name, ''), message.player.name]
+            }
         }
+        return [message.content]
+    }
+
+    private getNewText(scene: Phaser.Scene, message: Message): Phaser.GameObjects.Group {
+        const textContents = this.getTextMessage(message)
         const text = scene.add.text(
             scene.sys.canvas.width / 2 - WIDTH_UI / 2,
             scene.sys.canvas.height - 200,
-            msg,
+            textContents[0],
             TEXT_STYLE
         )
         text.setPadding(PADDING, PADDING, PADDING, PADDING)
@@ -108,12 +116,21 @@ export class MessagesUI {
 
         const groupElements = [text]
         if (message.player) {
-            const textPlayer = scene.add.text(text.x + text.width - 15, text.y, message.player.name, TEXT_STYLE)
-            textPlayer.setColor(`#${message.player.color.replace('0x', '')}`)
-            textPlayer.setBackgroundColor('#000000')
-            textPlayer.setPadding(0, PADDING, PADDING, PADDING)
-            textPlayer.alpha = 0
-            groupElements.push(textPlayer)
+            const secondTextObject = scene.add.text(text.x + text.width - 15, text.y, textContents[1], TEXT_STYLE)
+            secondTextObject.setBackgroundColor('#000000')
+            secondTextObject.setPadding(0, PADDING, PADDING, PADDING)
+            secondTextObject.setWordWrapWidth(scene.sys.canvas.width / 3)
+            secondTextObject.alpha = 0
+            text.setFixedSize(text.width, secondTextObject.displayHeight)
+            groupElements.push(secondTextObject)
+        }
+
+        if (message.player) {
+            if (message.isUserMessage) {
+                text.setColor(`#${message.player.color.replace('0x', '')}`)
+            } else {
+                groupElements[1].setColor(`#${message.player.color.replace('0x', '')}`)
+            }
         }
 
         return scene.add.group(groupElements)

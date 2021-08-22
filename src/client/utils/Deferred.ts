@@ -4,12 +4,12 @@
  */
 export class DeferredPromise<T> {
     private promise: Promise<T>
-    public resolve!: (value: PromiseLike<T> | T) => void
+    public resolve!: (value: T) => void
     public reject!: (reason?: any) => void
     public then: any
     public catch: any
     constructor() {
-        this.promise = new Promise((resolve, reject) => {
+        this.promise = new Promise((resolve: (params: T) => void, reject) => {
             // assign the resolve and reject functions to `this`
             // making them usable on the class instance
             this.resolve = resolve

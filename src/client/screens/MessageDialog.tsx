@@ -22,6 +22,7 @@ export const MessageDialog = ({ open, onSubmit }: MessageDialogProps) => {
                     fullWidth={true}
                     placeholder="Some message to all players (enter to submit)"
                     value={content}
+                    inputProps={{ maxLength: 255 }}
                     onChange={(event) => setContent(event.target.value)}
                     onKeyPress={(event) => {
                         if (event.key === 'Enter') {

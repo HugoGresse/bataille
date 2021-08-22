@@ -27,10 +27,11 @@ export class SocketEmitter {
         })
     }
 
-    emitMessage(content: string, currentPlayer?: Player) {
+    emitMessage(content: string, player?: Player, isUserMessage = false) {
         this.sockets.emit(GAME_MESSAGE, {
             content: content,
-            player: currentPlayer ? currentPlayer.getPublicPlayerState() : null,
+            player: player ? player.getPublicPlayerState() : null,
+            isUserMessage: isUserMessage,
         })
     }
 }

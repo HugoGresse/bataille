@@ -52,4 +52,8 @@ export class UIScene extends BaseScene {
     onMessageReceived(message: Message) {
         this.messagesUI.onMessageReceived(message)
     }
+
+    sendMessage(message: string) {
+        this.actions.sendMessage(message)
+    }
 }

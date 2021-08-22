@@ -123,6 +123,13 @@ export class Game {
         this.players[playerId].unitAction(event)
     }
 
+    playerMessage(playerId: string, message: string) {
+        if (!this.players[playerId] || !this.gameLoop.isRunning) {
+            return
+        }
+        this.emitter.emitMessage(message, this.players[playerId], true)
+    }
+
     start(onGameEnded: (gameDurationSeconds: number) => void) {
         this.emitter.emitInitialGameState(this)
         townAssignation(this.getPlayers(), this.map)
