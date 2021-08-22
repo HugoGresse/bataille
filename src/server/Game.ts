@@ -150,7 +150,7 @@ export class Game {
             const step3 = Date.now() - step2
             this.townsIntersections.push(step3)
 
-            updatePlayerIncome(this.map.getTownsByCountries(), player)
+            updatePlayerIncome(this.map.getTownsByCountries(), player, this.emitter)
         })
         this.incomeDispatcher.update(this.players)
 

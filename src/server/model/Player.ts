@@ -23,7 +23,7 @@ export abstract class AbstractPlayer {
     public money: number = MONEY_START
     public isConnected: boolean = true
     public isDead: boolean = false
-    private ownedCountriesIds: string[] = []
+    public ownedCountriesIds: string[] = []
     private unitCount = 0
 
     protected constructor(name = `${Date.now()}`, public color: string) {

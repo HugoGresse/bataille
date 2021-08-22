@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client'
 import { GameState } from '../server/model/GameState'
 import {
+    GAME_MESSAGE,
     GAME_STATE_INIT,
     GAME_STATE_UPDATE,
     LOBBY_STATE,
@@ -11,6 +12,7 @@ import { ExportType } from '../server/model/types/ExportType'
 import { SOCKET_URL } from './game/utils/clientEnv'
 import { LOTR_NAMES } from './utils/LOTR_NAMES'
 import { LobbyState } from '../server/GameLobby'
+import { Message } from '../server/model/types/Message'
 
 let socketConnectionInstance: SocketConnection | null = null
 export const newSocketConnectionInstance = (
@@ -30,6 +32,7 @@ export class SocketConnection {
     private socket: Socket
     private gameState: GameState | null = null
     public gameStartData: ExportType | null = null
+    private messageListener: ((message: Message) => void) | null = null
 
     constructor(
         protected socketUrl: string,
@@ -51,10 +54,12 @@ export class SocketConnection {
         this.handleLobbyState = this.handleLobbyState.bind(this)
         this.handleGameState = this.handleGameState.bind(this)
         this.handleGameInit = this.handleGameInit.bind(this)
+        this.handleGameMessage = this.handleGameMessage.bind(this)
 
         this.socket.on(LOBBY_STATE, this.handleLobbyState)
         this.socket.on(GAME_STATE_INIT, this.handleGameInit)
         this.socket.on(GAME_STATE_UPDATE, this.handleGameState)
+        this.socket.on(GAME_MESSAGE, this.handleGameMessage)
         this.socket.emit(PLAYER_JOIN_LOBBY, LOTR_NAMES[Math.floor(Math.random() * LOTR_NAMES.length)])
     }
 
@@ -77,6 +82,12 @@ export class SocketConnection {
         }
     }
 
+    private handleGameMessage(message: Message) {
+        if (this.messageListener) {
+            this.messageListener(message)
+        }
+    }
+
     public disconnect() {
         this.socket.disconnect()
     }
@@ -87,5 +98,9 @@ export class SocketConnection {
 
     public getSocketIO() {
         return this.socket
+    }
+
+    public setMessageListener(listener: ((message: Message) => void) | null) {
+        this.messageListener = listener
     }
 }

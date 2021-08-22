@@ -6,6 +6,7 @@ import { getSocketConnectionInstance, SocketConnection } from '../SocketConnecti
 import { GameActions } from './GameActions'
 import { ExportType } from '../../server/model/types/ExportType'
 import { playStartSound } from './utils/sounds'
+import { SCENE_UI_KEY } from './scenes/BaseScene'
 
 export class BatailleGame {
     static instance: BatailleGame
@@ -65,18 +66,13 @@ export class BatailleGame {
         actions.setGameId(data.gameId)
 
         const batailleScene: BatailleScene = this.game.scene.getScene('BatailleScene') as BatailleScene
-
-        if (batailleScene.scene.settings.active && batailleScene.scene.settings.visible) {
+        const uiScene: UIScene = this.game.scene.getScene(SCENE_UI_KEY) as UIScene
+        batailleScene.runOnStart(() => {
             batailleScene.initSceneWithData(data)
-        } else {
-            batailleScene.events.on('start', function () {
-                batailleScene.initSceneWithData(data)
-                batailleScene.events.off('start')
-            })
-            batailleScene.events.on('destroy', () => {
-                batailleScene.events.off('start')
-            })
-        }
+        })
+        uiScene.runOnStart(() => {
+            this.socket.setMessageListener(uiScene.onMessageReceived)
+        })
         playStartSound()
     }
 

@@ -10,75 +10,20 @@ import { RawMapLayerObjectPolygons } from '../types/RawMapLayerObjectPolygons'
 import { CountryInfo } from '../types/CountryInfo'
 import { RawMapLayerObjectProperties } from '../types/RawMapLayerObjectProperties'
 import { COUNTRIES_INCOME } from './COUNTRIES_INCOME'
+import { EXPORTED_LAYER_NAMES } from './EXPORTED_LAYER_NAMES'
 
-const EXPORTED_LAYER_NAMES = [
-    'g-water',
-    'c-ch',
-    'c-it',
-    'c-uk',
-    'c-is',
-    'c-gl',
-    'c-ie',
-    'c-fr',
-    'c-ma',
-    'c-es',
-    'c-pt',
-    'c-de',
-    'c-at',
-    'c-li',
-    'c-dk',
-    'c-be',
-    'c-nl',
-    'c-pl',
-    'c-cz',
-    'c-si',
-    'c-hr',
-    'c-sk',
-    'c-hu',
-    'c-ba',
-    'c-me',
-    'c-rs',
-    'c-mk',
-    'c-al',
-    'c-bg',
-    'c-ro',
-    'c-md',
-    'c-ua',
-    'c-by',
-    'c-no',
-    'c-se',
-    'c-fi',
-    'c-ruk',
-    'c-lt',
-    'c-lv',
-    'c-ee',
-    'c-sval',
-    'c-ru',
-    'c-ge',
-    'c-am',
-    'c-gr',
-    'c-tr',
-    'c-sy',
-    'c-iq',
-    'c-ae',
-    'c-jo',
-    'c-il',
-    'c-lb',
-    'c-eg',
-    'c-ly',
-    'c-tn',
-    'c-dz',
-    'towns',
-]
+export const CountryIdToName: { [name: string]: string } = {}
 
 export class Map {
     private tiles: MapTiles = {}
     private townByCountries: TownByCountries = {}
-    private mapWidth: number
-    private mapHeight: number
+    private readonly mapWidth: number
+    private readonly mapHeight: number
 
     constructor() {
+        // @ts-ignore
         this.mapWidth = mapData.width
+        // @ts-ignore
         this.mapHeight = mapData.height
 
         for (let x = 0; x < this.mapWidth; x++) {
@@ -90,6 +35,7 @@ export class Map {
 
         const townDataLayer = new TownsDataLayer()
 
+        // @ts-ignore
         mapData.layers.forEach((layer: any) => {
             if (EXPORTED_LAYER_NAMES.includes(layer.name)) {
                 const width = layer.width || 0
@@ -193,6 +139,9 @@ export class Map {
                         x: ~~obj.x,
                         y: ~~obj.y,
                     })
+                    if (!CountryIdToName[countryId]) {
+                        CountryIdToName[countryId] = name
+                    }
                 })
                 return acc
             }, [])

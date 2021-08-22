@@ -10,6 +10,20 @@ export abstract class BaseScene extends Phaser.Scene {
         super(name)
     }
 
+    public runOnStart(func: () => void) {
+        if (this.scene.settings.active && this.scene.settings.visible) {
+            func()
+        } else {
+            this.events.on('start', () => {
+                func()
+                this.events.off('start')
+            })
+            this.events.on('destroy', () => {
+                this.events.off('start')
+            })
+        }
+    }
+
     public get actions(): GameActions {
         return this.game.registry.get('actions')
     }
