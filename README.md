@@ -2,6 +2,8 @@
 
 A risk like game, in TypeScript, revamped for quick bataille and fun.
 
+> https://bataille.ovh
+
 ### Featuring
 - real time unit movements
 - turn by turn income (7s)
