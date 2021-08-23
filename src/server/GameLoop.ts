@@ -1,5 +1,6 @@
 import { Game } from './Game'
 import { SocketEmitter } from './SocketEmitter'
+import { Player } from './model/Player'
 
 const FRAME_RATE = 20
 const INTERVAL_SPEED = 1000 / FRAME_RATE
@@ -19,9 +20,12 @@ export class GameLoop {
             if (!results) {
                 this.emitGameState(game)
             } else {
+                const gameDurationMinutes = (Date.now() - startTime) / 1000 / 60
+                this.emitter.emitMessage(results.result, results.winner)
+                this.emitter.emitMessage(`Game duration: ${gameDurationMinutes} minutes.`)
                 console.log(results)
                 this.stop()
-                onGameEnded((Date.now() - startTime) / 1000 / 60)
+                onGameEnded(gameDurationMinutes)
             }
         }, INTERVAL_SPEED)
         this.isRunning = true
@@ -34,7 +38,7 @@ export class GameLoop {
         }
     }
 
-    run(game: Game): { result: string } | null {
+    run(game: Game): { result: string; winner?: Player } | null {
         const endedGame = game.update()
 
         if (endedGame) {
@@ -45,7 +49,8 @@ export class GameLoop {
                 }
             }
             return {
-                result: `${winner.name} has won the game!`,
+                result: `This game has been won by ${winner.name}`,
+                winner: winner,
             }
         }
 

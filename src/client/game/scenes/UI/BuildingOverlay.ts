@@ -5,7 +5,7 @@ import { UnitsType } from '../../../../common/UNITS'
 import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
 
 const OVERLAY_WIDTH = 200
-const OVERLAY_HEIGHT = 50
+const OVERLAY_HEIGHT = 100
 const OVERLAY_PADDING = 10
 
 type Shapes = Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text
@@ -30,42 +30,62 @@ export class BuildingOverlay {
             OVERLAY_WIDTH,
             OVERLAY_HEIGHT
         )
-        rectangle.setFillStyle(0xff0000, 1)
+        rectangle.setFillStyle(0x000000, 0.5)
 
         const newUnitText = this.scene.add.text(
             width / 2 - OVERLAY_WIDTH / 2 + OVERLAY_PADDING,
             height - OVERLAY_HEIGHT + OVERLAY_PADDING,
-            `New Unit ${UnitsType.Stick}$ (R) (T: 10x)`,
+            `1 Unit ${UnitsType.Stick}$ (R)`,
             TEXT_STYLE
         )
+        newUnitText.setPadding(12, 8, 12, 8)
+        newUnitText.setBackgroundColor('#673AB7')
+        newUnitText.setShadow(-1, -1, '#888', 1, true, true)
         newUnitText.setInteractive()
+        newUnitText.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this.createUnit(1)
+        })
 
-        this.selectedTown = town
-
-        newUnitText.on(Phaser.Input.Events.POINTER_UP, () => {
-            if (this.selectedTown) {
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-            }
+        const newUnit10Text = this.scene.add.text(
+            width / 2 - OVERLAY_WIDTH / 2 + OVERLAY_PADDING,
+            height - OVERLAY_HEIGHT + OVERLAY_PADDING + OVERLAY_PADDING + newUnitText.height,
+            `10 Unit ${UnitsType.Stick * 10}$ (T)`,
+            TEXT_STYLE
+        )
+        newUnit10Text.setPadding(12, 8, 12, 8)
+        newUnit10Text.setBackgroundColor('#673AB7')
+        newUnit10Text.setShadow(-1, -1, '#888', 1, true, true)
+        newUnit10Text.setInteractive()
+        newUnit10Text.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this.createUnit(10)
         })
 
         this.shapes.push(rectangle)
         this.shapes.push(newUnitText)
+        this.shapes.push(newUnit10Text)
+        this.listenForUnitShortcuts()
+        this.selectedTown = town
+    }
 
+    listenForUnitShortcuts() {
         const newUnitKey = this.scene.input.keyboard.addKey(NEW_UNIT_SHORTCUT_BIS, true, true)
         newUnitKey.on('down', () => {
-            if (this.selectedTown) {
-                this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-            }
+            this.createUnit(1)
         })
         const newUnit10XKey = this.scene.input.keyboard.addKey(NEW_UNIT_10X_SHORTCUT_BIS, true, true)
 
         newUnit10XKey.on('down', () => {
-            if (this.selectedTown) {
-                for (let i = 0; i < 10; i++) {
-                    this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-                }
-            }
+            this.createUnit(10)
         })
+    }
+
+    createUnit(unitCount: number) {
+        if (!this.selectedTown) {
+            return
+        }
+        for (let i = 0; i < unitCount; i++) {
+            this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
+        }
     }
 
     onEmptyTileSelected() {
