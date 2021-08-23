@@ -6,6 +6,7 @@ module.exports = {
             watch: 'lib/',
             env: {
                 NODE_ENV: 'production',
+                SUMOLOGIC_COLLECTOR: 'https://example.com',
             },
         },
     ],
