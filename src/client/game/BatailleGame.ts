@@ -12,7 +12,7 @@ import { TextRequestListener } from './types/TextRequestListener'
 export let INPUT_ENABLE = true
 
 export class BatailleGame {
-    static instance: BatailleGame
+    static instance: BatailleGame | null
 
     private onTextRequestListener: TextRequestListener | null = null
     private readonly game: Phaser.Game
@@ -105,6 +105,9 @@ export class BatailleGame {
 
     public static setCurrentGame(game: BatailleGame) {
         this.instance = game
+    }
+    public static clearCurrentGame() {
+        this.instance = null
     }
     public static getCurrentGame() {
         return this.instance

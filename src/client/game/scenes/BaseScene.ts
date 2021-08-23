@@ -29,10 +29,14 @@ export abstract class BaseScene extends Phaser.Scene {
     }
 
     public getState(): GameState | null {
-        return BatailleGame.getCurrentGame().getSocket().getLatestState()
+        const game = BatailleGame.getCurrentGame()
+        if (!game) {
+            return null
+        }
+        return game.getSocket().getLatestState()
     }
 
-    public getCurrentGame(): BatailleGame {
+    public getCurrentGame(): BatailleGame | null {
         return BatailleGame.getCurrentGame()
     }
 

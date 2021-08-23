@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { BatailleGame } from '../game/BatailleGame'
 import './game.css'
-import { useHistory, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { Box, Button } from '@material-ui/core'
 import FullscreenIcon from '@material-ui/icons/Fullscreen'
 import HelpIcon from '@material-ui/icons/HelpOutline'
@@ -15,7 +15,6 @@ type GameParams = {
 }
 
 export const Game = () => {
-    const history = useHistory()
     const { gameId } = useParams<GameParams>()
     const gameContainer = useRef<HTMLDivElement>(null)
     const [game, setGame] = useState<BatailleGame>()
@@ -36,6 +35,7 @@ export const Game = () => {
             setGame(game)
             return () => {
                 game.destroy()
+                BatailleGame.clearCurrentGame()
             }
         }
     }, [gameId, gameContainer])
@@ -43,12 +43,7 @@ export const Game = () => {
     return (
         <Box display="flex" flexDirection="column" height="100vh">
             <Box display="flex" justifyContent="space-between" margin={1}>
-                <Button
-                    color="secondary"
-                    onClick={() => {
-                        history.push('/')
-                    }}
-                    startIcon={<BackIcon />}>
+                <Button color="secondary" href="/" startIcon={<BackIcon />}>
                     Exit game
                 </Button>
                 <div>

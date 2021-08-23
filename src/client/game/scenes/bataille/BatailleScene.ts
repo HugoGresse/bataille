@@ -10,6 +10,7 @@ import { Town } from '../../actors/buildings/Town'
 import { TILE_WIDTH_HEIGHT } from '../../../../common/UNITS'
 import { TilesColorsUpdater } from './TilesColorsUpdater'
 import { displayCountriesInfo } from './displayCountriesInfo'
+import { SocketConnection } from '../../SocketConnection'
 
 export class BatailleScene extends BaseScene {
     private map!: Tilemaps.Tilemap
@@ -24,6 +25,7 @@ export class BatailleScene extends BaseScene {
     private towns: {
         [id: string]: Town
     } = {}
+    private socket!: SocketConnection
 
     constructor() {
         super('BatailleScene')
@@ -36,12 +38,15 @@ export class BatailleScene extends BaseScene {
     create() {
         this.scene.launch(SCENE_UI_KEY)
         this.input.setTopOnly(false)
+        const game = BatailleGame.getCurrentGame()
+        if (game) {
+            this.socket = game.getSocket()
+        }
     }
 
     update(time: number, delta: number) {
         super.update(time, delta)
-
-        const newState = BatailleGame.getCurrentGame().getSocket().getLatestState()
+        const newState = this.socket.getLatestState()
         if (newState) {
             const aliveUnits: string[] = []
             newState.units.forEach((unit) => {

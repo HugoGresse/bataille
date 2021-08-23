@@ -33,7 +33,12 @@ export class MessagesUI {
     }
 
     async onEnterPress() {
-        const promise = this.scene.getCurrentGame().onTextRequested()
+        const game = this.scene.getCurrentGame()
+        if (!game) {
+            console.warn('No current game')
+            return
+        }
+        const promise = game.onTextRequested()
         this.enterKey.removeAllListeners()
         this.enterKey.off('up', this.onEnterPress)
         BatailleGame.setInputEnable(false)
