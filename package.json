@@ -15,8 +15,8 @@
         "start-server": "ts-node-dev --respawn --project src/server/tsconfig.dev.json src/server/server.ts",
         "build:server": "rm -rf lib && tsc --build src/server/tsconfig.json",
         "build:server:run": "npm run build:server && node lib/src/server/server.js",
-        "release:patch": "npm version patch && npm run server:build",
-        "release:minor": "npm version minor && npm run server:build",
+        "release:patch": "npm version patch && npm run build:server",
+        "release:minor": "npm version minor && npm run build:server",
         "prepare": "husky install"
     },
     "devDependencies": {
