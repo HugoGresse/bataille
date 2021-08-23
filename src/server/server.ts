@@ -25,7 +25,7 @@ let lobby: GameLobby | null
 
 socketIOServer.on('connection', (socket: Socket) => {
     socket.on(PLAYER_JOIN_LOBBY, handlePlayerJoin(socket))
-    socket.on(PLAYER_FORCE_START, handlePlayerForceStart())
+    socket.on(PLAYER_FORCE_START, handlePlayerForceStart(socket))
     socket.on(PLAYER_NEW_UNIT, handlePlayerNewUnit(socket))
     socket.on(PLAYER_UNIT, handlePlayerUnit(socket))
     socket.on(PLAYER_MESSAGE_POST, handlePlayerPostMessage(socket))
@@ -71,9 +71,9 @@ const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
     lobby.onPlayerJoin(socket, playerName)
 }
 
-const handlePlayerForceStart = () => (shouldForceStart: boolean) => {
+const handlePlayerForceStart = (socket: Socket) => (shouldForceStart: boolean) => {
     if (lobby) {
-        lobby.handlePlayerForceStart(shouldForceStart)
+        lobby.handlePlayerForceStart(socket.id, shouldForceStart)
     }
 }
 

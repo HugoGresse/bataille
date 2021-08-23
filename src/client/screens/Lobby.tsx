@@ -33,6 +33,12 @@ export const Lobby = () => {
                 history.push(`/g/${gameId}/`)
             }
         )
+        return () => {
+            const instance = getSocketConnectionInstance()
+            if (instance) {
+                instance.disconnect()
+            }
+        }
     }, [history])
 
     return (

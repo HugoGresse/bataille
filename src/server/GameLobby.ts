@@ -7,7 +7,7 @@ export class GameLobby {
     sockets: {
         [socketId: string]: Socket
     } = {}
-    forceStartCount = 0
+    forceStartSocketIds: string[] = []
 
     constructor(
         private readonly socketEmitter: SocketEmitter,
@@ -30,6 +30,7 @@ export class GameLobby {
         socket.on('disconnect', () => {
             delete this.sockets[socketId]
             this.waitingPlayers = this.waitingPlayers.filter((p) => p.socketId !== socketId)
+            this.forceStartSocketIds = this.forceStartSocketIds.filter((id) => socketId !== id)
             this.socketEmitter.emitLobbyState(this)
             console.log(`Player left lobby, ${this.waitingPlayers.length}/${this.requiredPlayerToStart}`)
         })
@@ -52,16 +53,18 @@ export class GameLobby {
         return {
             playerCount: this.waitingPlayers.length,
             requiredPlayerCount: this.requiredPlayerToStart,
-            playerCountForceStart: this.forceStartCount,
+            playerCountForceStart: this.forceStartSocketIds.length,
         }
     }
 
-    handlePlayerForceStart(shouldForceStart: boolean) {
+    handlePlayerForceStart(socketId: string, shouldForceStart: boolean) {
         if (shouldForceStart) {
-            this.forceStartCount++
-        } else this.forceStartCount--
+            this.forceStartSocketIds.push(socketId)
+        } else {
+            this.forceStartSocketIds = this.forceStartSocketIds.filter((id) => id !== socketId)
+        }
         this.socketEmitter.emitLobbyState(this)
-        if (this.forceStartCount === this.waitingPlayers.length && this.forceStartCount > 1) {
+        if (this.forceStartSocketIds.length === this.waitingPlayers.length && this.forceStartSocketIds.length > 1) {
             this.onLobbyReady(this.waitingPlayers, this.sockets)
         }
     }
