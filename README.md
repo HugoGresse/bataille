@@ -1,8 +1,24 @@
-# bataille
-A risk like game, in js, revamp for quick bataille and fun.
+# Bataille
 
-Some helps for Phaser and wdio games
-https://shakuro.com/blog/phaser-js-a-step-by-step-tutorial-on-making-a-phaser-3-game/#part-2
-https://github.com/HungryTurtleCode/multiplayerSnake/blob/master/server/game.js
-http://jriecken.github.io/sat-js/
+A risk like game, in TypeScript, revamped for quick bataille and fun.
+
+Featuring
+- real time unit movements
+- turn by turn income (7s)
+- up to 6 players (will probably be increased when popularity will grow)
+- game time: 10-20min? 
+
+
+
+# Developers
+
+Everything is build around Node & TypeScript, using Phaser3 for the game engine on the web (webgl) and socket.io for server-client communication. 
+
+## Setup
+
+1. `npm i` 
+2. `npm run start`
+3. `npm run start-server`
+4. Open `localhost:3000`, local dev should work with one player, online require 2 players. 
+
 
