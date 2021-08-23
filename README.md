@@ -2,12 +2,14 @@
 
 A risk like game, in TypeScript, revamped for quick bataille and fun.
 
-Featuring
+### Featuring
 - real time unit movements
 - turn by turn income (7s)
 - up to 6 players (will probably be increased when popularity will grow)
+- public in-game discussion
 - game time: 10-20min? 
 
+![Game screenshots](https://user-images.githubusercontent.com/662377/130512746-80ee7ef5-6b89-4222-948d-e14904b078f5.png)
 
 
 # Developers
