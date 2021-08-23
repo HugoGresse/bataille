@@ -11,8 +11,8 @@ type UIMessage = {
     group: Phaser.GameObjects.Group
 }
 
-const MESSAGE_DURATION = 5000 // ms
-const MAX_MESSAGES_DISPLAYED = 1
+const MESSAGE_DURATION = 8000 // ms
+const MAX_MESSAGES_DISPLAYED = 6
 const MOVE_Y = 60
 const WIDTH_UI = 300
 const PADDING = 16

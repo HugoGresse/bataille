@@ -20,12 +20,17 @@ export class GameLoop {
             if (!results) {
                 this.emitGameState(game)
             } else {
+                this.emitGameState(game)
                 const gameDurationMinutes = (Date.now() - startTime) / 1000 / 60
                 this.emitter.emitMessage(results.result, results.winner)
-                this.emitter.emitMessage(`Game duration: ${gameDurationMinutes} minutes.`)
-                console.log(results)
+                setTimeout(() => {
+                    // Don't send 2 message at the same time = not displayed
+                    this.emitter.emitMessage(`Game duration: ${gameDurationMinutes} minutes.`)
+                }, 500)
                 this.stop()
                 onGameEnded(gameDurationMinutes)
+                console.log(results.result)
+                console.log(`income: ${results.winner?.income}`)
             }
         }, INTERVAL_SPEED)
         this.isRunning = true
