@@ -33,12 +33,6 @@ export const Lobby = () => {
                 history.push(`/g/${gameId}/`)
             }
         )
-        return () => {
-            const instance = getSocketConnectionInstance()
-            if (instance) {
-                instance.disconnect()
-            }
-        }
     }, [history])
 
     return (
@@ -51,7 +45,18 @@ export const Lobby = () => {
             flexDirection="column">
             <Box>
                 <br />
-                <Button variant="contained" size="large" component={RouterLink} to="/" startIcon={<ArrowBack />}>
+                <Button
+                    variant="contained"
+                    size="large"
+                    component={RouterLink}
+                    to="/"
+                    startIcon={<ArrowBack />}
+                    onClick={() => {
+                        const instance = getSocketConnectionInstance()
+                        if (instance) {
+                            instance.disconnect()
+                        }
+                    }}>
                     Go back
                 </Button>
             </Box>
