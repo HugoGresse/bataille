@@ -181,6 +181,10 @@ export class Game {
         ) // also check if we are playing alone (in dev)
     }
 
+    getConnectedPlayers(): Player[] {
+        return this.getPlayers().filter((player) => player.isConnected)
+    }
+
     getWinner(): Player | undefined {
         const averageStep1 = average(this.playersIntersections) * 1000
         const averageStep2 = average(this.playerUpdates) * 1000
@@ -192,7 +196,7 @@ export class Game {
             step3: ${averageStep3}
         `)
 
-        return Object.values(this.players).find((player) => !player.isDead)
+        return Object.values(this.players).find((player) => !player.isDead && player.isConnected)
     }
 }
 

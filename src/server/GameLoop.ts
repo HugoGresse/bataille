@@ -8,6 +8,8 @@ const INTERVAL_SPEED = 1000 / FRAME_RATE
 export class GameLoop {
     private intervalId: NodeJS.Timeout | null = null
     public isRunning = false
+    private gameCompleted = false
+    private gameDuration: number = 0
 
     constructor(protected emitter: SocketEmitter) {}
 
@@ -19,18 +21,23 @@ export class GameLoop {
 
             if (!results) {
                 this.emitGameState(game)
-            } else {
+            } else if (!this.gameCompleted) {
+                // let users speaks at the end of the game...
+                this.gameDuration = Math.round(((Date.now() - startTime) / 1000 / 60) * 100) / 100
+                this.gameCompleted = true
                 this.emitGameState(game)
-                const gameDurationMinutes = Math.round(((Date.now() - startTime) / 1000 / 60) * 100) / 100
                 this.emitter.emitMessage(results.result, results.winner)
                 setTimeout(() => {
                     // Don't send 2 message at the same time = not displayed
-                    this.emitter.emitMessage(`Game duration: ${gameDurationMinutes} minutes.`)
-                }, 500)
-                this.stop()
-                onGameEnded(gameDurationMinutes)
+                    this.emitter.emitMessage(`Game duration: ${this.gameDuration} minutes.`)
+                }, 1000)
                 console.log(results.result)
                 console.log(`income: ${results.winner?.income}`)
+            }
+            const connectedPlayers = game.getConnectedPlayers().length
+            if (!connectedPlayers) {
+                this.stop()
+                onGameEnded(this.gameDuration)
             }
         }, INTERVAL_SPEED)
         this.isRunning = true
@@ -46,7 +53,7 @@ export class GameLoop {
     run(game: Game): { result: string; winner?: Player } | null {
         const endedGame = game.update()
 
-        if (endedGame) {
+        if (endedGame && !this.gameCompleted) {
             const winner = game.getWinner()
             if (!winner) {
                 return {
