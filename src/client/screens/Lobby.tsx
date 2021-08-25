@@ -5,6 +5,7 @@ import { Link as RouterLink, useHistory } from 'react-router-dom'
 import { getSocketConnectionInstance, newSocketConnectionInstance } from '../game/SocketConnection'
 import { ArrowBack } from '@material-ui/icons'
 import { LobbyState } from '../../server/GameLobby'
+import { HelpDialogButton } from './HelpDialog'
 
 export const Lobby = () => {
     const history = useHistory()
@@ -70,6 +71,12 @@ export const Lobby = () => {
                     Force start ({lobbyState.playerCountForceStart}/
                     {lobbyState.playerCount > 1 ? lobbyState.playerCount : 2})
                 </Button>
+
+                <HelpDialogButton
+                    style={{
+                        float: 'right',
+                    }}
+                />
             </Box>
 
             <DonatingBanner />

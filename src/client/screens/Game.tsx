@@ -4,9 +4,8 @@ import './game.css'
 import { useParams } from 'react-router-dom'
 import { Box, Button } from '@material-ui/core'
 import FullscreenIcon from '@material-ui/icons/Fullscreen'
-import HelpIcon from '@material-ui/icons/HelpOutline'
 import BackIcon from '@material-ui/icons/ArrowBack'
-import { HelpDialog } from './HelpDialog'
+import { HelpDialogButton } from './HelpDialog'
 import { MessageDialog } from './MessageDialog'
 import { DeferredPromise } from '../utils/Deferred'
 
@@ -18,7 +17,6 @@ export const Game = () => {
     const { gameId } = useParams<GameParams>()
     const gameContainer = useRef<HTMLDivElement>(null)
     const [game, setGame] = useState<BatailleGame>()
-    const [helpOpen, setHelpOpen] = useState<boolean>(false)
     const [messageDialogOpen, setMessageDialogOpen] = useState<boolean>(false)
     const [deferredPromise, setDeferredPromise] = useState<null | DeferredPromise<string | null>>(null)
 
@@ -47,15 +45,7 @@ export const Game = () => {
                     Exit game
                 </Button>
                 <div>
-                    <Button
-                        color="secondary"
-                        variant="outlined"
-                        onClick={() => {
-                            setHelpOpen(true)
-                        }}
-                        startIcon={<HelpIcon />}>
-                        HELP
-                    </Button>{' '}
+                    <HelpDialogButton color="secondary" buttonText={'HELP'} />{' '}
                     <Button
                         color="secondary"
                         variant="outlined"
@@ -71,12 +61,6 @@ export const Game = () => {
             <Box display="flex" overflow="hidden">
                 <div ref={gameContainer} id="gameContainer" />
             </Box>
-            <HelpDialog
-                open={helpOpen}
-                setOpen={(shouldBeOpen) => {
-                    setHelpOpen(shouldBeOpen)
-                }}
-            />
             <MessageDialog
                 open={messageDialogOpen}
                 onSubmit={(content) => {

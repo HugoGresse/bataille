@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@material-ui/core'
+import HelpIcon from '@material-ui/icons/HelpOutline'
 
 export type HelpDialogProps = {
     open: boolean
@@ -71,5 +72,29 @@ export const HelpDialog = ({ open, setOpen }: HelpDialogProps) => {
                 </Button>
             </DialogActions>
         </Dialog>
+    )
+}
+
+export const HelpDialogButton = ({ buttonText = 'How to play', ...props }) => {
+    const [helpOpen, setHelpOpen] = useState<boolean>(false)
+
+    return (
+        <>
+            <Button
+                variant="outlined"
+                onClick={() => {
+                    setHelpOpen(true)
+                }}
+                startIcon={<HelpIcon />}
+                {...props}>
+                {buttonText}
+            </Button>
+            <HelpDialog
+                open={helpOpen}
+                setOpen={(shouldBeOpen) => {
+                    setHelpOpen(shouldBeOpen)
+                }}
+            />
+        </>
     )
 }
