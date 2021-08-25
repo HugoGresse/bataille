@@ -21,7 +21,7 @@ import { detectUnitsIntersections } from './model/detectUnitsIntersections'
 
 export class Game {
     protected players: {
-        [id: string]: Player
+        [socketId: string]: Player
     } = {}
     protected gameLoop: GameLoop
     protected map: Map
@@ -136,6 +136,17 @@ export class Game {
         if (!this.gameLoop.isRunning) {
             this.gameLoop.start(this, onGameEnded)
         }
+        setTimeout(() => {
+            // Let clients be initialized before send this first message
+            Object.keys(this.players).forEach((socketId) => {
+                // noinspection JSIgnoredPromiseFromCall
+                this.emitter.emitMessageToSpecificPlayer(
+                    `You are playing as ${this.players[socketId].name}`,
+                    socketId,
+                    this.players[socketId]
+                )
+            })
+        }, 1500)
     }
 
     update(): boolean {

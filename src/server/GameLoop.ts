@@ -21,7 +21,7 @@ export class GameLoop {
                 this.emitGameState(game)
             } else {
                 this.emitGameState(game)
-                const gameDurationMinutes = (Date.now() - startTime) / 1000 / 60
+                const gameDurationMinutes = Math.round(((Date.now() - startTime) / 1000 / 60) * 100) / 100
                 this.emitter.emitMessage(results.result, results.winner)
                 setTimeout(() => {
                     // Don't send 2 message at the same time = not displayed

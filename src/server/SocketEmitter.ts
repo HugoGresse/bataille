@@ -34,4 +34,17 @@ export class SocketEmitter {
             isUserMessage: isUserMessage,
         })
     }
+
+    async emitMessageToSpecificPlayer(
+        content: string,
+        destinationSocketId: string,
+        player: Player,
+        originPlayer?: Player
+    ) {
+        socketIOServer.to(destinationSocketId).emit(GAME_MESSAGE, {
+            content: content,
+            player: originPlayer ? originPlayer.getPublicPlayerState() : player.getPublicPlayerState(),
+            isUserMessage: !!originPlayer,
+        })
+    }
 }
