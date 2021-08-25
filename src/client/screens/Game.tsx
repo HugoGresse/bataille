@@ -15,6 +15,7 @@ type GameParams = {
 
 export const Game = () => {
     const { gameId } = useParams<GameParams>()
+    const gameTopContainer = useRef<HTMLDivElement>(null)
     const gameContainer = useRef<HTMLDivElement>(null)
     const [game, setGame] = useState<BatailleGame>()
     const [messageDialogOpen, setMessageDialogOpen] = useState<boolean>(false)
@@ -50,7 +51,7 @@ export const Game = () => {
                         color="secondary"
                         variant="outlined"
                         onClick={() => {
-                            gameContainer.current?.requestFullscreen()
+                            gameTopContainer.current?.requestFullscreen()
                             game?.setFullscreen()
                         }}
                         startIcon={<FullscreenIcon />}>
@@ -58,7 +59,7 @@ export const Game = () => {
                     </Button>
                 </div>
             </Box>
-            <Box display="flex" overflow="hidden">
+            <Box display="flex" overflow="hidden" ref={gameTopContainer} id="gameTopContainer">
                 <div ref={gameContainer} id="gameContainer" />
             </Box>
             <MessageDialog
@@ -67,7 +68,6 @@ export const Game = () => {
                     setMessageDialogOpen(false)
                     if (deferredPromise) {
                         deferredPromise.resolve(content)
-
                         setDeferredPromise(null)
                     }
                 }}

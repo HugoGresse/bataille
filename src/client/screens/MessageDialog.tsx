@@ -14,6 +14,7 @@ export const MessageDialog = ({ open, onSubmit }: MessageDialogProps) => {
             onClose={() => onSubmit(null)}
             fullWidth={true}
             maxWidth={'md'}
+            container={() => document.getElementById('gameTopContainer')}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description">
             <DialogContent>
