@@ -11,11 +11,11 @@ type UIMessage = {
     group: Phaser.GameObjects.Group
 }
 
-const MESSAGE_DURATION = 8000 // ms
+const MESSAGE_DURATION = 10000 // ms
 const MAX_MESSAGES_DISPLAYED = 6
-const MOVE_Y = 60
+const MOVE_Y = 40
 const WIDTH_UI = 300
-const PADDING = 16
+const PADDING = 8
 
 const ENTER_KEY = 'ENTER'
 
@@ -121,7 +121,7 @@ export class MessagesUI {
 
         const groupElements = [text]
         if (message.player) {
-            const secondTextObject = scene.add.text(text.x + text.width - 15, text.y, textContents[1], TEXT_STYLE)
+            const secondTextObject = scene.add.text(text.x + text.width - 8, text.y, textContents[1], TEXT_STYLE)
             secondTextObject.setBackgroundColor('#000000')
             secondTextObject.setPadding(0, PADDING, PADDING, PADDING)
             secondTextObject.setWordWrapWidth(scene.sys.canvas.width / 3)
