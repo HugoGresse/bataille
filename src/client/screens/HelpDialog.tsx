@@ -12,7 +12,9 @@ export const HelpDialog = ({ open, setOpen }: HelpDialogProps) => {
             open={open}
             onClose={() => setOpen(false)}
             aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description">
+            aria-describedby="alert-dialog-description"
+            fullWidth={true}
+            maxWidth={'md'}>
             <DialogTitle id="alert-dialog-title">How to play</DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
