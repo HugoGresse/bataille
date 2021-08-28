@@ -11,9 +11,11 @@ export const detectTownIntersections = (map: Map, player: Player) => {
         const tileX = map.getMapTiles()[x]
         if (tileX) {
             const tile = tileX[y]
-            if (tile.isTown && (!tile.player || tile.player.id !== player.id)) {
+            if (tile && tile.isTown && (!tile.player || tile.player.id !== player.id)) {
                 tile.player = player
                 unit.life.takeDamage(1)
+            } else if (!tile) {
+                console.log('tile not correct', x, y)
             }
         }
     })
