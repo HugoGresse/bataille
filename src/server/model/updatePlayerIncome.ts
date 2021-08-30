@@ -37,5 +37,5 @@ export const updatePlayerIncome = (townByCountries: TownByCountries, currentPlay
         })
     }
 
-    currentPlayer.updateIncome(ownedCountriesIds)
+    currentPlayer.updateIncome(ownedCountriesIds, emitter)
 }

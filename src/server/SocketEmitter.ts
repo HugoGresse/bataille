@@ -4,7 +4,7 @@ import { Game } from './Game'
 import { GAME_MESSAGE, GAME_STATE_INIT, GAME_STATE_UPDATE, LOBBY_STATE } from '../common/SOCKET_EMIT'
 import { socketIOServer } from './utils/io'
 import { GameLobby } from './GameLobby'
-import { Player } from './model/Player'
+import { AbstractPlayer, Player } from './model/Player'
 
 /**
  * Emit events to a specific Socket room provided at construction
@@ -27,7 +27,7 @@ export class SocketEmitter {
         })
     }
 
-    emitMessage(content: string, player?: Player, isUserMessage = false) {
+    emitMessage(content: string, player?: AbstractPlayer, isUserMessage = false) {
         this.sockets.emit(GAME_MESSAGE, {
             content: content,
             player: player ? player.getPublicPlayerState() : null,

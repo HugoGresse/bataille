@@ -123,7 +123,8 @@ export abstract class AbstractPlayer {
             this.unitCount += unit.life.getHP()
         })
     }
-    updateIncome(ownedCountriesIds: string[]) {
+
+    updateIncome(ownedCountriesIds: string[], emitter: SocketEmitter) {
         if (this.isDead) {
             return
         }
@@ -133,6 +134,7 @@ export abstract class AbstractPlayer {
         }, MONEY_START)
         if (this.income === MONEY_START && this.ownedCountriesIds.length === 0 && this.unitCount === 0) {
             this.isDead = true
+            emitter.emitMessage(`Player is dead: ${this.name}`, this)
         }
     }
     spendMoney(unitType: UnitsType) {
