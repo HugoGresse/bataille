@@ -34,6 +34,7 @@ export const HelpDialog = ({ open, setOpen }: HelpDialogProps) => {
                             split them (yet) but can merge them. A group of unit cannot be created with more than 100
                             (but can be merged to achieve more units on a single location).
                         </li>
+                        <li>Move units by dragging them to the destination.</li>
                         <li>
                             Every 7s, your available money will increase. Every players has a minimum of 4, + the income
                             of each owned countries (display under parenthesis).
@@ -51,6 +52,7 @@ export const HelpDialog = ({ open, setOpen }: HelpDialogProps) => {
                         <li>R: create one unit on selected town</li>
                         <li>T: create 10 units on selected town, (less if not enough money)</li>
                         <li>ENTER: open dialog chat</li>
+                        <li>Mouse/Touch: drag a unit to a destination</li>
                     </ul>
                 </DialogContentText>
                 <DialogContentText id="alert-dialog-description">
