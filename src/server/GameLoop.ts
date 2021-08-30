@@ -8,7 +8,6 @@ const INTERVAL_SPEED = 1000 / FRAME_RATE
 export class GameLoop {
     private intervalId: NodeJS.Timeout | null = null
     public isRunning = false
-    private gameCompleted = false
     private gameDuration: number = 0
 
     constructor(protected emitter: SocketEmitter) {}
@@ -21,10 +20,9 @@ export class GameLoop {
 
             if (!results) {
                 this.emitGameState(game)
-            } else if (!this.gameCompleted) {
+            } else {
                 // let users speaks at the end of the game...
                 this.gameDuration = Math.round(((Date.now() - startTime) / 1000 / 60) * 100) / 100
-                this.gameCompleted = true
                 this.emitGameState(game)
                 this.emitter.emitMessage(results.result, results.winner)
                 setTimeout(() => {
@@ -33,10 +31,10 @@ export class GameLoop {
                 }, 1000)
                 console.log(results.result)
                 console.log(`income: ${results.winner?.income}`)
+                this.stop()
             }
             const connectedPlayers = game.getConnectedPlayers().length
             if (!connectedPlayers) {
-                this.stop()
                 onGameEnded(this.gameDuration)
             }
         }, INTERVAL_SPEED)
@@ -53,7 +51,7 @@ export class GameLoop {
     run(game: Game): { result: string; winner?: Player } | null {
         const endedGame = game.update()
 
-        if (endedGame && !this.gameCompleted) {
+        if (endedGame) {
             const winner = game.getWinner()
             if (!winner) {
                 return {

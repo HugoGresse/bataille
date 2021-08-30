@@ -72,7 +72,7 @@ export class Game {
         const currentPlayer = this.players[playerId]
 
         return {
-            status: 'running',
+            status: this.gameLoop.isRunning ? 'running' : 'stopped',
             nextIncome: this.incomeDispatcher.getNextIncomeDelay(),
             players: players,
             currentPlayer: currentPlayer.getPrivatePlayerState(),
@@ -124,7 +124,7 @@ export class Game {
     }
 
     playerMessage(playerId: string, message: string) {
-        if (!this.players[playerId] || !this.gameLoop.isRunning) {
+        if (!this.players[playerId]) {
             return
         }
         this.emitter.emitMessage(message, this.players[playerId], true)
@@ -173,7 +173,7 @@ export class Game {
         this.incomeDispatcher.update(this.players)
 
         const connectedPlayers = playersValues.filter((player) => player.isConnected) // No more player connected
-        const deadPlayers = playersValues.filter((player) => player.isDead).length
+        const deadPlayers = playersValues.filter((player) => player.isDead || !player.isConnected).length
         const oneOrNoAlivePlayers = deadPlayers >= playersValues.length - 1 // one player cannot play alone
         return (
             (connectedPlayers.length === 1 && playersValues.length > 1) ||

@@ -2,7 +2,7 @@ import { UnitsType } from '../../common/UNITS'
 import { TilePublic } from './map/Tile'
 
 export interface GameState {
-    status: 'running'
+    status: 'running' | 'stopped'
     nextIncome: number
     players: PublicPlayerState[]
     currentPlayer: PrivatePlayerState

@@ -14,7 +14,7 @@ import { pickUnusedColor } from './utils/pickUnusedColor'
 import { NewUnitDataEvent } from '../common/NewUnitDataEvent'
 import { socketIOServer } from './utils/io'
 import { PORT } from './utils/serverEnv'
-import { GameLobby } from './GameLobby'
+import { GameLobby, PlayerWaiting } from './GameLobby'
 import { SocketEmitter } from './SocketEmitter'
 import { trackGameEnd, trackGameStart } from './utils/trackings'
 
@@ -45,26 +45,7 @@ const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
                 lobby.close()
                 lobby = null
             }
-
-            const game = new Game(futureGameId, socketEmitter)
-            games[game.id] = game
-
-            for (const waitingPlayer of waitingPlayers) {
-                const player = new Player(
-                    sockets[waitingPlayer.socketId],
-                    pickUnusedColor(game.getPlayers()),
-                    waitingPlayer.name
-                )
-                game.addPlayer(player, waitingPlayer.socketId)
-            }
-
-            game.start((gameDurationSeconds) => {
-                console.log(`> Game ended, duration: ${gameDurationSeconds} minutes`)
-                delete games[futureGameId]
-                trackGameEnd(gameDurationSeconds)
-            })
-
-            trackGameStart(game.getPlayers().length)
+            startGame(futureGameId, socketEmitter, waitingPlayers, sockets)
         })
         console.log(`Number of games: ${Object.keys(games).length}`)
     }
@@ -100,4 +81,34 @@ const handlePlayerPostMessage = (socket: Socket) => (gameId: string, message: st
         return
     }
     game.playerMessage(socket.id, message)
+}
+
+const startGame = (
+    futureGameId: string,
+    socketEmitter: SocketEmitter,
+    waitingPlayers: PlayerWaiting[],
+    sockets: {
+        [id: string]: Socket
+    }
+) => {
+    const game = new Game(futureGameId, socketEmitter)
+    games[game.id] = game
+
+    for (const waitingPlayer of waitingPlayers) {
+        const player = new Player(
+            sockets[waitingPlayer.socketId],
+            pickUnusedColor(game.getPlayers()),
+            waitingPlayer.name
+        )
+        player.listenForDisconnect(socketEmitter)
+        game.addPlayer(player, waitingPlayer.socketId)
+    }
+
+    game.start((gameDurationSeconds) => {
+        console.log(`> Game ended, duration: ${gameDurationSeconds} minutes`)
+        delete games[futureGameId]
+        trackGameEnd(gameDurationSeconds)
+    })
+
+    trackGameStart(game.getPlayers().length)
 }

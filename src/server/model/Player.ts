@@ -8,6 +8,7 @@ import { MONEY_START } from '../../common/GameSettings'
 import { MAX_UNIT_LIFE, UnitsType } from '../../common/UNITS'
 import { Socket } from 'socket.io'
 import { Map } from './map/Map'
+import { SocketEmitter } from '../SocketEmitter'
 
 export type UnitTiles = {
     [x: number]: {
@@ -142,11 +143,11 @@ export abstract class AbstractPlayer {
 export class Player extends AbstractPlayer {
     constructor(protected socket: Socket, color: string, name?: string) {
         super(name, color)
-        this.listenForDisconnect()
     }
 
-    private listenForDisconnect() {
+    public listenForDisconnect(socketEmitter: SocketEmitter) {
         this.socket.on('disconnect', () => {
+            socketEmitter.emitMessage(`ℹ️️ Player disconnected: ${this.name}`, this)
             this.setConnected(false)
         })
     }
