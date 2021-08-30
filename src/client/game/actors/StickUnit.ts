@@ -16,7 +16,9 @@ export class StickUnit extends Actor {
 
         // PHYSICS
         this.setInteractive({ draggable: true })
-        this.input.hitArea.setSize(TILE_WIDTH_HEIGHT, TILE_WIDTH_HEIGHT)
+        this.input.hitArea.x -= 2
+        this.input.hitArea.y -= 2
+        this.input.hitArea.setSize(TILE_WIDTH_HEIGHT + 4, TILE_WIDTH_HEIGHT + 4)
         this.on('dragstart', this.onDragStart)
         this.on('dragend', this.onDragEnd)
         this.on('drag', this.onDrag)

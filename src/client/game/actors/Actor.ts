@@ -22,6 +22,7 @@ export class Actor extends Phaser.GameObjects.Sprite {
             ...TEXT_STYLE,
         })
         this.hpText.setStroke('#000000', 1)
+        this.hpText.setDepth(1)
     }
 
     public update(refUnit: UnitState) {
@@ -59,7 +60,7 @@ export class Actor extends Phaser.GameObjects.Sprite {
         if (this.selectedCircle) {
             this.selectedCircle.destroy()
         }
-        this.selectedCircle = this.scene.add.circle(centerX, centerY, this.input.hitArea.height, 0xffffffff, 0)
+        this.selectedCircle = this.scene.add.circle(centerX, centerY, this.input.hitArea.height, 0xffffff, 95)
         this.selectedCircle.setDepth(0)
     }
 
