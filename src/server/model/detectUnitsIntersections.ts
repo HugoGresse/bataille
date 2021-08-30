@@ -32,6 +32,8 @@ export const detectUnitsIntersections = (players: { [id: string]: Player }) => {
     let tempUnits = null
     let unit = null
     let pastUnit = null
+    let pastUnitLife = 0
+    let currentUnitLife = 0
     getKeys(unitsMaps).forEach((x) => {
         getKeys(unitsMaps[x]).forEach((y) => {
             tempUnits = unitsMaps[x][y]
@@ -42,10 +44,11 @@ export const detectUnitsIntersections = (players: { [id: string]: Player }) => {
             pastUnit = unitsMaps[x][y][0]
             unit = unitsMaps[x][y][1]
 
-            pastUnit.life.takeDamage(unit.damage)
-            unit.life.takeDamage(pastUnit.damage)
-            pastUnit.postponeAction()
-            unit.postponeAction()
+            pastUnitLife = pastUnit.life.getHP()
+            currentUnitLife = unit.life.getHP()
+
+            pastUnit.life.takeDamage(unit.damage * currentUnitLife)
+            unit.life.takeDamage(pastUnit.damage * pastUnitLife)
         })
     })
 
