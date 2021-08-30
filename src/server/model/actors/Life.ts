@@ -1,5 +1,3 @@
-import { validate } from 'uuid'
-
 export class Life {
     protected initialHP: number
     protected currentHP: number
