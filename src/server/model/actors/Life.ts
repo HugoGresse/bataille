@@ -24,6 +24,9 @@ export class Life {
 
     public takeDamage(value: number): boolean {
         this.currentHP -= value
+        if (this.currentHP < 0) {
+            this.currentHP = 0
+        }
         return this.currentHP > 0 // True if alive
     }
 
