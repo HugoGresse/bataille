@@ -100,15 +100,17 @@ const startGame = (
             pickUnusedColor(game.getPlayers()),
             waitingPlayer.name
         )
-        player.listenForDisconnect(socketEmitter)
+        player.listenForDisconnect(socketEmitter, () => {
+            const connectedPlayers = game.getConnectedPlayers().length
+            if (!connectedPlayers) {
+                console.log(`> Game end (all player disconnected)`)
+                delete games[futureGameId]
+                trackGameEnd(game.getGameDuration())
+            }
+        })
         game.addPlayer(player, waitingPlayer.socketId)
     }
 
-    game.start((gameDurationSeconds) => {
-        console.log(`> Game ended, duration: ${gameDurationSeconds} minutes`)
-        delete games[futureGameId]
-        trackGameEnd(gameDurationSeconds)
-    })
-
+    game.start()
     trackGameStart(game.getPlayers().length)
 }

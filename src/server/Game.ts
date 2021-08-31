@@ -7,9 +7,7 @@ import { SocketEmitter } from './SocketEmitter'
 import { ExportType } from './model/types/ExportType'
 import { townAssignation } from './utils/townAssignation'
 import { detectTownIntersections } from './model/detectTownIntersections'
-import { iterateOnXYMap } from './utils/xyMapToArray'
-import { BaseUnit } from './model/actors/units/BaseUnit'
-import { Tile, Town } from './model/map/Tile'
+import { Town } from './model/map/Tile'
 import { updatePlayerIncome } from './model/updatePlayerIncome'
 import { IncomeDispatcher } from './model/income/IncomeDispatcher'
 import { INCOME_MS } from '../common/GameSettings'
@@ -36,20 +34,8 @@ export class Game {
         this.gameLoop = new GameLoop(this.emitter)
     }
 
-    stopLoop() {
-        const player = Object.values(this.players)[0]
-        if (player) {
-            const units = player.getUnits()
-            iterateOnXYMap<Tile>(this.map.getMapTiles(), (tile, x: number, y: number) => {
-                if (tile.isTown) {
-                    console.log('town', x, y, tile.player?.name)
-                }
-            })
-            iterateOnXYMap<BaseUnit>(units, (unit, x: number, y: number) => {
-                console.log('unit', x, y)
-            })
-        }
-        this.gameLoop.stop()
+    getGameDuration(): number {
+        return this.gameLoop.gameDuration
     }
 
     export(): ExportType {
@@ -130,11 +116,11 @@ export class Game {
         this.emitter.emitMessage(message, this.players[playerId], true)
     }
 
-    start(onGameEnded: (gameDurationSeconds: number) => void) {
+    start() {
         this.emitter.emitInitialGameState(this)
         townAssignation(this.getPlayers(), this.map)
         if (!this.gameLoop.isRunning) {
-            this.gameLoop.start(this, onGameEnded)
+            this.gameLoop.start(this)
         }
         setTimeout(() => {
             // Let clients be initialized before send this first message

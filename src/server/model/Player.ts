@@ -147,10 +147,11 @@ export class Player extends AbstractPlayer {
         super(name, color)
     }
 
-    public listenForDisconnect(socketEmitter: SocketEmitter) {
+    public listenForDisconnect(socketEmitter: SocketEmitter, onPlayerDisconnect: () => void) {
         this.socket.on('disconnect', () => {
             socketEmitter.emitMessage(`ℹ️️ Player disconnected: ${this.name}`, this)
             this.setConnected(false)
+            onPlayerDisconnect()
         })
     }
 }

@@ -8,11 +8,11 @@ const INTERVAL_SPEED = 1000 / FRAME_RATE
 export class GameLoop {
     private intervalId: NodeJS.Timeout | null = null
     public isRunning = false
-    private gameDuration: number = 0
+    public gameDuration: number = 0
 
     constructor(protected emitter: SocketEmitter) {}
 
-    start(game: Game, onGameEnded: (gameDurationSeconds: number) => void) {
+    start(game: Game) {
         console.log('Loop started')
         const startTime = Date.now()
         this.intervalId = setInterval(() => {
@@ -28,14 +28,11 @@ export class GameLoop {
                 setTimeout(() => {
                     // Don't send 2 message at the same time = not displayed
                     this.emitter.emitMessage(`Game duration: ${this.gameDuration} minutes.`)
+                    console.log(`> Game completed, duration: ${this.gameDuration} minutes`)
                 }, 1000)
                 console.log(results.result)
                 console.log(`income: ${results.winner?.income}`)
                 this.stop()
-            }
-            const connectedPlayers = game.getConnectedPlayers().length
-            if (!connectedPlayers) {
-                onGameEnded(this.gameDuration)
             }
         }, INTERVAL_SPEED)
         this.isRunning = true
