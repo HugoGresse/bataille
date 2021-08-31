@@ -4,11 +4,11 @@ import { TILE_WIDTH_HEIGHT } from '../../../common/UNITS'
 import { DEPTH_UNIT } from '../scenes/depth'
 import { BaseScene } from '../scenes/BaseScene'
 
-export let isUnitDragging = false
+export let isUnitDragging: string | null = null
 
 export class StickUnit extends Actor {
     public static isDragging(): boolean {
-        return isUnitDragging
+        return !!isUnitDragging
     }
 
     constructor(scene: Phaser.Scene, id: string, x: number, y: number) {
@@ -25,13 +25,20 @@ export class StickUnit extends Actor {
         this.setDepth(DEPTH_UNIT)
     }
 
+    destroy() {
+        super.destroy()
+        if (isUnitDragging === this.id) {
+            isUnitDragging = null
+        }
+    }
+
     onDragStart() {
-        isUnitDragging = true
+        isUnitDragging = this.id
         this.onSelect()
     }
 
     onDragEnd() {
-        isUnitDragging = false
+        isUnitDragging = null
         this.onUnselect()
     }
 

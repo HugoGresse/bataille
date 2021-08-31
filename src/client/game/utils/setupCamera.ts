@@ -26,7 +26,6 @@ export const setupCamera = (camera: Camera, scene: Phaser.Scene, map: Phaser.Til
     keyMovements(camera, scene)
 }
 
-// @ts-ignore
 const dragMovements = (camera: Camera, scene: Scene, map: Phaser.Tilemaps.Tilemap) => {
     const zone = scene.add
         .zone(map.widthInPixels / 2, map.heightInPixels / 2, map.widthInPixels, map.heightInPixels)
@@ -36,6 +35,9 @@ const dragMovements = (camera: Camera, scene: Scene, map: Phaser.Tilemaps.Tilema
     let dX = 0
     let dY = 0
     zone.on('dragstart', (pointer: PointerEvent, dragX: number, dragY: number) => {
+        if (StickUnit.isDragging()) {
+            return
+        }
         // @ts-ignore
         dX = pointer.worldX
         // @ts-ignore
@@ -44,6 +46,12 @@ const dragMovements = (camera: Camera, scene: Scene, map: Phaser.Tilemaps.Tilema
     zone.on('drag', (pointer: PointerEvent, dragX: number, dragY: number) => {
         if (StickUnit.isDragging()) {
             return
+        }
+        if (dX === 0 && dY === 0) {
+            // @ts-ignore
+            dX = pointer.worldX
+            // @ts-ignore
+            dY = pointer.worldY
         }
         // @ts-ignore
         const worldX = pointer.worldX
@@ -62,6 +70,10 @@ const dragMovements = (camera: Camera, scene: Scene, map: Phaser.Tilemaps.Tilema
             y = dY - worldY
         }
         camera.pan(camera.worldView.centerX + x, camera.worldView.centerY + y, 100, 'Linear')
+    })
+    zone.on('dragend', () => {
+        dX = 0
+        dY = 0
     })
     scene.events.on('destroy', () => {
         scene.input.keyboard.off('drag')
