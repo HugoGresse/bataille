@@ -32,11 +32,9 @@ export const Game = () => {
             })
             BatailleGame.setCurrentGame(game)
             setGame(game)
-            window.onbeforeunload = () => true // prevent back nav
             return () => {
                 game.destroy()
                 BatailleGame.clearCurrentGame()
-                window.onbeforeunload = null
             }
         }
     }, [gameId, gameContainer])
