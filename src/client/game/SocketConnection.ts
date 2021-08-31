@@ -45,7 +45,8 @@ export class SocketConnection {
             console.log('connected')
         })
         this.socket.on('disconnect', function () {
-            console.log('disconnect')
+            alert('You ware disconnected from the server (or unlikely the server crashed)')
+            window.location.replace('/')
         })
         this.socket.on('reconnect', () => {
             console.log('reconnect')
