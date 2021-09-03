@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io'
 import { newId } from './utils/newId'
 import { Game } from './Game'
-import { Player } from './model/Player'
+import { HumanPlayer } from './model/player/HumanPlayer'
 import {
     PLAYER_JOIN_LOBBY,
     PLAYER_NEW_UNIT,
@@ -95,7 +95,7 @@ const startGame = (
     games[game.id] = game
 
     for (const waitingPlayer of waitingPlayers) {
-        const player = new Player(
+        const player = new HumanPlayer(
             sockets[waitingPlayer.socketId],
             pickUnusedColor(game.getPlayers()),
             waitingPlayer.name

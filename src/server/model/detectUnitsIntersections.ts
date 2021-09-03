@@ -1,4 +1,4 @@
-import { Player } from './Player'
+import { HumanPlayer } from './player/HumanPlayer'
 import { iterateOnXYMap, XYMapWithType } from '../utils/xyMapToArray'
 import { BaseUnit } from './actors/units/BaseUnit'
 import { getKeys } from '../utils/getKeys'
@@ -9,7 +9,7 @@ import { getKeys } from '../utils/getKeys'
  * 2. Take collision between only the two first units and reduce their life between each other
  * 3. Remove dead units
  */
-export const detectUnitsIntersections = (players: { [id: string]: Player }) => {
+export const detectUnitsIntersections = (players: { [id: string]: HumanPlayer }) => {
     const unitsMaps: XYMapWithType<BaseUnit[]> = {}
     const playersValues = Object.values(players)
     // 1.

@@ -1,7 +1,7 @@
 import { BaseUnit } from './BaseUnit'
-import {AbstractPlayer} from '../../Player'
 import { Position } from '../Position'
 import { Velocity } from '../Velocity'
+import { AbstractPlayer } from '../../player/AbstractPlayer'
 
 const BASE_HP = 1
 const BASE_DAMAGE = 1

@@ -1,4 +1,4 @@
-import { Player } from './model/Player'
+import { HumanPlayer } from './model/player/HumanPlayer'
 import { GameLoop } from './GameLoop'
 import { GameState, UnitState } from './model/GameState'
 import { UnitAction } from '../common/UnitAction'
@@ -19,7 +19,7 @@ import { detectUnitsIntersections } from './model/detectUnitsIntersections'
 
 export class Game {
     protected players: {
-        [socketId: string]: Player
+        [socketId: string]: HumanPlayer
     } = {}
     protected gameLoop: GameLoop
     protected map: Map
@@ -67,7 +67,7 @@ export class Game {
         }
     }
 
-    addPlayer(player: Player, socketId: string) {
+    addPlayer(player: HumanPlayer, socketId: string) {
         if (this.gameLoop.isRunning) {
             console.log('Attempt to join a game but is already started...')
             return
@@ -77,7 +77,7 @@ export class Game {
         }
     }
 
-    getPlayers(): Player[] {
+    getPlayers(): HumanPlayer[] {
         return Object.values(this.players)
     }
 
@@ -167,11 +167,11 @@ export class Game {
         ) // also check if we are playing alone (in dev)
     }
 
-    getConnectedPlayers(): Player[] {
+    getConnectedPlayers(): HumanPlayer[] {
         return this.getPlayers().filter((player) => player.isConnected)
     }
 
-    getWinner(): Player | undefined {
+    getWinner(): HumanPlayer | undefined {
         const averageStep1 = average(this.playersIntersections) * 1000
         const averageStep2 = average(this.playerUpdates) * 1000
         const averageStep3 = average(this.townsIntersections) * 1000

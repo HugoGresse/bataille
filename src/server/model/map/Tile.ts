@@ -1,7 +1,9 @@
-import { AbstractPlayer, NeutralPlayerInstance, Player } from '../Player'
+import { HumanPlayer } from '../player/HumanPlayer'
 import { v4 as uuidv4 } from 'uuid'
 import { TownsData } from '../types/TownsData'
 import { TileType } from '../../../common/TileType'
+import { AbstractPlayer } from '../player/AbstractPlayer'
+import { NeutralPlayerInstance } from '../player/NeutralPlayer'
 
 export type TilePublic = {
     id: string
@@ -77,5 +79,5 @@ export class Tile {
 }
 
 export interface Town extends Tile {
-    player: Player
+    player: HumanPlayer
 }

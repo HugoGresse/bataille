@@ -1,9 +1,9 @@
-import { Player } from './Player'
+import { HumanPlayer } from './player/HumanPlayer'
 import { Map } from './map/Map'
 import { iterateOnXYMap } from '../utils/xyMapToArray'
 import { BaseUnit } from './actors/units/BaseUnit'
 
-export const detectTownIntersections = (map: Map, player: Player) => {
+export const detectTownIntersections = (map: Map, player: HumanPlayer) => {
     // Detect unit on a tile
     const units = player.getUnits()
 

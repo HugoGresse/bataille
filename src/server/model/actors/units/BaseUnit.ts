@@ -1,5 +1,4 @@
 import { Actor } from '../Actor'
-import { AbstractPlayer } from '../../Player'
 import { Position } from '../Position'
 import { Life } from '../Life'
 import { UnitsType } from '../../../../common/UNITS'
@@ -7,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { UnitAction, UnitActionType } from '../../../../common/UnitAction'
 import { Velocity } from '../Velocity'
 import { Map } from '../../map/Map'
+import { AbstractPlayer } from '../../player/AbstractPlayer'
 
 export abstract class BaseUnit extends Actor {
     public readonly id: string

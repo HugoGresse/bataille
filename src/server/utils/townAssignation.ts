@@ -1,4 +1,4 @@
-import { Player } from '../model/Player'
+import { HumanPlayer } from '../model/player/HumanPlayer'
 import { Map } from '../model/map/Map'
 import { shuffleArray } from '../../utils/shuffleArray'
 import { Tile } from '../model/map/Tile'
@@ -7,7 +7,7 @@ import { StickUnit } from '../model/actors/units/StickUnit'
 import { Position } from '../model/actors/Position'
 import { TILE_WIDTH_HEIGHT } from '../../common/UNITS'
 
-export const townAssignation = (players: Player[], map: Map) => {
+export const townAssignation = (players: HumanPlayer[], map: Map) => {
     const towns = map.getTowns()
 
     // Only let 1/5 of the towns to be assigned to player at start

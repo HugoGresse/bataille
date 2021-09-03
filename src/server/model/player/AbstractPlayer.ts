@@ -1,14 +1,13 @@
-import { PrivatePlayerState, PublicPlayerState, UnitState } from './GameState'
-import { BaseUnit } from './actors/units/BaseUnit'
-import { UnitAction } from '../../common/UnitAction'
-import { iterateOnXYMap, xyMapToArray } from '../utils/xyMapToArray'
+import { BaseUnit } from '../actors/units/BaseUnit'
+import { MONEY_START } from '../../../common/GameSettings'
 import { v4 as uuidv4 } from 'uuid'
-import { COUNTRIES_INCOME } from './map/COUNTRIES_INCOME'
-import { MONEY_START } from '../../common/GameSettings'
-import { MAX_UNIT_LIFE, UnitsType } from '../../common/UNITS'
-import { Socket } from 'socket.io'
-import { Map } from './map/Map'
-import { SocketEmitter } from '../SocketEmitter'
+import { MAX_UNIT_LIFE, UnitsType } from '../../../common/UNITS'
+import { PrivatePlayerState, PublicPlayerState, UnitState } from '../GameState'
+import { iterateOnXYMap, xyMapToArray } from '../../utils/xyMapToArray'
+import { UnitAction } from '../../../common/UnitAction'
+import { Map } from '../map/Map'
+import { SocketEmitter } from '../../SocketEmitter'
+import { COUNTRIES_INCOME } from '../map/COUNTRIES_INCOME'
 
 export type UnitTiles = {
     [x: number]: {
@@ -137,28 +136,8 @@ export abstract class AbstractPlayer {
             emitter.emitMessage(`Player is dead: ${this.name}`, this)
         }
     }
+
     spendMoney(unitType: UnitsType) {
         this.money -= unitType
     }
 }
-
-export class Player extends AbstractPlayer {
-    constructor(protected socket: Socket, color: string, name?: string) {
-        super(name, color)
-    }
-
-    public listenForDisconnect(socketEmitter: SocketEmitter, onPlayerDisconnect: () => void) {
-        this.socket.on('disconnect', () => {
-            socketEmitter.emitMessage(`ℹ️️ Player disconnected: ${this.name}`, this)
-            this.setConnected(false)
-            onPlayerDisconnect()
-        })
-    }
-}
-
-export class NeutralPlayer extends AbstractPlayer {
-    constructor() {
-        super('Neutral', '0x888888')
-    }
-}
-export const NeutralPlayerInstance = new NeutralPlayer()

@@ -1,9 +1,14 @@
 import { TownByCountries } from './types/TownByCountries'
-import { NeutralPlayer, Player } from './Player'
+import { HumanPlayer } from './player/HumanPlayer'
 import { SocketEmitter } from '../SocketEmitter'
 import { CountryIdToInfo } from './map/Map'
+import { NeutralPlayer } from './player/NeutralPlayer'
 
-export const updatePlayerIncome = (townByCountries: TownByCountries, currentPlayer: Player, emitter: SocketEmitter) => {
+export const updatePlayerIncome = (
+    townByCountries: TownByCountries,
+    currentPlayer: HumanPlayer,
+    emitter: SocketEmitter
+) => {
     const prevOwnedCountries = currentPlayer.ownedCountriesIds
     const ownedCountriesIds: string[] = []
 
