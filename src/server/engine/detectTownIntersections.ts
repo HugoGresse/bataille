@@ -1,7 +1,7 @@
-import { HumanPlayer } from './player/HumanPlayer'
-import { Map } from './map/Map'
+import { HumanPlayer } from '../model/player/HumanPlayer'
+import { Map } from '../model/map/Map'
 import { iterateOnXYMap } from '../utils/xyMapToArray'
-import { BaseUnit } from './actors/units/BaseUnit'
+import { BaseUnit } from '../model/actors/units/BaseUnit'
 
 export const detectTownIntersections = (map: Map, player: HumanPlayer) => {
     // Detect unit on a tile

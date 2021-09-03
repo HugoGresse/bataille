@@ -1,6 +1,6 @@
-import { HumanPlayer } from './player/HumanPlayer'
+import { HumanPlayer } from '../model/player/HumanPlayer'
 import { iterateOnXYMap, XYMapWithType } from '../utils/xyMapToArray'
-import { BaseUnit } from './actors/units/BaseUnit'
+import { BaseUnit } from '../model/actors/units/BaseUnit'
 import { getKeys } from '../utils/getKeys'
 
 /**

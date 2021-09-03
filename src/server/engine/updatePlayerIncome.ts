@@ -1,8 +1,8 @@
-import { TownByCountries } from './types/TownByCountries'
-import { HumanPlayer } from './player/HumanPlayer'
+import { TownByCountries } from '../model/types/TownByCountries'
+import { HumanPlayer } from '../model/player/HumanPlayer'
 import { SocketEmitter } from '../SocketEmitter'
-import { CountryIdToInfo } from './map/Map'
-import { NeutralPlayer } from './player/NeutralPlayer'
+import { CountryIdToInfo } from '../model/map/Map'
+import { NeutralPlayer } from '../model/player/NeutralPlayer'
 
 export const updatePlayerIncome = (
     townByCountries: TownByCountries,
