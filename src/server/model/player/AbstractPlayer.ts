@@ -18,13 +18,13 @@ export type UnitTiles = {
 export abstract class AbstractPlayer {
     protected _name: string = `${Date.now()}`
     protected units: UnitTiles = {}
+    protected unitCount = 0
     public id: string
     public income: number = 2
     public money: number = MONEY_START
     public isConnected: boolean = true
     public isDead: boolean = false
     public ownedCountriesIds: string[] = []
-    private unitCount = 0
 
     protected constructor(name = `${Date.now()}`, public color: string) {
         this.id = uuidv4()
@@ -43,7 +43,7 @@ export abstract class AbstractPlayer {
         this.isConnected = isConnected
     }
 
-    addUnit(unit: BaseUnit, x: number, y: number): boolean {
+    addUnit(unit: BaseUnit, x: number, y: number) {
         if (!this.units[x]) {
             this.units[x] = {}
         }
@@ -56,7 +56,6 @@ export abstract class AbstractPlayer {
         } else {
             this.units[x][y] = unit
         }
-        return true
     }
 
     getUnits(): UnitTiles {
@@ -97,7 +96,7 @@ export abstract class AbstractPlayer {
         }
     }
 
-    update(map: Map) {
+    update(map: Map, players: AbstractPlayer[]) {
         if (this.isDead) {
             return
         }

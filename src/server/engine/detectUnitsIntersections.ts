@@ -2,6 +2,7 @@ import { HumanPlayer } from '../model/player/HumanPlayer'
 import { iterateOnXYMap, XYMapWithType } from '../utils/xyMapToArray'
 import { BaseUnit } from '../model/actors/units/BaseUnit'
 import { getKeys } from '../utils/getKeys'
+import { createUnitMaps } from './utils/createUnitMaps'
 
 /**
  * Detect unit collision to make them fight
@@ -10,23 +11,9 @@ import { getKeys } from '../utils/getKeys'
  * 3. Remove dead units
  */
 export const detectUnitsIntersections = (players: { [id: string]: HumanPlayer }) => {
-    const unitsMaps: XYMapWithType<BaseUnit[]> = {}
     const playersValues = Object.values(players)
     // 1.
-    playersValues.forEach((player) => {
-        const units = player.getUnits()
-        iterateOnXYMap<BaseUnit>(units, (unit, x: number, y: number) => {
-            if (!unitsMaps[x]) {
-                unitsMaps[x] = {}
-            }
-
-            if (!unitsMaps[x][y]) {
-                unitsMaps[x][y] = [unit]
-            } else {
-                unitsMaps[x][y].push(unit)
-            }
-        })
-    })
+    const unitsMaps: XYMapWithType<BaseUnit[]> = createUnitMaps(playersValues)
 
     // 2.
     let tempUnits = null

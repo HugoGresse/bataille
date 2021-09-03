@@ -25,7 +25,12 @@ export class Tile {
     public readonly data?: TownsData
     public readonly velocityFactor: number = 1
 
-    constructor(tileNumber: number | undefined, townsData: TownsData | null = null) {
+    constructor(
+        tileNumber: number | undefined,
+        townsData: TownsData | null = null,
+        public readonly x: number,
+        public readonly y: number
+    ) {
         this.id = uuidv4()
         switch (tileNumber) {
             case TileType.None:

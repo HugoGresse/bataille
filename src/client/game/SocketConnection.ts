@@ -10,9 +10,9 @@ import {
 } from '../../common/SOCKET_EMIT'
 import { ExportType } from '../../server/model/types/ExportType'
 import { SOCKET_URL } from './utils/clientEnv'
-import { LOTR_NAMES } from '../utils/LOTR_NAMES'
 import { LobbyState } from '../../server/GameLobby'
 import { Message } from '../../server/model/types/Message'
+import { pickRandomPlayerName } from '../../utils/pickRandomPlayerName'
 
 let socketConnectionInstance: SocketConnection | null = null
 export const newSocketConnectionInstance = (
@@ -62,7 +62,7 @@ export class SocketConnection {
         this.socket.on(GAME_STATE_INIT, this.handleGameInit)
         this.socket.on(GAME_STATE_UPDATE, this.handleGameState)
         this.socket.on(GAME_MESSAGE, this.handleGameMessage)
-        this.socket.emit(PLAYER_JOIN_LOBBY, LOTR_NAMES[Math.floor(Math.random() * LOTR_NAMES.length)])
+        this.socket.emit(PLAYER_JOIN_LOBBY, pickRandomPlayerName())
     }
 
     public sendForceStart(shouldForceStart: boolean) {

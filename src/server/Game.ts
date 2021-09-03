@@ -7,15 +7,12 @@ import { SocketEmitter } from './SocketEmitter'
 import { ExportType } from './model/types/ExportType'
 import { townAssignation } from './utils/townAssignation'
 import { detectTownIntersections } from './engine/detectTownIntersections'
-import { Town } from './model/map/Tile'
 import { updatePlayerIncome } from './engine/updatePlayerIncome'
 import { IncomeDispatcher } from './model/income/IncomeDispatcher'
 import { INCOME_MS } from '../common/GameSettings'
 import { NewUnitDataEvent } from '../common/NewUnitDataEvent'
-import { StickUnit } from './model/actors/units/StickUnit'
-import { Position } from './model/actors/Position'
-import { TILE_WIDTH_HEIGHT, UnitsType } from '../common/UNITS'
 import { detectUnitsIntersections } from './engine/detectUnitsIntersections'
+import { ActionsProcessor } from './engine/ActionsProcessor'
 
 export class Game {
     protected players: {
@@ -24,6 +21,7 @@ export class Game {
     protected gameLoop: GameLoop
     protected map: Map
     protected incomeDispatcher: IncomeDispatcher = new IncomeDispatcher(INCOME_MS)
+    protected actionsProcessor: ActionsProcessor
 
     playersIntersections: Array<number> = []
     townsIntersections: Array<number> = []
@@ -32,6 +30,7 @@ export class Game {
     constructor(public readonly id: string, protected emitter: SocketEmitter) {
         this.map = new Map()
         this.gameLoop = new GameLoop(this.emitter)
+        this.actionsProcessor = new ActionsProcessor(this.map)
     }
 
     getGameDuration(): number {
@@ -81,32 +80,18 @@ export class Game {
         return Object.values(this.players)
     }
 
-    addUnit(socketId: string, { x, y }: NewUnitDataEvent) {
+    addUnit(socketId: string, event: NewUnitDataEvent) {
         if (!this.players[socketId] || !this.gameLoop.isRunning) {
             return
         }
-        const player = this.players[socketId]
-
-        if (player.money >= UnitsType.Stick) {
-            const position = new Position(x + TILE_WIDTH_HEIGHT / 2, y + TILE_WIDTH_HEIGHT / 2)
-            const gridPosition = position.getRoundedPosition()
-            const town = this.map.getTileAt<Town>(gridPosition.x, gridPosition.y)
-            if (!town || town.player.id !== player.id) {
-                return
-            }
-            const unit = new StickUnit(player, position)
-            const unitCreated = player.addUnit(unit, gridPosition.x, gridPosition.y)
-            if (unitCreated) {
-                player.spendMoney(UnitsType.Stick)
-            }
-        }
+        this.actionsProcessor.addUnit(this.players[socketId], event)
     }
 
     unitEvent(playerId: string, event: UnitAction) {
         if (!this.players[playerId] || !this.gameLoop.isRunning) {
             return
         }
-        this.players[playerId].unitAction(event)
+        this.actionsProcessor.unitEvent(this.players[playerId], event)
     }
 
     playerMessage(playerId: string, message: string) {
@@ -144,7 +129,7 @@ export class Game {
         const playersValues = Object.values(this.players)
 
         playersValues.forEach((player) => {
-            player.update(this.map)
+            player.update(this.map, playersValues)
 
             const step2 = Date.now()
             this.playerUpdates.push(Date.now() - step1)

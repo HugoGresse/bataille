@@ -1,6 +1,5 @@
 import { Tile, TilePublic, Town } from './Tile'
 import mapData from '../../../../public/assets/tilemaps/json/map.json'
-import { iterateOnXYMap } from '../../utils/xyMapToArray'
 import { MapTilesPublic } from '../types/MapTilesPublic'
 import { MapTiles } from '../types/MapTiles'
 import { TownByCountries } from '../types/TownByCountries'
@@ -23,6 +22,7 @@ export const CountryIdToInfo: {
 export class Map {
     private tiles: MapTiles = {}
     private townByCountries: TownByCountries = {}
+    private towns: Town[] = []
     private readonly mapWidth: number
     private readonly mapHeight: number
 
@@ -35,7 +35,7 @@ export class Map {
         for (let x = 0; x < this.mapWidth; x++) {
             this.tiles[x] = {}
             for (let y = 0; y < this.mapHeight; y++) {
-                this.tiles[x][y] = new Tile(0)
+                this.tiles[x][y] = new Tile(0, null, x, y)
             }
         }
 
@@ -55,13 +55,14 @@ export class Map {
                     for (let x = 0; x < width; x++) {
                         layerData = layer.data[iter]
                         if (layerData !== 0) {
-                            const tile = new Tile(layerData, townDataLayer.getByCoordinates(x, y))
+                            const tile = new Tile(layerData, townDataLayer.getByCoordinates(x, y), x, y)
                             this.tiles[x][y] = tile
                             if (tile.isTown) {
                                 if (!this.townByCountries[tile.data!.country]) {
                                     this.townByCountries[tile.data!.country] = []
                                 }
                                 this.townByCountries[tile.data!.country].push(tile as Town)
+                                this.towns.push(tile as Town)
                             }
                         }
                         iter++
@@ -77,17 +78,15 @@ export class Map {
     }
 
     getTowns(): Tile[] {
-        const towns: Tile[] = []
-        let tempTile
-        for (let x = 0; x < this.mapWidth; x++) {
-            for (let y = 0; y < this.mapHeight; y++) {
-                tempTile = this.tiles[x][y]
-                if (tempTile.isTown) {
-                    towns.push(tempTile)
-                }
-            }
-        }
-        return towns
+        return this.towns
+    }
+
+    getTownsState(): TilePublic[] {
+        return this.towns.map((town) => town.export())
+    }
+
+    getTownsByCountries() {
+        return this.townByCountries
     }
 
     getTileAt<T extends Tile>(x: number, y: number): T | null {
@@ -162,20 +161,5 @@ export class Map {
             countries: countriesPolygons,
             countriesInfos: countriesInfo,
         }
-    }
-
-    getTownsState(): TilePublic[] {
-        const outputArray: TilePublic[] = []
-        iterateOnXYMap<Tile>(this.tiles, (tile, x, y) => {
-            if (tile.isTown) {
-                outputArray.push(tile.export())
-            }
-        })
-
-        return outputArray
-    }
-
-    getTownsByCountries() {
-        return this.townByCountries
     }
 }
