@@ -1,6 +1,6 @@
 import { Player } from '../model/Player'
 
-const colors = ['0xFF0000', '0x0000FF', '0xFFFF00', '0xFF0000', '0x00FFFF', '0xFF00FF']
+const colors = ['0xFF0000', '0x3333FF', '0xFFFF00', '0xFF0000', '0x00FFFF', '0xFF00FF']
 
 export const pickUnusedColor = (existingPlayers: Player[] = []) => {
     const usedColors = existingPlayers.map((p) => p.color)
