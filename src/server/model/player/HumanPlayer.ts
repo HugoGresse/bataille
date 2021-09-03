@@ -14,4 +14,8 @@ export class HumanPlayer extends AbstractPlayer {
             onPlayerDisconnect()
         })
     }
+
+    public getSocketId(): string {
+        return this.socket.id
+    }
 }

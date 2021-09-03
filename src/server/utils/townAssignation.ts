@@ -1,4 +1,3 @@
-import { HumanPlayer } from '../model/player/HumanPlayer'
 import { Map } from '../model/map/Map'
 import { shuffleArray } from '../../utils/shuffleArray'
 import { Tile } from '../model/map/Tile'
@@ -6,8 +5,9 @@ import { iterateOnXYMap } from './xyMapToArray'
 import { StickUnit } from '../model/actors/units/StickUnit'
 import { Position } from '../model/actors/Position'
 import { TILE_WIDTH_HEIGHT } from '../../common/UNITS'
+import { AbstractPlayer } from '../model/player/AbstractPlayer'
 
-export const townAssignation = (players: HumanPlayer[], map: Map) => {
+export const townAssignation = (players: AbstractPlayer[], map: Map) => {
     const towns = map.getTowns()
 
     // Only let 1/5 of the towns to be assigned to player at start

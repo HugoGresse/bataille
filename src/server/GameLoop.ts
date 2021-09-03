@@ -1,6 +1,6 @@
 import { Game } from './Game'
 import { SocketEmitter } from './SocketEmitter'
-import { HumanPlayer } from './model/player/HumanPlayer'
+import { AbstractPlayer } from './model/player/AbstractPlayer'
 
 const FRAME_RATE = 20
 const INTERVAL_SPEED = 1000 / FRAME_RATE
@@ -45,7 +45,7 @@ export class GameLoop {
         }
     }
 
-    run(game: Game): { result: string; winner?: HumanPlayer } | null {
+    run(game: Game): { result: string; winner?: AbstractPlayer } | null {
         const endedGame = game.update()
 
         if (endedGame) {

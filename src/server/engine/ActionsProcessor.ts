@@ -16,13 +16,15 @@ export class ActionsProcessor {
             const position = new Position(x + TILE_WIDTH_HEIGHT / 2, y + TILE_WIDTH_HEIGHT / 2)
             const gridPosition = position.getRoundedPosition()
             const town = this.map.getTileAt<Town>(gridPosition.x, gridPosition.y)
-            if (!town || town.player.id !== player.id) {
+            if (!town || !town.player || town.player.id !== player.id) {
                 return null
             }
             const unit = new StickUnit(player, position)
-            player.addUnit(unit, gridPosition.x, gridPosition.y)
-            player.spendMoney(UnitsType.Stick)
-            return unit
+            const createdUnit = player.addUnit(unit, gridPosition.x, gridPosition.y)
+            if (createdUnit) {
+                player.spendMoney(UnitsType.Stick)
+                return createdUnit
+            }
         }
         return null
     }

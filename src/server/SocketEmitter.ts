@@ -4,7 +4,6 @@ import { Game } from './Game'
 import { GAME_MESSAGE, GAME_STATE_INIT, GAME_STATE_UPDATE, LOBBY_STATE } from '../common/SOCKET_EMIT'
 import { socketIOServer } from './utils/io'
 import { GameLobby } from './GameLobby'
-import { HumanPlayer } from './model/player/HumanPlayer'
 import { AbstractPlayer } from './model/player/AbstractPlayer'
 
 /**
@@ -39,8 +38,8 @@ export class SocketEmitter {
     async emitMessageToSpecificPlayer(
         content: string,
         destinationSocketId: string,
-        player: HumanPlayer,
-        originPlayer?: HumanPlayer
+        player: AbstractPlayer,
+        originPlayer?: AbstractPlayer
     ) {
         socketIOServer.to(destinationSocketId).emit(GAME_MESSAGE, {
             content: content,

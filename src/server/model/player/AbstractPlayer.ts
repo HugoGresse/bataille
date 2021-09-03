@@ -43,19 +43,20 @@ export abstract class AbstractPlayer {
         this.isConnected = isConnected
     }
 
-    addUnit(unit: BaseUnit, x: number, y: number) {
+    addUnit(unit: BaseUnit, x: number, y: number): BaseUnit | null {
         if (!this.units[x]) {
             this.units[x] = {}
         }
         if (this.units[x][y]) {
             const existingUnit = this.units[x][y]
             if (existingUnit.life.getHP() >= MAX_UNIT_LIFE) {
-                return false
+                return null
             }
             existingUnit.life.setHP(existingUnit.life.getHP() + unit.life.getHP())
         } else {
             this.units[x][y] = unit
         }
+        return this.units[x][y]
     }
 
     getUnits(): UnitTiles {

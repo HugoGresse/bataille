@@ -1,11 +1,11 @@
-import { HumanPlayer } from '../player/HumanPlayer'
+import { AbstractPlayer } from '../player/AbstractPlayer'
 
 export class IncomeDispatcher {
     private lastIncomeDispatched = Date.now()
 
     constructor(private incomeEveryXXMilliseconds: number) {}
 
-    update(players: { [playerId: string]: HumanPlayer }) {
+    update(players: { [playerId: string]: AbstractPlayer }) {
         if (Date.now() - this.lastIncomeDispatched > this.incomeEveryXXMilliseconds) {
             Object.values(players).forEach((player) => {
                 player.money += player.income

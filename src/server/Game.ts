@@ -13,10 +13,12 @@ import { INCOME_MS } from '../common/GameSettings'
 import { NewUnitDataEvent } from '../common/NewUnitDataEvent'
 import { detectUnitsIntersections } from './engine/detectUnitsIntersections'
 import { ActionsProcessor } from './engine/ActionsProcessor'
+import { AbstractPlayer } from './model/player/AbstractPlayer'
+import { IAPlayer } from './model/player/IAPlayer'
 
 export class Game {
     protected players: {
-        [socketId: string]: HumanPlayer
+        [socketId: string]: AbstractPlayer
     } = {}
     protected gameLoop: GameLoop
     protected map: Map
@@ -66,17 +68,20 @@ export class Game {
         }
     }
 
-    addPlayer(player: HumanPlayer, socketId: string) {
+    addPlayer(player: AbstractPlayer, socketId: string) {
         if (this.gameLoop.isRunning) {
             console.log('Attempt to join a game but is already started...')
             return
         }
         if (!this.players[socketId]) {
             this.players[socketId] = player
+            if (player instanceof IAPlayer) {
+                player.setActionsProcessor(this.actionsProcessor)
+            }
         }
     }
 
-    getPlayers(): HumanPlayer[] {
+    getPlayers(): AbstractPlayer[] {
         return Object.values(this.players)
     }
 
@@ -109,12 +114,12 @@ export class Game {
         }
         setTimeout(() => {
             // Let clients be initialized before send this first message
-            Object.keys(this.players).forEach((socketId) => {
+            this.getConnectedHumanPlayers().forEach((player) => {
                 // noinspection JSIgnoredPromiseFromCall
                 this.emitter.emitMessageToSpecificPlayer(
-                    `You are playing as ${this.players[socketId].name}`,
-                    socketId,
-                    this.players[socketId]
+                    `You are playing as ${player.name}`,
+                    player.getSocketId(),
+                    player
                 )
             })
         }, 1500)
@@ -152,11 +157,13 @@ export class Game {
         ) // also check if we are playing alone (in dev)
     }
 
-    getConnectedPlayers(): HumanPlayer[] {
-        return this.getPlayers().filter((player) => player.isConnected)
+    getConnectedHumanPlayers(): HumanPlayer[] {
+        return this.getPlayers().filter(
+            (player) => player.isConnected && player instanceof HumanPlayer
+        ) as HumanPlayer[]
     }
 
-    getWinner(): HumanPlayer | undefined {
+    getWinner(): AbstractPlayer | undefined {
         const averageStep1 = average(this.playersIntersections) * 1000
         const averageStep2 = average(this.playerUpdates) * 1000
         const averageStep3 = average(this.townsIntersections) * 1000

@@ -17,6 +17,8 @@ import { PORT } from './utils/serverEnv'
 import { GameLobby, PlayerWaiting } from './GameLobby'
 import { SocketEmitter } from './SocketEmitter'
 import { trackGameEnd, trackGameStart } from './utils/trackings'
+import { IA_PLAYER_PER_GAME } from '../common/GameSettings'
+import { IAPlayer } from './model/player/IAPlayer'
 
 const games: {
     [gameId: string]: Game
@@ -101,7 +103,7 @@ const startGame = (
             waitingPlayer.name
         )
         player.listenForDisconnect(socketEmitter, () => {
-            const connectedPlayers = game.getConnectedPlayers().length
+            const connectedPlayers = game.getConnectedHumanPlayers().length
             if (!connectedPlayers) {
                 console.log(`> Game end (all player disconnected)`)
                 delete games[futureGameId]
@@ -109,6 +111,12 @@ const startGame = (
             }
         })
         game.addPlayer(player, waitingPlayer.socketId)
+    }
+
+    const numberOfIA = Math.min(IA_PLAYER_PER_GAME - waitingPlayers.length, IA_PLAYER_PER_GAME)
+    for (let i = 1; i < numberOfIA; i++) {
+        const player = new IAPlayer(pickUnusedColor(game.getPlayers()), `IA-${1}`)
+        game.addPlayer(player, player.id)
     }
 
     game.start()

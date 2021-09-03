@@ -1,12 +1,12 @@
 import { TownByCountries } from '../model/types/TownByCountries'
-import { HumanPlayer } from '../model/player/HumanPlayer'
 import { SocketEmitter } from '../SocketEmitter'
 import { CountryIdToInfo } from '../model/map/Map'
 import { NeutralPlayer } from '../model/player/NeutralPlayer'
+import { AbstractPlayer } from '../model/player/AbstractPlayer'
 
 export const updatePlayerIncome = (
     townByCountries: TownByCountries,
-    currentPlayer: HumanPlayer,
+    currentPlayer: AbstractPlayer,
     emitter: SocketEmitter
 ) => {
     const prevOwnedCountries = currentPlayer.ownedCountriesIds
