@@ -41,19 +41,23 @@ export class GameLobby {
         })
 
         if (this.waitingPlayers.length === this.requiredPlayerToStart) {
-            this.onLobbyReady(this.waitingPlayers, this.sockets)
+            this.lobbyReady()
         } else {
             this.socketEmitter.emitLobbyState(this)
             this.startCountdown()
         }
     }
 
+    lobbyReady() {
+        this.stopCountdown()
+        this.onLobbyReady(this.waitingPlayers, this.sockets)
+    }
+
     startCountdown() {
         this.gameStartCountdownInterval = setInterval(() => {
             this.gameStartCountdown++
             if (this.gameStartCountdown >= GAME_START_COUNTDOWN_SECONDS) {
-                this.stopCountdown()
-                this.onLobbyReady(this.waitingPlayers, this.sockets)
+                this.lobbyReady()
             } else this.socketEmitter.emitLobbyState(this)
         }, 1000)
     }
@@ -94,7 +98,7 @@ export class GameLobby {
         }
         this.socketEmitter.emitLobbyState(this)
         if (this.forceStartSocketIds.length === this.waitingPlayers.length && this.forceStartSocketIds.length > 1) {
-            this.onLobbyReady(this.waitingPlayers, this.sockets)
+            this.lobbyReady()
         }
     }
 }
