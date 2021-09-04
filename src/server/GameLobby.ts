@@ -2,7 +2,7 @@ import { MINIMUM_PLAYER_PER_GAME } from '../common/GameSettings'
 import { SocketEmitter } from './SocketEmitter'
 import { Socket } from 'socket.io'
 
-const GAME_START_COUNTDOWN_SECONDS = 60
+const GAME_START_COUNTDOWN_SECONDS = 30
 
 export class GameLobby {
     waitingPlayers: PlayerWaiting[] = []
