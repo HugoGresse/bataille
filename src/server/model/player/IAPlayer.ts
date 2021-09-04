@@ -53,21 +53,7 @@ export class IAPlayer extends AbstractPlayer {
                 // console.log("capturing lost country")
                 // Not used currently
             }
-            this.ownedCountriesIds.forEach((countryId) => {
-                const neighbours = CountryIdToInfo[countryId].neighbours
-                for (const neighboursCountryId of neighbours) {
-                    if (!this.ownedCountriesIds.includes(neighboursCountryId) && this.money > 10) {
-                        // This country is not owned by the player
-                        const townToCapture = map.getTownsByCountries()[neighboursCountryId][0]
-                        const fromTown = map.getTownsByCountries()[countryId][0]
-                        const unitSent = this.sendUnit(fromTown, townToCapture, unitsMaps)
-                        if (unitSent) {
-                            // console.log('capturing ', neighboursCountryId, fromTown.data)
-                        }
-                        break
-                    }
-                }
-            })
+            this.captureNeighboursCountries(map, unitsMaps)
         }
     }
 
@@ -132,6 +118,25 @@ export class IAPlayer extends AbstractPlayer {
             }
         })
         return nothingToDo
+    }
+
+    private captureNeighboursCountries(map: Map, unitsMaps: XYMapWithType<BaseUnit[]>) {
+        this.ownedCountriesIds.forEach((countryId) => {
+            const neighbours = CountryIdToInfo[countryId].neighbours
+            for (const neighboursCountryId of neighbours) {
+                if (!this.ownedCountriesIds.includes(neighboursCountryId) && this.money > 10) {
+                    // This country is not owned by the player
+                    const townToCapture = map.getTownsByCountries()[neighboursCountryId][0]
+                    const countryTowns = map.getTownsByCountries()[countryId]
+                    const fromTown = countryTowns[getRandomNumberBetween(0, countryTowns.length - 1)]
+                    const unitSent = this.sendUnit(fromTown, townToCapture, unitsMaps)
+                    if (unitSent) {
+                        // console.log('capturing ', neighboursCountryId, fromTown.data)
+                    }
+                    break
+                }
+            }
+        })
     }
 
     sendUnit(from: Town, to: Town, unitsMap: XYMapWithType<BaseUnit[]>): boolean {
