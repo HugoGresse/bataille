@@ -69,6 +69,9 @@ export class GameLobby {
 
     //Close listeners for disconnecting
     close() {
+        if (this.gameStartCountdownInterval) {
+            clearInterval(this.gameStartCountdownInterval)
+        }
         this.waitingPlayers.forEach((p) => {
             this.sockets[p.socketId].removeAllListeners('disconnect')
         })

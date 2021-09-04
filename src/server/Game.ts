@@ -148,13 +148,10 @@ export class Game {
         })
         this.incomeDispatcher.update(this.players)
 
-        const connectedPlayers = playersValues.filter((player) => player.isConnected) // No more player connected
+        const connectedHumanPlayers = this.getConnectedHumanPlayers()
         const deadPlayers = playersValues.filter((player) => player.isDead || !player.isConnected).length
         const oneOrNoAlivePlayers = deadPlayers >= playersValues.length - 1 // one player cannot play alone
-        return (
-            (connectedPlayers.length === 1 && playersValues.length > 1) ||
-            (oneOrNoAlivePlayers && playersValues.length > 1)
-        ) // also check if we are playing alone (in dev)
+        return connectedHumanPlayers.length === 0 || (oneOrNoAlivePlayers && playersValues.length > 1) // also check if we are playing alone (in dev)
     }
 
     getConnectedHumanPlayers(): HumanPlayer[] {
