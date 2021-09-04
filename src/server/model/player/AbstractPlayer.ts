@@ -79,7 +79,9 @@ export abstract class AbstractPlayer {
             income: this.income,
             color: this.color,
             countries: this.ownedCountriesIds,
-            alive: this.isConnected && !this.isDead,
+            connected: this.isConnected,
+            dead: this.isDead,
+            surrender: false,
         }
     }
 

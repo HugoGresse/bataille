@@ -31,7 +31,7 @@ export class GameLoop {
                     console.log(`> Game completed, duration: ${this.gameDuration} minutes`)
                 }, 1000)
                 console.log(results.result)
-                console.log(`income: ${results.winner?.income}`)
+                console.log(`Humans incomes: ${game.getHumanPlayers().map((p) => p.income)}`)
                 this.stop()
             }
         }, INTERVAL_SPEED)

@@ -154,10 +154,12 @@ export class Game {
         return connectedHumanPlayers.length === 0 || (oneOrNoAlivePlayers && playersValues.length > 1) // also check if we are playing alone (in dev)
     }
 
+    getHumanPlayers(): HumanPlayer[] {
+        return this.getPlayers().filter((player) => player instanceof HumanPlayer) as HumanPlayer[]
+    }
+
     getConnectedHumanPlayers(): HumanPlayer[] {
-        return this.getPlayers().filter(
-            (player) => player.isConnected && player instanceof HumanPlayer
-        ) as HumanPlayer[]
+        return this.getHumanPlayers().filter((player) => player.isConnected)
     }
 
     getWinner(): AbstractPlayer | undefined {

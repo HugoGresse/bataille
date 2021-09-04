@@ -1,5 +1,6 @@
 import { BaseScene } from '../BaseScene'
 import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
+import { PublicPlayerState } from '../../../../server/model/GameState'
 
 const Y_MARGIN = 20
 
@@ -29,7 +30,7 @@ export class ScoresStats {
         const players = state?.players
 
         players?.forEach((player, index) => {
-            const playerText = `${index + 1}. ${player.name}: ${player.income}${player.alive ? '' : ' ❌'}`
+            const playerText = getPlayerText(index, player)
             if (!this.playersTexts[index]) {
                 this.playersTexts[index] = scene.add.text(this.startX, this.playerYPosition, playerText, TEXT_STYLE)
                 this.playerYPosition = this.playerYPosition + Y_MARGIN
@@ -43,4 +44,20 @@ export class ScoresStats {
             this.backgroundAdjusted = true
         }
     }
+}
+
+const getPlayerText = (index: number, player: PublicPlayerState) => {
+    let text = `${index + 1}. ${player.name}: ${player.income} `
+
+    if (player.dead) {
+        text += '☠️'
+    }
+    if (!player.connected) {
+        text += '❌'
+    }
+    if (player.surrender) {
+        text += '🏳'
+    }
+
+    return text
 }
