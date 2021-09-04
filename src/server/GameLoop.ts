@@ -14,7 +14,6 @@ export class GameLoop {
     constructor(protected emitter: SocketEmitter) {}
 
     start(game: Game) {
-        console.log('Loop started')
         const startTime = Date.now()
         this.intervalId = setInterval(() => {
             const results = this.run(game)

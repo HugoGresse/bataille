@@ -4,6 +4,8 @@ import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
 import { UIScene } from './UIScene'
 import { BatailleGame } from '../../BatailleGame'
 
+type PhaserText = Phaser.GameObjects.Text
+
 type UIMessage = {
     content: string
     player: PublicPlayerState | null
@@ -15,7 +17,9 @@ const MESSAGE_DURATION = 10000 // ms
 const MAX_MESSAGES_DISPLAYED = 6
 const MOVE_Y = 40
 const WIDTH_UI = 300
+const Y_OFFSET = 140
 const PADDING = 8
+const ANIMATION_DURATION = 200
 
 const ENTER_KEY = 'ENTER'
 
@@ -61,9 +65,6 @@ export class MessagesUI {
 
     onMessageReceived(message: Message) {
         this.moveUpAll()
-        if (this.messages.length > MAX_MESSAGES_DISPLAYED) {
-            this.removeText(0)
-        }
         const group = this.getNewText(this.scene, message)
         this.messages.push({
             ...message,
@@ -77,7 +78,7 @@ export class MessagesUI {
                 alpha: '+= 1',
                 y: `-= ${MOVE_Y}`,
                 ease: 'Linear',
-                duration: 400,
+                duration: ANIMATION_DURATION,
             })
         })
     }
@@ -111,7 +112,7 @@ export class MessagesUI {
         const textContents = this.getTextMessage(message)
         const text = scene.add.text(
             scene.sys.canvas.width / 2 - WIDTH_UI / 2,
-            scene.sys.canvas.height - 200,
+            scene.sys.canvas.height - Y_OFFSET,
             textContents[0],
             TEXT_STYLE
         )
@@ -147,26 +148,33 @@ export class MessagesUI {
                 targets: child,
                 alpha: '-= 1',
                 ease: 'Linear',
-                duration: 1000,
+                duration: ANIMATION_DURATION,
             })
         })
         this.messages.splice(index, 1)
     }
 
     private moveUpAll() {
-        this.messages.forEach((message) => {
-            message.group.getChildren().forEach((child) => {
-                const textChild = child as Phaser.GameObjects.Text
+        const canvasHeight = this.scene.sys.canvas.height
+
+        if (this.messages.length > MAX_MESSAGES_DISPLAYED) {
+            this.removeText(0)
+        }
+
+        for (let i = 0; i < this.messages.length; i++) {
+            const iReverse = Math.min(MAX_MESSAGES_DISPLAYED, this.messages.length) - i
+            this.messages[i].group.getChildren().forEach((child) => {
+                const textChild = child as PhaserText
                 this.scene.tweens.add({
                     targets: textChild,
                     y: {
-                        from: textChild.y,
-                        to: textChild.y - MOVE_Y,
+                        from: canvasHeight - Y_OFFSET - iReverse * MOVE_Y,
+                        to: canvasHeight - Y_OFFSET - iReverse * MOVE_Y - MOVE_Y,
                     },
                     ease: 'Linear',
-                    duration: 400,
+                    duration: ANIMATION_DURATION,
                 })
             })
-        })
+        }
     }
 }
