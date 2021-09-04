@@ -12,6 +12,7 @@ export class GameLobby {
     forceStartSocketIds: string[] = []
     gameStartCountdown: number = 0
     gameStartCountdownInterval: NodeJS.Timeout | null = null
+    ongoingGame: number = 0
 
     constructor(
         private readonly socketEmitter: SocketEmitter,
@@ -20,8 +21,9 @@ export class GameLobby {
         private requiredPlayerToStart: number = MINIMUM_PLAYER_PER_GAME
     ) {}
 
-    onPlayerJoin(socket: Socket, name: string) {
+    onPlayerJoin(socket: Socket, name: string, ongoingGames: number) {
         const socketId = socket.id
+        this.ongoingGame = ongoingGames
         this.sockets[socketId] = socket
         socket.join(this.futureGameId)
 
@@ -90,6 +92,7 @@ export class GameLobby {
             requiredPlayerCount: this.requiredPlayerToStart,
             playerCountForceStart: this.forceStartSocketIds.length,
             countdown: GAME_START_COUNTDOWN_SECONDS - this.gameStartCountdown,
+            ongoingGame: this.ongoingGame,
         }
     }
 
@@ -116,4 +119,5 @@ export type LobbyState = {
     requiredPlayerCount: number
     playerCountForceStart: number
     countdown: number
+    ongoingGame: number
 }

@@ -14,6 +14,7 @@ export const Lobby = () => {
         requiredPlayerCount: 0,
         playerCount: 0,
         countdown: 0,
+        ongoingGame: 0,
     })
     const [forceStart, setForceStart] = useState(false)
 
@@ -61,13 +62,16 @@ export const Lobby = () => {
                     }}>
                     Go back
                 </Button>
+                <br />
+                <br />
+                <Typography color="#BBB">{lobbyState.ongoingGame} running game(s)</Typography>
             </Box>
 
             <Box>
                 <Typography variant="h3">
                     Waiting for more players... {lobbyState.playerCount}/{lobbyState.requiredPlayerCount}
                 </Typography>
-                {lobbyState.countdown && <Typography>Game starting in {lobbyState.countdown}s</Typography>}
+                {lobbyState.countdown ? <Typography>Game starting in {lobbyState.countdown}s</Typography> : null}
                 <br />
                 <Button variant={forceStart ? 'contained' : 'outlined'} size="large" onClick={onForceStartPress}>
                     Force start ({lobbyState.playerCountForceStart}/
