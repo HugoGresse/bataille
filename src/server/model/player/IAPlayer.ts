@@ -1,5 +1,5 @@
 import { AbstractPlayer } from './AbstractPlayer'
-import { Map } from '../map/Map'
+import { CountryIdToInfo, Map } from '../map/Map'
 import { NeutralPlayer } from './NeutralPlayer'
 import { Town } from '../map/Tile'
 import { ActionsProcessor } from '../../engine/ActionsProcessor'
@@ -7,12 +7,22 @@ import { UnitAction, UnitActionMoveData, UnitActionType } from '../../../common/
 import { Position } from '../actors/Position'
 import { createUnitMaps } from '../../engine/utils/createUnitMaps'
 import { TILE_WIDTH_HEIGHT } from '../../../common/UNITS'
+import { BaseUnit } from '../actors/units/BaseUnit'
+import { getRandomNumberBetween } from '../../../utils/getRandomNumberBetween'
+import { SocketEmitter } from '../../SocketEmitter'
+import { XYMapWithType } from '../../utils/xyMapToArray'
 
 const IA_UPDATE_INTERVAL = 1000 // ms
+const MAX_ACTION_UPDATE = 5
 
 export class IAPlayer extends AbstractPlayer {
     private lastRunTime: number = 0
     private actionsProcessor!: ActionsProcessor
+    private actionByCountries: {
+        [countryId: string]: string
+    } = {}
+    private countriesToRecapture: string[] = []
+    private actionByUpdate = 0
 
     constructor(color: string, name?: string) {
         super(name, color)
@@ -24,7 +34,7 @@ export class IAPlayer extends AbstractPlayer {
 
     update(map: Map, players: AbstractPlayer[]) {
         super.update(map, players)
-        if (this.lastRunTime + IA_UPDATE_INTERVAL >= Date.now()) {
+        if (this.lastRunTime + IA_UPDATE_INTERVAL + getRandomNumberBetween(500, 3000) >= Date.now()) {
             return
         }
         this.lastRunTime = Date.now()
@@ -33,79 +43,149 @@ export class IAPlayer extends AbstractPlayer {
             return
         }
 
-        this.checkCountries(map, players)
+        this.actionByUpdate = 0
+
+        const unitsMaps = createUnitMaps(players)
+
+        const currentCountriesAllOwned = this.checkCurrentCountries(map, unitsMaps)
+        if (currentCountriesAllOwned) {
+            if (this.countriesToRecapture.length > 0) {
+                // console.log("capturing lost country")
+                // Not used currently
+            }
+            this.ownedCountriesIds.forEach((countryId) => {
+                const neighbours = CountryIdToInfo[countryId].neighbours
+                for (const neighboursCountryId of neighbours) {
+                    if (!this.ownedCountriesIds.includes(neighboursCountryId) && this.money > 10) {
+                        // This country is not owned by the player
+                        const townToCapture = map.getTownsByCountries()[neighboursCountryId][0]
+                        const fromTown = map.getTownsByCountries()[countryId][0]
+                        const unitSent = this.sendUnit(fromTown, townToCapture, unitsMaps)
+                        if (unitSent) {
+                            console.log('capturing ', neighboursCountryId, fromTown.data)
+                        }
+                        break
+                    }
+                }
+            })
+        }
+    }
+
+    updateIncome(ownedCountriesIds: string[], emitter: SocketEmitter) {
+        let lostCountries: string[] = []
+        if (ownedCountriesIds) {
+            lostCountries = this.ownedCountriesIds.filter((id) => !ownedCountriesIds.includes(id))
+        }
+        super.updateIncome(ownedCountriesIds, emitter)
+
+        if (lostCountries.length) {
+            for (const id of lostCountries) {
+                if (!this.actionByCountries[id] && !this.countriesToRecapture.includes(id)) {
+                    this.countriesToRecapture.push(id)
+                }
+            }
+        }
     }
 
     /**
      * 1. Try to finish capturing country the IA has town in
-     *      // 1. Check if country is not owned by anyone
-     * 2. if all countries fully captured, launch unit to capture a town on a close country
+     *      // 1. Check if country contain one not current player town and one current player town
+     *      // 2. if so, send unit to take the next town, on every update
      */
-    private checkCountries(map: Map, players: AbstractPlayer[]) {
+    private checkCurrentCountries(map: Map, unitsMaps: XYMapWithType<BaseUnit[]>) {
         const townByCountries = map.getTownsByCountries()
-        // console.log("---------------------------")
+        let nothingToDo = true
         Object.keys(townByCountries).forEach((countryId) => {
-            let isCountryUnifiedUnderOnePlayer = true
-            let ownedTown: Town | null = null
+            let ownAllTheTowns = true
+            let fromTown: Town | null = null
             let townToCapture: Town | null = null
 
             if (this.money <= 0) {
-                return
+                nothingToDo = false
+                return nothingToDo
             }
 
             for (const town of townByCountries[countryId]) {
                 if (town.player.id === this.id) {
-                    ownedTown = town
+                    fromTown = town
                 } else if (town.player.id !== this.id || this instanceof NeutralPlayer) {
-                    isCountryUnifiedUnderOnePlayer = false
+                    ownAllTheTowns = false
                     townToCapture = town
                 }
-                if (ownedTown && !isCountryUnifiedUnderOnePlayer) {
-                    break
+                if (!ownAllTheTowns) {
+                    if (fromTown) {
+                        break
+                    }
                 }
             }
-            if (townToCapture && ownedTown) {
-                const unitsMaps = createUnitMaps(players)
-
-                let enemyUnit
-                if (unitsMaps[townToCapture.x] && unitsMaps[townToCapture.x][townToCapture.y]) {
-                    enemyUnit = unitsMaps[townToCapture.x][townToCapture.y][0]
+            if (townToCapture && fromTown) {
+                const unitSent = this.sendUnit(fromTown, townToCapture, unitsMaps)
+                this.actionByCountries[countryId] = townToCapture.id
+                if (unitSent) {
+                    // console.log("take empty country")
                 }
-                const unitCountToCreate = enemyUnit ? ~~(enemyUnit.life.getHP() / 2) : 1
-
-                // console.log("create unit on ", ownedTown.data)
-
-                const startX = ownedTown.x * TILE_WIDTH_HEIGHT + 2
-                const startY = ownedTown.y * TILE_WIDTH_HEIGHT + 2
-
-                const createdUnit = this.actionsProcessor.addUnit(this, {
-                    x: startX,
-                    y: startY,
-                })
-
-                for (let i = 1; i < unitCountToCreate; i++) {
-                    this.actionsProcessor.addUnit(this, {
-                        x: startX,
-                        y: startY,
-                    })
-                }
-                if (createdUnit) {
-                    // console.log("move unit to dest", townToCapture.data)
-                    this.actionsProcessor.unitEvent(
-                        this,
-                        new UnitAction(
-                            createdUnit.id,
-                            UnitActionType.Move,
-                            new UnitActionMoveData(
-                                new Position(
-                                    townToCapture.x * TILE_WIDTH_HEIGHT + 2,
-                                    townToCapture.y * TILE_WIDTH_HEIGHT + 2
-                                )
-                            )
-                        )
-                    )
-                }
+                nothingToDo = false
+            } else if (ownAllTheTowns && this.actionByCountries[countryId]) {
+                // country owned fully
+                // console.log("Country owned", countryId)
+                delete this.actionByCountries[countryId]
             }
         })
+        return nothingToDo
+    }
+
+    sendUnit(from: Town, to: Town, unitsMap: XYMapWithType<BaseUnit[]>): boolean {
+        if (this.actionByUpdate > MAX_ACTION_UPDATE) {
+            // console.log("max out")
+            return false
+        }
+        let enemyUnit
+        if (unitsMap[to.x] && unitsMap[to.x][to.y]) {
+            enemyUnit = unitsMap[to.x][to.y][0]
+        }
+        const unitCountToCreate = this.getUnitCountToSend(enemyUnit)
+
+        const startX = from.x * TILE_WIDTH_HEIGHT + 2
+        const startY = from.y * TILE_WIDTH_HEIGHT + 2
+
+        const createdUnit = this.actionsProcessor.addUnit(this, {
+            x: startX,
+            y: startY,
+        })
+
+        for (let i = 1; i < unitCountToCreate; i++) {
+            this.actionsProcessor.addUnit(this, {
+                x: startX,
+                y: startY,
+            })
+        }
+        if (createdUnit) {
+            this.actionByUpdate++
+            // console.log("move unit to dest", to.data)
+            this.actionsProcessor.unitEvent(
+                this,
+                new UnitAction(
+                    createdUnit.id,
+                    UnitActionType.Move,
+                    new UnitActionMoveData(new Position(to.x * TILE_WIDTH_HEIGHT + 2, to.y * TILE_WIDTH_HEIGHT + 2))
+                )
+            )
+            return true
+        }
+        return false
+    }
+
+    getUnitCountToSend(enemyUnit?: BaseUnit) {
+        if (enemyUnit) {
+            if (this.money > 100) {
+                return enemyUnit.life.getHP()
+            }
+            return ~~(enemyUnit.life.getHP() / 2)
+        }
+
+        if (this.money > 100) {
+            return getRandomNumberBetween(1, 5)
+        }
+        return 1
     }
 }

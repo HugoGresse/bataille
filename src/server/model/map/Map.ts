@@ -16,6 +16,7 @@ export const CountryIdToInfo: {
         name: string
         localName: string
         income: number
+        neighbours: string[]
     }
 } = {}
 
@@ -137,6 +138,11 @@ export class Map {
                     const name = fullNameSplit[0]
                     const localName = fullNameSplit[1] ? fullNameSplit[1].replace(')', '') : ''
                     const countryId = <string>obj.properties.find((property) => property.name === 'cid')!.value
+                    const neighboursString = <string>(
+                        obj.properties.find((property) => property.name === 'neighbours')!.value
+                    )
+                    const neighbours = neighboursString.split('-')
+
                     acc.push({
                         name: name,
                         localName: localName,
@@ -149,6 +155,7 @@ export class Map {
                             name,
                             localName,
                             income: COUNTRIES_INCOME[countryId],
+                            neighbours,
                         }
                     }
                 })

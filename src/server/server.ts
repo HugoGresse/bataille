@@ -114,8 +114,9 @@ const startGame = (
     }
 
     const numberOfIA = Math.min(IA_PLAYER_PER_GAME - waitingPlayers.length, IA_PLAYER_PER_GAME)
-    for (let i = 1; i < numberOfIA; i++) {
-        const player = new IAPlayer(pickUnusedColor(game.getPlayers()), `IA-${1}`)
+    for (let i = 1; i <= numberOfIA; i++) {
+        const color = pickUnusedColor(game.getPlayers())
+        const player = new IAPlayer(color, `IA-${1}`)
         game.addPlayer(player, player.id)
     }
 

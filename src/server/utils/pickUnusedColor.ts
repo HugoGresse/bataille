@@ -1,6 +1,6 @@
 import { AbstractPlayer } from '../model/player/AbstractPlayer'
 
-const colors = ['0xFF0000', '0x3333FF', '0xFFFF00', '0xFF0000', '0x00FFFF', '0xFF00FF']
+const colors = ['0xFF0000', '0x6666FF', '0xFFFF00', '0x00FF00', '0x00FFFF', '0xFF00FF']
 
 export const pickUnusedColor = (existingPlayers: AbstractPlayer[] = []) => {
     const usedColors = existingPlayers.map((p) => p.color)
