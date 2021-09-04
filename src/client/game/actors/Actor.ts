@@ -1,6 +1,7 @@
 import { Physics, GameObjects } from 'phaser'
 import { UnitState } from '../../../server/model/GameState'
 import { TEXT_STYLE } from '../../utils/TEXT_STYLE'
+import { UNIT_FONT_SIZE } from '../utils/setupCamera'
 
 export class Actor extends Phaser.GameObjects.Sprite {
     protected hp = 0
@@ -22,7 +23,7 @@ export class Actor extends Phaser.GameObjects.Sprite {
             ...TEXT_STYLE,
         })
         this.hpText.setStroke('#000000', 1)
-        this.hpText.setDepth(1)
+        this.hpText.setDepth(2)
     }
 
     public update(refUnit: UnitState) {
@@ -35,12 +36,21 @@ export class Actor extends Phaser.GameObjects.Sprite {
             this.hp = refUnit.hp.current
             this.hpText.text = this.hp.toString()
         }
-        if (this.hp > 9) {
-            this.hpText.x = this.x - 11
+
+        this.hpText.setFontSize(UNIT_FONT_SIZE)
+        if (UNIT_FONT_SIZE > 25) {
+            this.hpText.x = this.x - this.width + 20
+            this.hpText.y = this.y + this.height - 20
         } else {
-            this.hpText.x = this.x - 5
+            this.hpText.y = this.y - 11
+            if (this.hp > 999) {
+                this.hpText.x = this.x - 13
+            } else if (this.hp > 9) {
+                this.hpText.x = this.x - 11
+            } else {
+                this.hpText.x = this.x - 6
+            }
         }
-        this.hpText.y = this.y - 9
     }
 
     public setColor(color: string) {

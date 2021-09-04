@@ -1,22 +1,34 @@
 import { GameObjects, Input, Scene } from 'phaser'
 import { StickUnit } from '../actors/StickUnit'
 import { INPUT_ENABLE } from '../BatailleGame'
+import { debounce } from '@material-ui/core'
 
 type Camera = Phaser.Cameras.Scene2D.Camera
+
+export let UNIT_FONT_SIZE = 20
+let CURRENT_ZOOM = 0.7
+const changeFontSize = () => {
+    UNIT_FONT_SIZE = (1 - CURRENT_ZOOM) / 0.012 + 15
+    if (UNIT_FONT_SIZE < 20) {
+        UNIT_FONT_SIZE = 20
+    }
+}
+const debouncedFontSize = debounce(changeFontSize, 100)
 
 export const setupCamera = (camera: Camera, scene: Phaser.Scene, map: Phaser.Tilemaps.Tilemap) => {
     camera.setBounds(0, 0, 5000, 6000)
     const minZoom = 0.2
     const maxZoom = 2
-    camera.zoom = 0.7
+    camera.zoom = CURRENT_ZOOM
     camera.centerOn(1500, 3000)
     scene.input.on(
         'wheel',
         (pointer: Input.Pointer, gameObjects: GameObjects.GameObject, deltaX: number, deltaY: number) => {
-            const newZoom = deltaY > 0 ? camera.zoom - 0.08 : camera.zoom + 0.08
+            CURRENT_ZOOM = deltaY > 0 ? camera.zoom - 0.08 : camera.zoom + 0.08
 
-            if (newZoom > minZoom && newZoom < maxZoom) {
-                camera.zoomTo(newZoom, 100, 'Power2', true)
+            if (CURRENT_ZOOM > minZoom && CURRENT_ZOOM < maxZoom) {
+                camera.zoomTo(CURRENT_ZOOM, 100, 'Power2', true)
+                debouncedFontSize()
             }
         }
     )
