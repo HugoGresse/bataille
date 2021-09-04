@@ -62,7 +62,7 @@ export class IAPlayer extends AbstractPlayer {
                         const fromTown = map.getTownsByCountries()[countryId][0]
                         const unitSent = this.sendUnit(fromTown, townToCapture, unitsMaps)
                         if (unitSent) {
-                            console.log('capturing ', neighboursCountryId, fromTown.data)
+                            // console.log('capturing ', neighboursCountryId, fromTown.data)
                         }
                         break
                     }

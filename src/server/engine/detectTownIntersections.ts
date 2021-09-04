@@ -15,7 +15,7 @@ export const detectTownIntersections = (map: Map, player: AbstractPlayer) => {
                 tile.player = player
                 unit.life.takeDamage(1)
             } else if (!tile) {
-                console.log('tile not correct', x, y)
+                // console.log('tile not correct', x, y)
             }
         }
     })

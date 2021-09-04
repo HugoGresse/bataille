@@ -1,6 +1,7 @@
 import { Game } from './Game'
 import { SocketEmitter } from './SocketEmitter'
 import { AbstractPlayer } from './model/player/AbstractPlayer'
+import { trackGameEnd } from './utils/trackings'
 
 const FRAME_RATE = 20
 const INTERVAL_SPEED = 1000 / FRAME_RATE
@@ -42,6 +43,7 @@ export class GameLoop {
         if (this.intervalId) {
             clearInterval(this.intervalId)
             this.isRunning = false
+            trackGameEnd(this.gameDuration)
         }
     }
 

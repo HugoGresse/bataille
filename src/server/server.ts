@@ -16,7 +16,7 @@ import { socketIOServer } from './utils/io'
 import { PORT } from './utils/serverEnv'
 import { GameLobby, PlayerWaiting } from './GameLobby'
 import { SocketEmitter } from './SocketEmitter'
-import { trackGameEnd, trackGameStart } from './utils/trackings'
+import { trackGameStart } from './utils/trackings'
 import { IA_PLAYER_PER_GAME } from '../common/GameSettings'
 import { IAPlayer } from './model/player/IAPlayer'
 
@@ -107,7 +107,6 @@ const startGame = (
             if (!connectedPlayers) {
                 console.log(`> Game end (all player disconnected)`)
                 delete games[futureGameId]
-                trackGameEnd(game.getGameDuration())
             }
         })
         game.addPlayer(player, waitingPlayer.socketId)
@@ -121,5 +120,5 @@ const startGame = (
     }
 
     game.start()
-    trackGameStart(game.getPlayers().length)
+    trackGameStart(game.getConnectedHumanPlayers().length)
 }
