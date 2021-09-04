@@ -13,11 +13,10 @@ export const setupCamera = (camera: Camera, scene: Phaser.Scene, map: Phaser.Til
     scene.input.on(
         'wheel',
         (pointer: Input.Pointer, gameObjects: GameObjects.GameObject, deltaX: number, deltaY: number) => {
-            const newZoom = deltaY > 0 ? camera.zoom - 0.1 : camera.zoom + 0.1
+            const newZoom = deltaY > 0 ? camera.zoom - 0.08 : camera.zoom + 0.08
 
             if (newZoom > minZoom && newZoom < maxZoom) {
-                camera.zoom = newZoom
-                camera.pan(pointer.worldX, pointer.worldY, 200, 'Power2')
+                camera.zoomTo(newZoom, 100, 'Power2', true)
             }
         }
     )
