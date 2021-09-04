@@ -54,6 +54,9 @@ export class GameLobby {
     }
 
     startCountdown() {
+        if (this.gameStartCountdownInterval) {
+            return
+        }
         this.gameStartCountdownInterval = setInterval(() => {
             this.gameStartCountdown++
             if (this.gameStartCountdown >= GAME_START_COUNTDOWN_SECONDS) {
