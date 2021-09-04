@@ -2,12 +2,16 @@ import { MINIMUM_PLAYER_PER_GAME } from '../common/GameSettings'
 import { SocketEmitter } from './SocketEmitter'
 import { Socket } from 'socket.io'
 
+const GAME_START_COUNTDOWN_SECONDS = 60
+
 export class GameLobby {
     waitingPlayers: PlayerWaiting[] = []
     sockets: {
         [socketId: string]: Socket
     } = {}
     forceStartSocketIds: string[] = []
+    gameStartCountdown: number = 0
+    gameStartCountdownInterval: NodeJS.Timeout | null = null
 
     constructor(
         private readonly socketEmitter: SocketEmitter,
@@ -31,6 +35,7 @@ export class GameLobby {
             delete this.sockets[socketId]
             this.waitingPlayers = this.waitingPlayers.filter((p) => p.socketId !== socketId)
             this.forceStartSocketIds = this.forceStartSocketIds.filter((id) => socketId !== id)
+            this.stopCountdown()
             this.socketEmitter.emitLobbyState(this)
             console.log(`Player left lobby, ${this.waitingPlayers.length}/${this.requiredPlayerToStart}`)
         })
@@ -38,6 +43,26 @@ export class GameLobby {
         if (this.waitingPlayers.length === this.requiredPlayerToStart) {
             this.onLobbyReady(this.waitingPlayers, this.sockets)
         } else {
+            this.socketEmitter.emitLobbyState(this)
+            this.startCountdown()
+        }
+    }
+
+    startCountdown() {
+        this.gameStartCountdownInterval = setInterval(() => {
+            this.gameStartCountdown++
+            if (this.gameStartCountdown >= GAME_START_COUNTDOWN_SECONDS) {
+                this.stopCountdown()
+                this.onLobbyReady(this.waitingPlayers, this.sockets)
+            } else this.socketEmitter.emitLobbyState(this)
+        }, 1000)
+    }
+
+    stopCountdown() {
+        if (this.gameStartCountdownInterval) {
+            clearInterval(this.gameStartCountdownInterval)
+            this.gameStartCountdownInterval = null
+            this.gameStartCountdown = 0
             this.socketEmitter.emitLobbyState(this)
         }
     }
@@ -54,6 +79,7 @@ export class GameLobby {
             playerCount: this.waitingPlayers.length,
             requiredPlayerCount: this.requiredPlayerToStart,
             playerCountForceStart: this.forceStartSocketIds.length,
+            countdown: GAME_START_COUNTDOWN_SECONDS - this.gameStartCountdown,
         }
     }
 
@@ -79,4 +105,5 @@ export type LobbyState = {
     playerCount: number
     requiredPlayerCount: number
     playerCountForceStart: number
+    countdown: number
 }
