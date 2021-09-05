@@ -8,6 +8,6 @@ const BASE_DAMAGE = 1
 
 export class StickUnit extends BaseUnit {
     constructor(owner: AbstractPlayer, position: Position) {
-        super(owner, position, BASE_DAMAGE, BASE_HP, new Velocity(5))
+        super(owner, position, BASE_DAMAGE, BASE_HP, new Velocity(6))
     }
 }

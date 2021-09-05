@@ -1,4 +1,5 @@
 import { TILE_WIDTH_HEIGHT } from '../../../common/UNITS'
+import { round32 } from '../../../utils/Round32'
 
 export class Position {
     // real position used for the movement
@@ -35,7 +36,7 @@ export class Position {
         const vLength = length(vector)
 
         if (vLength == 0) {
-            return false
+            return true
         }
 
         const factor = speed / vLength
@@ -47,7 +48,7 @@ export class Position {
         this.y = round32(this.rY) * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
 
         // Did we reach the target?
-        if (Math.abs(this.rX - target.x) < 1 && Math.abs(this.rY - target.y) < 1) {
+        if (Math.abs(this.rX - target.x) < DELTA_TARGET_REACH && Math.abs(this.rY - target.y) < DELTA_TARGET_REACH) {
             return true
         }
 
@@ -55,7 +56,7 @@ export class Position {
     }
 }
 
-const round32 = (value: number) => Math.floor(value / TILE_WIDTH_HEIGHT)
+const DELTA_TARGET_REACH = 3
 
 const pointMakeVector = (point1: Position, point2: Position) => {
     let xDist, yDist

@@ -46,7 +46,7 @@ export class Tile {
                 if (townsData) {
                     this.data = townsData
                 } else {
-                    throw new Error('Missing towns data')
+                    throw new Error('Missing towns data, n: ' + tileNumber)
                 }
                 break
             case TileType.Water:

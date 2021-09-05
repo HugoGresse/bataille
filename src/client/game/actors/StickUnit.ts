@@ -6,6 +6,11 @@ import { BaseScene } from '../scenes/BaseScene'
 
 export let isUnitDragging: string | null = null
 
+type PointerPhaser = {
+    worldX: number
+    worldY: number
+}
+
 export class StickUnit extends Actor {
     public static isDragging(): boolean {
         return !!isUnitDragging
@@ -42,8 +47,8 @@ export class StickUnit extends Actor {
         this.onUnselect()
     }
 
-    onDrag(pointer: PointerEvent, dragX: number, dragY: number) {
-        ;(this.scene as BaseScene).actions.moveUnit(this, dragX, dragY)
+    onDrag(pointer: PointerPhaser) {
+        ;(this.scene as BaseScene).actions.moveUnit(this, pointer.worldX, pointer.worldY)
     }
 
     update(refUnit: UnitState): void {
