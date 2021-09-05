@@ -3,7 +3,7 @@ import { SocketEmitter } from './SocketEmitter'
 import { AbstractPlayer } from './model/player/AbstractPlayer'
 import { trackGameEnd } from './utils/trackings'
 
-const FRAME_RATE = 20
+const FRAME_RATE = 10
 const INTERVAL_SPEED = 1000 / FRAME_RATE
 
 export class GameLoop {
