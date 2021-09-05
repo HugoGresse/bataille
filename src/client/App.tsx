@@ -1,4 +1,4 @@
-import { Game } from './screens/Game'
+import { Game } from './game/Game'
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
 import React from 'react'
 import { Home } from './screens/Home'

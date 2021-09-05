@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { BatailleGame } from '../game/BatailleGame'
-import './game.css'
+import { BatailleGame } from './BatailleGame'
+import '../screens/game.css'
 import { useParams } from 'react-router-dom'
 import { Box, Button } from '@material-ui/core'
 import FullscreenIcon from '@material-ui/icons/Fullscreen'
 import BackIcon from '@material-ui/icons/ArrowBack'
-import { HelpDialogButton } from './HelpDialog'
-import { MessageDialog } from './MessageDialog'
+import FeedbackIcon from '@material-ui/icons/Feedback'
+import { HelpDialogButton } from '../screens/HelpDialog'
+import { MessageDialog } from '../screens/MessageDialog'
 import { DeferredPromise } from '../utils/Deferred'
 
 type GameParams = {
@@ -46,6 +47,13 @@ export const Game = () => {
                     Exit game
                 </Button>
                 <div>
+                    <Button
+                        color="secondary"
+                        href="https://github.com/HugoGresse/bataille/issues/new"
+                        target="_blank"
+                        startIcon={<FeedbackIcon />}>
+                        Bug/Feedback
+                    </Button>{' '}
                     <HelpDialogButton color="secondary" buttonText={'HELP'} />{' '}
                     <Button
                         color="secondary"
