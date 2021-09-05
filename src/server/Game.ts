@@ -28,7 +28,6 @@ export class Game {
     playersIntersections: Array<number> = []
     townsIntersections: Array<number> = []
     playerUpdates: Array<number> = []
-    emitUpdates: Array<number> = []
 
     constructor(public readonly id: string, protected emitter: SocketEmitter) {
         this.map = new Map()
@@ -148,9 +147,7 @@ export class Game {
             updatePlayerIncome(this.map.getTownsByCountries(), player, this.emitter)
         })
 
-        const step4 = Date.now()
         this.incomeDispatcher.update(this.players)
-        this.emitUpdates.push(Date.now() - step4)
 
         const connectedHumanPlayers = this.getConnectedHumanPlayers()
         const deadPlayers = playersValues.filter((player) => player.isDead || !player.isConnected).length
@@ -170,13 +167,11 @@ export class Game {
         const averageStep1 = average(this.playersIntersections) * 1000
         const averageStep2 = average(this.playerUpdates) * 1000
         const averageStep3 = average(this.townsIntersections) * 1000
-        const averageStep4 = average(this.emitUpdates) * 1000
 
         console.log(`
             pInt: ${averageStep1}
             pUpd: ${averageStep2}
             town: ${averageStep3}
-            emit: ${averageStep4}
         `)
 
         return Object.values(this.players).find((player) => !player.isDead && player.isConnected)
