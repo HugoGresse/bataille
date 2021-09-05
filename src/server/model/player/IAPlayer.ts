@@ -172,7 +172,7 @@ export class IAPlayer extends AbstractPlayer {
                 new UnitAction(
                     createdUnit.id,
                     UnitActionType.Move,
-                    new UnitActionMoveData(new Position(to.x * TILE_WIDTH_HEIGHT + 2, to.y * TILE_WIDTH_HEIGHT + 2))
+                    new UnitActionMoveData(new Position(to.x * TILE_WIDTH_HEIGHT + 10, to.y * TILE_WIDTH_HEIGHT + 10))
                 )
             )
             return true
