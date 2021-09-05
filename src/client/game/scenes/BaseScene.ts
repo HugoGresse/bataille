@@ -1,5 +1,5 @@
 import { GameActions } from '../GameActions'
-import { GameState } from '../../../server/model/GameState'
+import { PrivateGameState } from '../../../server/model/GameState'
 import { BatailleGame } from '../BatailleGame'
 import { UIScene } from './UI/UIScene'
 
@@ -28,7 +28,7 @@ export abstract class BaseScene extends Phaser.Scene {
         return this.game.registry.get('actions')
     }
 
-    public getState(): GameState | null {
+    public getState(): PrivateGameState | null {
         const game = BatailleGame.getCurrentGame()
         if (!game) {
             return null

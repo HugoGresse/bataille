@@ -1,6 +1,6 @@
 import { HumanPlayer } from './model/player/HumanPlayer'
 import { GameLoop } from './GameLoop'
-import { GameState, UnitState } from './model/GameState'
+import { GameState, PrivatePlayerState, UnitState } from './model/GameState'
 import { UnitAction } from '../common/UnitAction'
 import { Map } from './model/map/Map'
 import { SocketEmitter } from './SocketEmitter'
@@ -47,7 +47,7 @@ export class Game {
         }
     }
 
-    getState(playerId: string): GameState {
+    getState(): GameState {
         const units = Object.values(this.players).reduce((acc: UnitState[], player) => {
             return acc.concat(player.getUnitsState())
         }, [])
@@ -57,16 +57,17 @@ export class Game {
                 return p2.income - p1.income
             })
 
-        const currentPlayer = this.players[playerId]
-
         return {
             status: this.gameLoop.isRunning ? 'running' : 'stopped',
             nextIncome: this.incomeDispatcher.getNextIncomeDelay(),
             players: players,
-            currentPlayer: currentPlayer.getPrivatePlayerState(),
             units: units,
             towns: this.map.getTownsState(),
         }
+    }
+
+    getPlayerPrivateState(playerId: string): PrivatePlayerState {
+        return this.players[playerId].getPrivatePlayerState()
     }
 
     addPlayer(player: AbstractPlayer, socketId: string) {

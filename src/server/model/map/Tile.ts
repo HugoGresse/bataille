@@ -11,7 +11,6 @@ export type TilePublic = {
         name: string
         color: string
     }
-    isTerrain: boolean
     isTown: boolean
     name?: string
 }
@@ -69,7 +68,6 @@ export class Tile {
     export(): TilePublic {
         const exportData: TilePublic = {
             id: this.id,
-            isTerrain: this.isTerrain,
             isTown: this.isTown,
             name: this.data?.name,
         }

@@ -5,9 +5,13 @@ export interface GameState {
     status: 'running' | 'stopped'
     nextIncome: number
     players: PublicPlayerState[]
-    currentPlayer: PrivatePlayerState
     units: UnitState[]
     towns: TownsState[]
+    deltas?: GameState
+}
+
+export interface PrivateGameState extends GameState {
+    currentPlayer: PrivatePlayerState
 }
 
 export interface PrivatePlayerState extends PublicPlayerState {

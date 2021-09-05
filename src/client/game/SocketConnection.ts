@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client'
-import { GameState } from '../../server/model/GameState'
+import { PrivateGameState } from '../../server/model/GameState'
 import {
     GAME_MESSAGE,
     GAME_STATE_INIT,
@@ -8,11 +8,12 @@ import {
     PLAYER_FORCE_START,
     PLAYER_JOIN_LOBBY,
 } from '../../common/SOCKET_EMIT'
-import { ExportType } from '../../server/model/types/ExportType'
+import { ExportType, ExportTypeWithGameState } from '../../server/model/types/ExportType'
 import { SOCKET_URL } from './utils/clientEnv'
 import { LobbyState } from '../../server/GameLobby'
 import { Message } from '../../server/model/types/Message'
 import { pickRandomPlayerName } from '../../utils/pickRandomPlayerName'
+import * as jsondiffpatch from 'jsondiffpatch'
 
 let socketConnectionInstance: SocketConnection | null = null
 export const newSocketConnectionInstance = (
@@ -30,7 +31,7 @@ export const getSocketConnectionInstance = () => {
 
 export class SocketConnection {
     private socket: Socket
-    private gameState: GameState | null = null
+    private gameState: PrivateGameState | null = null
     public gameStartData: ExportType | null = null
     private messageListener: ((message: Message) => void) | null = null
 
@@ -73,14 +74,29 @@ export class SocketConnection {
         this.onLobbyState(state)
     }
 
-    private handleGameInit(data: ExportType) {
+    private handleGameInit(data: ExportTypeWithGameState) {
         this.onGameStart(data.gameId)
         this.gameStartData = data
+        this.gameState = data.gameState
     }
 
-    private handleGameState(gameState: GameState) {
-        this.gameState = {
-            ...gameState,
+    private handleGameState(gameState: PrivateGameState) {
+        if (!this.gameState) {
+            this.gameState = gameState
+        } else {
+            // In this case, the type is not a PrivateGameState but only the delta generated from jsondiffpatch on the server + the currentPlayer state which is private to the playing user
+            if (gameState.deltas) {
+                this.gameState = {
+                    ...jsondiffpatch.patch(this.gameState, gameState.deltas),
+                    currentPlayer: gameState.currentPlayer,
+                }
+            } else {
+                // No diff for public state = no delta, only currentPlayer changed
+                this.gameState = {
+                    ...this.gameState,
+                    currentPlayer: gameState.currentPlayer,
+                }
+            }
         }
     }
 
@@ -94,7 +110,7 @@ export class SocketConnection {
         this.socket.disconnect()
     }
 
-    public getLatestState(): GameState | null {
+    public getLatestState(): PrivateGameState | null {
         return this.gameState
     }
 
