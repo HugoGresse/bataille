@@ -4,7 +4,6 @@ import { BUILDING_TOWN, TILE_WIDTH_HEIGHT } from '../../../../common/UNITS'
 import { GameObjects, Display } from 'phaser'
 import { TilePublic } from '../../../../server/model/map/Tile'
 import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
-import { playTownCapturedSound } from '../../utils/sounds'
 
 const textStyle = {
     ...TEXT_STYLE,
@@ -34,9 +33,6 @@ export class Town extends Building {
     }
 
     update(tile: TilePublic, currentPlayerName: string | undefined) {
-        if (this.tileData.player?.name === currentPlayerName && tile.player?.name !== currentPlayerName) {
-            playTownCapturedSound()
-        }
         this.setTownColor(tile.player as UIPlayer)
         this.tileData.player = tile.player
     }

@@ -14,6 +14,7 @@ import { LobbyState } from '../../server/GameLobby'
 import { Message } from '../../server/model/types/Message'
 import { pickRandomPlayerName } from '../../utils/pickRandomPlayerName'
 import * as jsondiffpatch from 'jsondiffpatch'
+import { playTownCapturedSound } from './utils/sounds'
 
 let socketConnectionInstance: SocketConnection | null = null
 export const newSocketConnectionInstance = (
@@ -34,6 +35,7 @@ export class SocketConnection {
     private gameState: PrivateGameState | null = null
     public gameStartData: ExportType | null = null
     private messageListener: ((message: Message) => void) | null = null
+    private diffPatcher
 
     constructor(
         protected socketUrl: string,
@@ -41,6 +43,7 @@ export class SocketConnection {
         protected onGameStart: (gameId: string) => void
     ) {
         this.socket = io(socketUrl)
+        this.diffPatcher = jsondiffpatch.create()
 
         this.socket.on('connection', () => {
             console.log('connected')
@@ -87,8 +90,21 @@ export class SocketConnection {
             // In this case, the type is not a PrivateGameState but only the delta generated from jsondiffpatch on the server + the currentPlayer state which is private to the playing user
             if (gameState.deltas) {
                 this.gameState = {
-                    ...jsondiffpatch.patch(this.gameState, gameState.deltas),
+                    ...this.diffPatcher.patch(this.gameState, gameState.deltas),
                     currentPlayer: gameState.currentPlayer,
+                }
+
+                // Temporary until the switch to event based
+                if (gameState.deltas.towns) {
+                    const currentPlayerName = this.gameState?.currentPlayer.name
+                    const values = Object.values(gameState.deltas.towns)
+                    for (const townChange of values) {
+                        if (townChange.player?.name) {
+                            if (townChange.player?.name[0] === currentPlayerName) {
+                                playTownCapturedSound()
+                            }
+                        }
+                    }
                 }
             } else {
                 // No diff for public state = no delta, only currentPlayer changed
