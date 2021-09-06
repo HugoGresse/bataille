@@ -67,7 +67,7 @@ export const Game = () => {
                         href="https://discord.gg/tDhG5FnK"
                         target="_blank"
                         startIcon={<FeedbackIcon />}>
-                        Discord (feedback sand news)
+                        Discord (feedbacks/news)
                     </Button>{' '}
                     <HelpDialogButton color="secondary" buttonText={'HELP'} />{' '}
                     <Button
