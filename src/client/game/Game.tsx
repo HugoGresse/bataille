@@ -49,10 +49,10 @@ export const Game = () => {
                 <div>
                     <Button
                         color="secondary"
-                        href="https://github.com/HugoGresse/bataille/issues/new"
+                        href="https://discord.gg/tDhG5FnK"
                         target="_blank"
                         startIcon={<FeedbackIcon />}>
-                        Bug/Feedback
+                        Discord (feedback sand news)
                     </Button>{' '}
                     <HelpDialogButton color="secondary" buttonText={'HELP'} />{' '}
                     <Button
