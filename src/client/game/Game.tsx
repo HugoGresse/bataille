@@ -35,7 +35,7 @@ export const Game = () => {
                 history.go(1)
             }
         })
-    }, [])
+    }, [history, gameId])
 
     useEffect(() => {
         if (gameContainer.current) {

@@ -33,10 +33,6 @@ socketIOServer.on('connection', (socket: Socket) => {
     socket.on(PLAYER_MESSAGE_POST, handlePlayerPostMessage(socket))
 })
 
-socketIOServer.listen(PORT)
-
-console.log(`Server listening on port ${PORT}`)
-
 const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
     if (!lobby) {
         const futureGameId = newId()
@@ -122,3 +118,5 @@ const startGame = (
     game.start()
     trackGameStart(game.getConnectedHumanPlayers().length)
 }
+
+console.log(`Server started on port ${PORT}`)
