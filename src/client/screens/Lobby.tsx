@@ -33,7 +33,7 @@ export const Lobby = () => {
                 setLobbyState(lobbyState)
             },
             (gameId: string) => {
-                history.replace(`/g/${gameId}/`)
+                history.push(`/g/${gameId}/`)
             }
         )
     }, [history])

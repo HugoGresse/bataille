@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { BatailleGame } from './BatailleGame'
 import '../screens/game.css'
-import { useParams } from 'react-router-dom'
+import { useHistory, useParams } from 'react-router-dom'
 import { Box, Button } from '@material-ui/core'
 import FullscreenIcon from '@material-ui/icons/Fullscreen'
 import BackIcon from '@material-ui/icons/ArrowBack'
@@ -15,12 +15,27 @@ type GameParams = {
 }
 
 export const Game = () => {
+    const history = useHistory()
     const { gameId } = useParams<GameParams>()
     const gameTopContainer = useRef<HTMLDivElement>(null)
     const gameContainer = useRef<HTMLDivElement>(null)
     const [game, setGame] = useState<BatailleGame>()
     const [messageDialogOpen, setMessageDialogOpen] = useState<boolean>(false)
     const [deferredPromise, setDeferredPromise] = useState<null | DeferredPromise<string | null>>(null)
+
+    useEffect(() => {
+        // This prevent the user from going back using the Back button
+        // The push is done two times. The first one from the lobby, to get there, and a second one here to go back to
+        // this route on back press
+        history.push(`/g/${gameId}/`)
+        return history.listen((newLocation, action) => {
+            if (action === 'POP') {
+                // If a "POP" action event occurs,
+                // Send user back to the originating location
+                history.go(1)
+            }
+        })
+    }, [])
 
     useEffect(() => {
         if (gameContainer.current) {
