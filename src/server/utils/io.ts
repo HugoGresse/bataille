@@ -8,7 +8,7 @@ const httpServer = createServer()
 export const socketIOServer = new Server(httpServer, {
     cors: {
         origin: ['https://bataille.ovh', 'https://admin.socket.io'],
-        methods: ['GET', 'POST'],
+        credentials: true,
     },
 })
 instrument(socketIOServer, {
