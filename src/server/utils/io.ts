@@ -1,13 +1,15 @@
 import { Server } from 'socket.io'
 import { createServer } from 'http'
 import { instrument } from '@socket.io/admin-ui'
-import { ADMIN_PWD, ADMIN_USER, PORT } from './serverEnv'
+import { ADMIN_PWD, ADMIN_USER, isProduction, PORT } from './serverEnv'
 
 const httpServer = createServer()
 
+const allowedOrigins = isProduction ? ['https://bataille.ovh', 'https://admin.socket.io'] : '*'
+
 export const socketIOServer = new Server(httpServer, {
     cors: {
-        origin: ['https://bataille.ovh', 'https://admin.socket.io'],
+        origin: allowedOrigins,
         credentials: true,
     },
 })

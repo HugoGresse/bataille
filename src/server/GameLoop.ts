@@ -10,11 +10,12 @@ export class GameLoop {
     private intervalId: NodeJS.Timeout | null = null
     public isRunning = false
     public gameDuration: number = 0
+    public gameStartTS: number = 0
 
     constructor(protected emitter: SocketEmitter) {}
 
     start(game: Game) {
-        const startTime = Date.now()
+        this.gameStartTS = Date.now()
         this.intervalId = setInterval(() => {
             const results = this.run(game)
 
@@ -22,7 +23,7 @@ export class GameLoop {
                 this.emitGameState(game)
             } else {
                 // let users speaks at the end of the game...
-                this.gameDuration = Math.round(((Date.now() - startTime) / 1000 / 60) * 100) / 100
+                this.gameDuration = Math.round(((Date.now() - this.gameStartTS) / 1000 / 60) * 100) / 100
                 this.emitGameState(game)
                 this.emitter.emitMessage(results.result, results.winner)
                 setTimeout(() => {

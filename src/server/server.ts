@@ -19,11 +19,14 @@ import { SocketEmitter } from './SocketEmitter'
 import { trackGameStart } from './utils/trackings'
 import { IA_PLAYER_PER_GAME } from '../common/GameSettings'
 import { IAPlayer } from './model/player/IAPlayer'
+import { AdminServer } from './admin/AdminServer'
 
 const games: {
     [gameId: string]: Game
 } = {}
 let lobby: GameLobby | null
+
+new AdminServer(games)
 
 socketIOServer.on('connection', (socket: Socket) => {
     socket.on(PLAYER_JOIN_LOBBY, handlePlayerJoin(socket))

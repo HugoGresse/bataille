@@ -35,6 +35,10 @@ export class Game {
         this.actionsProcessor = new ActionsProcessor(this.map)
     }
 
+    getGameStartTime(): number {
+        return this.gameLoop.gameStartTS
+    }
+
     getGameDuration(): number {
         return this.gameLoop.gameDuration
     }
