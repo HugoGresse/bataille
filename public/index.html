@@ -39,5 +39,15 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+
+    <script>
+        (function() {
+            e = encodeURIComponent
+            d = document
+            i = d.createElement("img")
+            r = d.referrer ? '&r='+e(d.referrer) : ''
+            i.src = "https://ingestor.analitiko.eu?i=ab478351-3ee4-45d7-8cc7-cf744582bf27&u=" + encodeURIComponent(location) + r
+        })();
+    </script>
   </body>
 </html>
