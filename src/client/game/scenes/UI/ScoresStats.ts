@@ -46,7 +46,7 @@ export class ScoresStats {
     }
 }
 
-const getPlayerText = (index: number, player: PublicPlayerState) => {
+export const getPlayerText = (index: number, player: PublicPlayerState) => {
     let text = `${index + 1}. ${player.name}: ${player.income} `
 
     if (player.dead) {

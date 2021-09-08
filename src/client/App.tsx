@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
 import React from 'react'
 import { Home } from './screens/Home'
 import { Lobby } from './screens/Lobby'
+import { Admin } from './screens/Admin'
 
 function App() {
     return (
@@ -16,6 +17,9 @@ function App() {
                 </Route>
                 <Route path="/g/:gameId">
                     <Game />
+                </Route>
+                <Route path="/admin/">
+                    <Admin />
                 </Route>
             </Switch>
         </Router>

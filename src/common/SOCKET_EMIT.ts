@@ -10,3 +10,11 @@ export const LOBBY_STATE = 's/lobby/state'
 export const GAME_STATE_INIT = 's/game/init'
 export const GAME_STATE_UPDATE = 's/gameState'
 export const GAME_MESSAGE = 's/gameMessage'
+
+// ADMINS
+export const ADMIN_NAMESPACE = 'stats'
+export const ADMIN_UPDATE = 's/admin/update'
+export const ADMIN_ACTION = 'c/admin/action'
+export enum AdminActions {
+    sendMessage,
+}

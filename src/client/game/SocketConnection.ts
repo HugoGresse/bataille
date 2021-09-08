@@ -45,7 +45,7 @@ export class SocketConnection {
         this.socket = io(socketUrl)
         this.diffPatcher = jsondiffpatch.create()
 
-        this.socket.on('connection', () => {
+        this.socket.on('connect', () => {
             console.log('connected')
         })
         this.socket.on('disconnect', function () {
