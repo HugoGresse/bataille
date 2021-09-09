@@ -11,8 +11,9 @@ A risk like game, in TypeScript, revamped for quick bataille and fun.
 - public in-game discussion
 - game time: 10-20min? 
 
-![Game screenshots](https://user-images.githubusercontent.com/662377/130512746-80ee7ef5-6b89-4222-948d-e14904b078f5.png)
+[Video gameplay](https://www.youtube.com/watch?v=dIgEd0i-_YI)
 
+![Game screenshots](https://user-images.githubusercontent.com/662377/130512746-80ee7ef5-6b89-4222-948d-e14904b078f5.png)
 
 # Developers
 
