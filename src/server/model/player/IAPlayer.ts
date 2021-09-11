@@ -12,7 +12,7 @@ import { getRandomNumberBetween } from '../../../utils/getRandomNumberBetween'
 import { SocketEmitter } from '../../SocketEmitter'
 import { XYMapWithType } from '../../utils/xyMapToArray'
 
-const IA_UPDATE_INTERVAL = 1000 // ms
+const IA_UPDATE_INTERVAL = 2000 // ms
 const MAX_ACTION_UPDATE = 5
 
 export class IAPlayer extends AbstractPlayer {
