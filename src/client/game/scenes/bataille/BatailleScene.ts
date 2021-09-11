@@ -3,7 +3,7 @@ import { StickUnit } from '../../actors/StickUnit'
 import { Tilemaps } from 'phaser'
 import { BaseScene, SCENE_UI_KEY } from '../BaseScene'
 import { BatailleGame } from '../../BatailleGame'
-import { ExportType } from '../../../../server/model/types/ExportType'
+import { ExportTypeWithGameState } from '../../../../server/model/types/ExportType'
 import { setupCamera } from '../../utils/setupCamera'
 import { TileSelection } from './TileSelection'
 import { Town } from '../../actors/buildings/Town'
@@ -21,19 +21,17 @@ export class BatailleScene extends BaseScene {
     private units: {
         [id: string]: StickUnit
     } = {}
-    private unitGroup!: Phaser.GameObjects.Group
     private towns: {
         [id: string]: Town
     } = {}
     private socket!: SocketConnection
+    private isFirstRun = true
 
     constructor() {
         super('BatailleScene')
     }
 
-    preload() {
-        this.unitGroup = this.add.group()
-    }
+    preload() {}
 
     create() {
         this.scene.launch(SCENE_UI_KEY)
@@ -48,29 +46,24 @@ export class BatailleScene extends BaseScene {
         super.update(time, delta)
         const newState = this.socket.getLatestState()
         if (newState) {
-            const aliveUnits: string[] = []
-            newState.units.forEach((unit) => {
-                aliveUnits.push(unit.id)
-                if (this.units[unit.id]) {
-                    this.units[unit.id].update(unit)
+            for (const unit of newState.units) {
+                const id = unit.id
+                if (unit.hp.current === 0) {
+                    if (this.units[id]) {
+                        this.units[id].destroy()
+                        delete this.units[id]
+                    }
                 } else {
-                    const unitObj = new StickUnit(this, unit.id, unit.position.x, unit.position.y)
-                    unitObj.setColor(unit.color)
-                    unitObj.update(unit)
-                    this.unitGroup.add(unitObj)
-                    this.units[unit.id] = unitObj
+                    if (this.units[unit.id]) {
+                        this.units[unit.id].update(unit)
+                    } else {
+                        const unitObj = new StickUnit(this, unit.id, unit.position.x, unit.position.y)
+                        unitObj.setColor(unit.color)
+                        unitObj.update(unit)
+                        this.units[unit.id] = unitObj
+                    }
                 }
-            })
-            const deadUnits = Object.keys(this.units).filter((unitId) => {
-                return aliveUnits.indexOf(unitId) === -1
-            })
-            if (deadUnits.length > 0) {
-                deadUnits.forEach((id) => {
-                    this.units[id].destroy()
-                    delete this.units[id]
-                })
             }
-
             const currentPlayerName = this.getState()?.currentPlayer.name
             newState.towns.forEach((town) => {
                 if (this.towns[town.id]) {
@@ -83,7 +76,7 @@ export class BatailleScene extends BaseScene {
         }
     }
 
-    initSceneWithData(data: ExportType) {
+    initSceneWithData(data: ExportTypeWithGameState) {
         this.map = this.make.tilemap({ key: 'map' })
         this.tileset = this.map.addTilesetImage('tile', 'tiles')
 
@@ -110,5 +103,13 @@ export class BatailleScene extends BaseScene {
         this.tilesColorsUpdater = new TilesColorsUpdater(this, data.map.countries)
         setupCamera(this.cameras.main, this, this.map)
         displayCountriesInfo(data.map.countriesInfos, this)
+
+        for (const unit of data.gameState.units) {
+            const unitObj = new StickUnit(this, unit.id, unit.position.x, unit.position.y)
+            unitObj.setColor(unit.color)
+            unitObj.update(unit)
+            this.units[unit.id] = unitObj
+        }
+        this.tilesColorsUpdater.update(data.gameState.players)
     }
 }

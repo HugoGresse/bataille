@@ -36,8 +36,8 @@ export class UnitsProcessor {
                 const isUpdatedUnit = unit.update(map)
 
                 const unitNewPos = unit.position.getRounded()
-                if (unitNewPos.x !== x || unitNewPos.y !== y) {
-                    console.log('1', unitNewPos, x, y)
+                if (unitNewPos.x != x || unitNewPos.y != y) {
+                    console.log(21)
                     this.updatedUnitsOnLastUpdate.push(unit)
                     // Unit may be wrongfully displayed on the grid, or just moved from one square to another, this align everything
                     delete this.units[x][y]
@@ -50,6 +50,7 @@ export class UnitsProcessor {
                         this.units[unitNewPos.x][unitNewPos.y].push(unit)
                     }
                 } else if (isUpdatedUnit) {
+                    console.log(2)
                     this.updatedUnitsOnLastUpdate.push(unit)
                 }
 
@@ -115,6 +116,7 @@ export class UnitsProcessor {
                         return null
                     }
                     existingUnit.life.heal(unit.life.getHP())
+                    existingUnit.forceUpdate = true
                     return existingUnit
                 } else {
                     console.warn('This town does not belong to the user')

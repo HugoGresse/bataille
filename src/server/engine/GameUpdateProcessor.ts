@@ -6,10 +6,12 @@ import { PlayersById } from '../model/types/PlayersById'
 import { AbstractPlayer } from '../model/player/AbstractPlayer'
 import { UnitsProcessor } from './UnitsProcessor'
 import { BaseUnit } from '../model/actors/units/BaseUnit'
+import { xyMapToArray } from '../utils/xyMapToArray'
 
 export class GameUpdateProcessor {
     private players?: AbstractPlayer[]
     private lastUpdatedUnits: BaseUnit[] = []
+    private wasFirstUnitSent = false
 
     private unitsUpdatesRuntimes: Array<number> = []
     private townsUpdatesRuntimes: Array<number> = []
@@ -47,7 +49,6 @@ export class GameUpdateProcessor {
             // 4. Update country ownership / incomes
             const step3 = Date.now()
             if (changedTowns.length) {
-                console.log('town changed')
                 for (const player of this.players) {
                     updatePlayerIncome(this.map.getTownsByCountries(), player, this.emitter)
                 }
@@ -62,6 +63,12 @@ export class GameUpdateProcessor {
     }
 
     public getLastUpdatedUnits(): BaseUnit[] {
+        if (!this.wasFirstUnitSent) {
+            this.wasFirstUnitSent = true
+            return xyMapToArray<BaseUnit[]>(this.unitsProcessor.getUnits())
+                .map((units) => units[0])
+                .filter((unit) => !!unit)
+        }
         return this.lastUpdatedUnits
     }
 

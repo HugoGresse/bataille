@@ -4,7 +4,7 @@ import { UIScene } from './scenes/UI/UIScene'
 import { LoadingScene } from './scenes/LoadingScene'
 import { getSocketConnectionInstance, SocketConnection } from './SocketConnection'
 import { GameActions } from './GameActions'
-import { ExportType } from '../../server/model/types/ExportType'
+import { ExportTypeWithGameState } from '../../server/model/types/ExportType'
 import { playStartSound } from './utils/sounds'
 import { SCENE_UI_KEY } from './scenes/BaseScene'
 import { TextRequestListener } from './types/TextRequestListener'
@@ -60,7 +60,7 @@ export class BatailleGame {
         // this.game.resize()
     }
 
-    onGameStart(data: ExportType) {
+    onGameStart(data: ExportTypeWithGameState) {
         if (!this.game.isRunning) {
             setTimeout(() => {
                 this.onGameStart(data)

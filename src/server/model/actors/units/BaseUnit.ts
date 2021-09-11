@@ -15,6 +15,7 @@ export abstract class BaseUnit extends Actor {
     public life: Life
     private actions: UnitAction[] = []
     private postponedAction: boolean = false
+    public forceUpdate: boolean = true
 
     protected constructor(
         owner: AbstractPlayer,
@@ -46,6 +47,10 @@ export abstract class BaseUnit extends Actor {
     }
 
     update(map: Map): boolean {
+        if (this.forceUpdate) {
+            this.forceUpdate = false
+            return true
+        }
         if (this.actions.length === 0) {
             return false
         }

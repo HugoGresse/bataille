@@ -8,7 +8,7 @@ import {
     PLAYER_FORCE_START,
     PLAYER_JOIN_LOBBY,
 } from '../../common/SOCKET_EMIT'
-import { ExportType, ExportTypeWithGameState } from '../../server/model/types/ExportType'
+import { ExportTypeWithGameState } from '../../server/model/types/ExportType'
 import { SOCKET_URL } from './utils/clientEnv'
 import { LobbyState } from '../../server/GameLobby'
 import { Message } from '../../server/model/types/Message'
@@ -33,7 +33,7 @@ export const getSocketConnectionInstance = () => {
 export class SocketConnection {
     private socket: Socket
     private gameState: PrivateGameState | null = null
-    public gameStartData: ExportType | null = null
+    public gameStartData: ExportTypeWithGameState | null = null
     private messageListener: ((message: Message) => void) | null = null
     private diffPatcher
 
@@ -83,7 +83,7 @@ export class SocketConnection {
     private handleGameInit(data: ExportTypeWithGameState) {
         this.onGameStart(data.gameId)
         this.gameStartData = data
-        this.gameState = data.gameState
+        this.gameState = JSON.parse(JSON.stringify(data.gameState)) // prevent diff to change the gameStartData ref and fuc everything
     }
 
     private handleGameState(gameState: PrivateGameState) {

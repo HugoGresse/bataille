@@ -121,11 +121,8 @@ export class Game {
     }
 
     start() {
-        this.emitter.emitInitialGameState(this)
         townAssignation(this.getPlayers(), this.map, this.unitsProcessor)
-        if (!this.gameLoop.isRunning) {
-            this.gameLoop.start(this)
-        }
+        this.emitter.emitInitialGameState(this)
         setTimeout(() => {
             // Let clients be initialized before send this first message
             this.getConnectedHumanPlayers().forEach((player) => {
@@ -137,6 +134,9 @@ export class Game {
                 )
             })
         }, 1500)
+        if (!this.gameLoop.isRunning) {
+            this.gameLoop.start(this)
+        }
     }
 
     update(): boolean {

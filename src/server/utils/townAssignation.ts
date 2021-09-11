@@ -40,17 +40,10 @@ const addUnitToTown = (town: Town, unitsProcessor: UnitsProcessor) => {
     if (town.player instanceof HumanPlayer || town.player instanceof IAPlayer) {
         const x = town.x
         const y = town.y
-        unitsProcessor.addUnit(
-            new StickUnit(
-                town.player,
-                new Position(
-                    x * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2,
-                    y * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
-                )
-            ),
+        const unit = new StickUnit(
             town.player,
-            x,
-            y
+            new Position(x * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2, y * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2)
         )
+        unitsProcessor.addUnit(unit, town.player, x, y)
     }
 }
