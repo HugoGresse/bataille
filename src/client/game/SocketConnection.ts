@@ -42,7 +42,10 @@ export class SocketConnection {
         protected onLobbyState: (state: LobbyState) => void,
         protected onGameStart: (gameId: string) => void
     ) {
-        this.socket = io(socketUrl)
+        this.socket = io(socketUrl, {
+            transports: ['websocket'],
+            autoConnect: true,
+        })
         this.diffPatcher = jsondiffpatch.create()
 
         this.socket.on('connect', () => {
