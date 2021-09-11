@@ -11,6 +11,7 @@ import { xyMapToArray } from '../utils/xyMapToArray'
 export class GameUpdateProcessor {
     private players?: AbstractPlayer[]
     private lastUpdatedUnits: BaseUnit[] = []
+    private lastDeletedUnits: BaseUnit[] = []
     private wasFirstUnitSent = false
 
     private unitsUpdatesRuntimes: Array<number> = []
@@ -35,7 +36,11 @@ export class GameUpdateProcessor {
         if (!this.players) this.players = Object.values(this.playersById)
         // 1. Update units
         const step1 = Date.now()
-        this.lastUpdatedUnits = this.unitsProcessor.updateUnits(this.map, this.playersById)
+        const { updatedUnits, deletedUnits } = this.unitsProcessor.updateUnits(this.map, this.playersById)
+
+        this.lastUpdatedUnits = updatedUnits
+        this.lastDeletedUnits = deletedUnits
+
         // TODO : because units are now grouped in an array, the fight is done only on the next iteration, the first being the unit move: 1. The unit move to a new tile, on next turn, the unit is fighting on this new tile
         this.unitsUpdatesRuntimes.push(Date.now() - step1)
 
@@ -43,12 +48,13 @@ export class GameUpdateProcessor {
         if (this.lastUpdatedUnits.length) {
             // 3. Updates towns
             const step2 = Date.now()
-            const changedTowns = this.unitsProcessor.updateTownsFromUnits(this.map)
+            const { towns, deletedUnits } = this.unitsProcessor.updateTownsFromUnits(this.map)
+            this.lastDeletedUnits.push(...deletedUnits)
             this.townsUpdatesRuntimes.push(Date.now() - step2)
 
             // 4. Update country ownership / incomes
             const step3 = Date.now()
-            if (changedTowns.length) {
+            if (towns.length) {
                 for (const player of this.players) {
                     updatePlayerIncome(this.map.getTownsByCountries(), player, this.emitter)
                 }
@@ -56,6 +62,7 @@ export class GameUpdateProcessor {
             this.countriesUpdatesRuntimes.push(Date.now() - step3)
         } else {
             this.townsUpdatesRuntimes.push(0)
+            this.countriesUpdatesRuntimes.push(0)
             console.log('nothing to do')
         }
 
@@ -71,6 +78,9 @@ export class GameUpdateProcessor {
         }
         return this.lastUpdatedUnits
     }
+    public getLastDeletedUnits(): BaseUnit[] {
+        return this.lastDeletedUnits
+    }
 
     printRuntimes() {
         const averageStep1 = average(this.unitsUpdatesRuntimes) * 1000
@@ -82,6 +92,13 @@ export class GameUpdateProcessor {
             tUpd: ${averageStep2}
             cUpd: ${averageStep3}
         `)
+
+        console.log(
+            'dead unit',
+            xyMapToArray<BaseUnit[]>(this.unitsProcessor.getUnits())
+                .map((units) => units[0])
+                .filter((unit) => !!unit && unit.life.getHP() <= 0)
+        )
     }
 }
 

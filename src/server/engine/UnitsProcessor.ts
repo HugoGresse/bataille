@@ -14,8 +14,6 @@ export type UnitsTiles = {
 }
 
 export class UnitsProcessor {
-    private updatedUnitsOnLastUpdate: BaseUnit[] = []
-
     constructor(private units: UnitsTiles) {}
 
     /**
@@ -23,8 +21,15 @@ export class UnitsProcessor {
      * 2. If only one unit, process action
      * 2. If more than one unit, merge them or make them fight. If left unit has some pending actions, make it move
      */
-    public updateUnits(map: Map, players: PlayersById): BaseUnit[] {
-        this.updatedUnitsOnLastUpdate = []
+    public updateUnits(
+        map: Map,
+        players: PlayersById
+    ): {
+        updatedUnits: BaseUnit[]
+        deletedUnits: BaseUnit[]
+    } {
+        const updatedUnits: BaseUnit[] = []
+        const deletedUnits: BaseUnit[] = []
 
         Object.values(players).forEach((player) => player.setUnitCount(0))
 
@@ -37,8 +42,7 @@ export class UnitsProcessor {
 
                 const unitNewPos = unit.position.getRounded()
                 if (unitNewPos.x != x || unitNewPos.y != y) {
-                    console.log(21)
-                    this.updatedUnitsOnLastUpdate.push(unit)
+                    updatedUnits.push(unit)
                     // Unit may be wrongfully displayed on the grid, or just moved from one square to another, this align everything
                     delete this.units[x][y]
                     if (!this.units[unitNewPos.x]) {
@@ -50,33 +54,40 @@ export class UnitsProcessor {
                         this.units[unitNewPos.x][unitNewPos.y].push(unit)
                     }
                 } else if (isUpdatedUnit) {
-                    console.log(2)
-                    this.updatedUnitsOnLastUpdate.push(unit)
+                    updatedUnits.push(unit)
                 }
 
                 players[unit.owner.id].incrementUnitCount(unit.life.getHP())
             } else if (units.length > 1) {
-                const leftUnit = this.processUnitsOnSameTile(units)
-                this.updatedUnitsOnLastUpdate.push(...units)
+                const { deadUnits, aliveUnit } = this.processUnitsOnSameTile(units)
+                updatedUnits.push(...units)
 
-                if (leftUnit) {
-                    leftUnit.update(map)
-                    players[leftUnit.owner.id].incrementUnitCount(leftUnit.life.getHP())
-                    this.units[x][y] = [leftUnit]
+                if (aliveUnit) {
+                    aliveUnit.update(map)
+                    players[aliveUnit.owner.id].incrementUnitCount(aliveUnit.life.getHP())
+                    this.units[x][y] = [aliveUnit]
                 } else {
                     delete this.units[x][y]
                 }
+                deletedUnits.push(...deadUnits)
             } else {
                 // Zero units on this array, delete it to improve perf on iter
                 delete this.units[x][y]
             }
         })
-        return this.updatedUnitsOnLastUpdate
+        return {
+            updatedUnits,
+            deletedUnits,
+        }
     }
 
-    public updateTownsFromUnits(map: Map): Town[] {
+    public updateTownsFromUnits(map: Map): {
+        towns: Town[]
+        deletedUnits: BaseUnit[]
+    } {
         const towns = map.getTowns()
         const changedTowns: Town[] = []
+        const deletedUnits: BaseUnit[] = []
         for (const town of towns) {
             const unitsOnTown = this.units[town.x] ? this.units[town.x][town.y] : null
             if (unitsOnTown && unitsOnTown.length) {
@@ -85,20 +96,22 @@ export class UnitsProcessor {
                     changedTowns.push(town)
                     town.player = unit.owner
                     unit.life.takeDamage(1)
-                    if (unit.life.getHP() === 0) {
+                    if (unit.life.getHP() <= 0) {
                         delete this.units[town.x][town.y]
+                        deletedUnits.push(unit)
                     }
                 }
             }
         }
-        return changedTowns
+        return {
+            towns: changedTowns,
+            deletedUnits,
+        }
     }
 
     public getUnits() {
         return this.units
     }
-
-    // TODO : check zero life unit
 
     // Actions
 
@@ -145,7 +158,11 @@ export class UnitsProcessor {
         }
     }
 
-    private processUnitsOnSameTile(units: BaseUnit[]): BaseUnit | null {
+    private processUnitsOnSameTile(units: BaseUnit[]): {
+        deadUnits: BaseUnit[]
+        aliveUnit: BaseUnit | null
+    } {
+        const deadUnits: BaseUnit[] = []
         const survivingUnits = units.reduce((acc: BaseUnit[], unit) => {
             acc.push(unit)
 
@@ -165,19 +182,22 @@ export class UnitsProcessor {
                     firstUnit.life.takeDamage(secondUnit.damage * secondUnitLife)
                     secondUnit.life.takeDamage(firstUnit.damage * firstUnitLife)
                 }
+
+                deadUnits.push(...acc.filter((accUnit) => accUnit.life.getHP() <= 0))
+
                 acc = acc.filter((accUnit) => accUnit.life.getHP()) // should be only one unit
             }
 
             return acc
         }, [])
 
-        if (survivingUnits.length) {
-            if (survivingUnits.length > 1) {
-                console.warn('More than one unit after processing unit tiles', survivingUnits)
-            }
-            return survivingUnits[0]
+        if (survivingUnits.length > 1) {
+            console.warn('More than one unit after processing unit tiles', survivingUnits)
         }
 
-        return null
+        return {
+            deadUnits,
+            aliveUnit: survivingUnits[0],
+        }
     }
 }

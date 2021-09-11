@@ -25,7 +25,6 @@ export class BatailleScene extends BaseScene {
         [id: string]: Town
     } = {}
     private socket!: SocketConnection
-    private isFirstRun = true
 
     constructor() {
         super('BatailleScene')
@@ -46,22 +45,22 @@ export class BatailleScene extends BaseScene {
         super.update(time, delta)
         const newState = this.socket.getLatestState()
         if (newState) {
-            for (const unit of newState.units) {
+            for (const unit of newState.units.updated) {
                 const id = unit.id
-                if (unit.hp.current === 0) {
-                    if (this.units[id]) {
-                        this.units[id].destroy()
-                        delete this.units[id]
-                    }
+                if (this.units[id]) {
+                    this.units[id].update(unit)
                 } else {
-                    if (this.units[unit.id]) {
-                        this.units[unit.id].update(unit)
-                    } else {
-                        const unitObj = new StickUnit(this, unit.id, unit.position.x, unit.position.y)
-                        unitObj.setColor(unit.color)
-                        unitObj.update(unit)
-                        this.units[unit.id] = unitObj
-                    }
+                    const unitObj = new StickUnit(this, id, unit.position.x, unit.position.y)
+                    unitObj.setColor(unit.color)
+                    unitObj.update(unit)
+                    this.units[id] = unitObj
+                }
+            }
+            for (const unit of newState.units.deleted) {
+                const id = unit.id
+                if (this.units[id]) {
+                    this.units[id].destroy()
+                    delete this.units[id]
                 }
             }
             const currentPlayerName = this.getState()?.currentPlayer.name
@@ -104,7 +103,7 @@ export class BatailleScene extends BaseScene {
         setupCamera(this.cameras.main, this, this.map)
         displayCountriesInfo(data.map.countriesInfos, this)
 
-        for (const unit of data.gameState.units) {
+        for (const unit of data.gameState.units.updated) {
             const unitObj = new StickUnit(this, unit.id, unit.position.x, unit.position.y)
             unitObj.setColor(unit.color)
             unitObj.update(unit)

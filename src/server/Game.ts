@@ -1,6 +1,6 @@
 import { HumanPlayer } from './model/player/HumanPlayer'
 import { GameLoop } from './GameLoop'
-import { GameState, PrivatePlayerState, UnitState } from './model/GameState'
+import { GameState, PrivatePlayerState } from './model/GameState'
 import { UnitAction } from '../common/UnitAction'
 import { Map } from './model/map/Map'
 import { SocketEmitter } from './SocketEmitter'
@@ -59,7 +59,9 @@ export class Game {
     }
 
     getState(): GameState {
-        const units = this.gameUpdateProcessor.getLastUpdatedUnits().map((unit) => unit.getPublicState())
+        const updatedUnits = this.gameUpdateProcessor.getLastUpdatedUnits().map((unit) => unit.getPublicState())
+        const deletedUnits = this.gameUpdateProcessor.getLastDeletedUnits().map((unit) => unit.getPublicState())
+
         const players = this.players
             .map((player) => player.getPublicPlayerState())
             .sort((p1, p2) => {
@@ -70,7 +72,10 @@ export class Game {
             status: this.gameLoop.isRunning ? 'running' : 'stopped',
             nextIncome: this.incomeDispatcher.getNextIncomeDelay(),
             players: players,
-            units: units,
+            units: {
+                updated: updatedUnits,
+                deleted: deletedUnits,
+            },
             towns: this.map.getTownsState(),
         }
     }

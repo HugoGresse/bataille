@@ -5,7 +5,10 @@ export interface GameState {
     status: 'running' | 'stopped'
     nextIncome: number
     players: PublicPlayerState[]
-    units: UnitState[]
+    units: {
+        updated: UnitState[]
+        deleted: UnitState[]
+    }
     towns: TownsState[]
     deltas?: GameState
 }
