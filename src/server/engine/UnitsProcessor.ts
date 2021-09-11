@@ -153,7 +153,7 @@ export class UnitsProcessor {
         const unit = xyMapToArray<BaseUnit[]>(this.units).find((units) =>
             units.find((unit) => unit.id === action.unitId)
         )?.[0]
-        if (unit) {
+        if (unit && unit.owner.id === player.id) {
             unit.addAction(action)
         }
     }
