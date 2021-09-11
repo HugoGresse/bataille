@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import { io } from 'socket.io-client'
+import { io, Socket } from 'socket.io-client'
 import { SOCKET_URL } from '../game/utils/clientEnv'
-import { ADMIN_UPDATE } from '../../common/SOCKET_EMIT'
+import { ADMIN_ACTION, ADMIN_UPDATE, AdminActionsTypes } from '../../common/SOCKET_EMIT'
 import { useQuery } from '../utils/hooks/useQuery'
-import { Card, CardContent, Container, Grid, Typography } from '@material-ui/core'
+import { Card, CardContent, Container, Grid, TextField, Typography } from '@material-ui/core'
 import { AdminUpdate } from '../../server/admin/types/AdminUpdate'
 import { getPlayerText } from '../game/scenes/UI/ScoresStats'
 
 export const Admin = () => {
     const query = useQuery()
     const [isConnected, setConnected] = useState<boolean>(false)
+    const [socket, setSocket] = useState<null | Socket>(null)
     const [state, setState] = useState<AdminUpdate>({
         games: [],
     })
@@ -38,6 +39,7 @@ export const Admin = () => {
         socket.on(ADMIN_UPDATE, (data: AdminUpdate) => {
             setState(data)
         })
+        setSocket(socket)
         return () => {
             socket.disconnect()
         }
@@ -51,6 +53,30 @@ export const Admin = () => {
         <Container maxWidth="lg">
             <br />
             <Grid container spacing={2}>
+                <Grid item sm={12}>
+                    <TextField
+                        placeholder="Send message to all games"
+                        fullWidth={true}
+                        onKeyDown={(ev: any) => {
+                            if (ev.key === 'Enter') {
+                                if (socket) {
+                                    socket.emit(
+                                        ADMIN_ACTION,
+                                        {
+                                            type: AdminActionsTypes.sendMessage,
+                                            payload: {
+                                                message: ev.target.value,
+                                            },
+                                        },
+                                        queryToken
+                                    )
+                                }
+                                ev.preventDefault()
+                            }
+                        }}
+                    />
+                </Grid>
+
                 <Grid item sm={12}>
                     <Typography variant="h3" textAlign="center">
                         Ongoing Games: <b>{state.games.length}</b>

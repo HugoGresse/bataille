@@ -1,9 +1,10 @@
 import { Game } from '../Game'
 import { Socket } from 'socket.io'
-import { ADMIN_ACTION, ADMIN_NAMESPACE, ADMIN_UPDATE, AdminActions } from '../../common/SOCKET_EMIT'
+import { ADMIN_ACTION, ADMIN_NAMESPACE, ADMIN_UPDATE, AdminActionsTypes, GAME_MESSAGE } from '../../common/SOCKET_EMIT'
 import { ADMIN_KEY } from '../utils/serverEnv'
 import { socketIOServer } from '../utils/io'
 import { formatGames } from './formatGames'
+import { AdminActions } from './types/AdminActions'
 
 export class AdminServer {
     private connectedSocket: Socket | null = null
@@ -27,7 +28,7 @@ export class AdminServer {
                     this.updateInterval = setInterval(() => this.update(), 2000)
                 }
 
-                socket.on(ADMIN_ACTION, this.handleAction)
+                socket.on(ADMIN_ACTION, this.handleAction(socket))
             })
             .on('disconnect', () => {
                 console.log('<< disconnected from admin')
@@ -47,7 +48,7 @@ export class AdminServer {
     }
 
     private handleAction(socket: Socket) {
-        return (type: AdminActions, token: string) => {
+        return ({ type, payload }: AdminActions, token: string) => {
             if (token !== ADMIN_KEY) {
                 console.log('<< Not allowed admin access')
                 socket.disconnect(true)
@@ -55,8 +56,11 @@ export class AdminServer {
             }
 
             switch (type) {
-                case AdminActions.sendMessage:
-                    console.log(Object.keys(this.games))
+                case AdminActionsTypes.sendMessage:
+                    console.log(`Send message to all games:`, payload)
+                    socketIOServer.emit(GAME_MESSAGE, {
+                        content: payload.message,
+                    })
                     break
                 default:
                     console.log('Not managed action', type)
