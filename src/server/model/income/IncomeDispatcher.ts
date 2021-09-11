@@ -5,14 +5,13 @@ export class IncomeDispatcher {
 
     constructor(private incomeEveryXXMilliseconds: number) {}
 
-    update(players: { [playerId: string]: AbstractPlayer }) {
+    update(players: AbstractPlayer[]) {
         if (Date.now() - this.lastIncomeDispatched > this.incomeEveryXXMilliseconds) {
-            Object.values(players).forEach((player) => {
+            for (const player of players) {
                 player.money += player.income
-            })
+            }
             this.lastIncomeDispatched = Date.now()
         }
-        this.getNextIncomeDelay()
     }
 
     getNextIncomeDelay() {

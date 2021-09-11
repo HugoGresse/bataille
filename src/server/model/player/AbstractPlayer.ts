@@ -1,27 +1,18 @@
-import { BaseUnit } from '../actors/units/BaseUnit'
-import { MONEY_START } from '../../../common/GameSettings'
+import { MONEY_INCOME_START } from '../../../common/GameSettings'
 import { v4 as uuidv4 } from 'uuid'
-import { MAX_UNIT_LIFE, UnitsType } from '../../../common/UNITS'
-import { PrivatePlayerState, PublicPlayerState, UnitState } from '../GameState'
-import { iterateOnXYMap, xyMapToArray } from '../../utils/xyMapToArray'
-import { UnitAction } from '../../../common/UnitAction'
+import { UnitsType } from '../../../common/UNITS'
+import { PrivatePlayerState, PublicPlayerState } from '../GameState'
 import { Map } from '../map/Map'
 import { SocketEmitter } from '../../SocketEmitter'
 import { COUNTRIES_INCOME } from '../map/COUNTRIES_INCOME'
-
-export type UnitTiles = {
-    [x: number]: {
-        [y: number]: BaseUnit
-    }
-}
+import { UnitsTiles } from '../../engine/UnitsProcessor'
 
 export abstract class AbstractPlayer {
     protected _name: string = `${Date.now()}`
-    protected units: UnitTiles = {}
     protected unitCount = 0
     public id: string
-    public income: number = 2
-    public money: number = MONEY_START
+    public income: number = MONEY_INCOME_START
+    public money: number = MONEY_INCOME_START
     public isConnected: boolean = true
     public isDead: boolean = false
     public ownedCountriesIds: string[] = []
@@ -39,39 +30,27 @@ export abstract class AbstractPlayer {
         return this._name
     }
 
+    setUnitCount(count: number) {
+        this.unitCount = count
+    }
+
+    incrementUnitCount(count: number) {
+        this.unitCount += count
+    }
+
     setConnected(isConnected: boolean) {
         this.isConnected = isConnected
     }
 
-    addUnit(unit: BaseUnit, x: number, y: number): BaseUnit | null {
-        if (!this.units[x]) {
-            this.units[x] = {}
-        }
-        if (this.units[x][y]) {
-            const existingUnit = this.units[x][y]
-            if (existingUnit.life.getHP() >= MAX_UNIT_LIFE) {
-                return null
-            }
-            existingUnit.life.setHP(existingUnit.life.getHP() + unit.life.getHP())
-        } else {
-            this.units[x][y] = unit
-        }
-        return this.units[x][y]
-    }
-
-    getUnits(): UnitTiles {
-        return this.units
-    }
-
-    getUnitsState(): UnitState[] {
-        return xyMapToArray<BaseUnit>(this.units).map((unit: BaseUnit) => ({
-            id: unit.id,
-            type: unit.type,
-            hp: unit.life.get(),
-            position: unit.position.get(),
-            color: this.color.replace('0x', '#'),
-        }))
-    }
+    // getUnitsState(): UnitState[] {
+    //     return xyMapToArray<BaseUnit>(this.units).map((unit: BaseUnit) => ({
+    //         id: unit.id,
+    //         type: unit.type,
+    //         hp: unit.life.get(),
+    //         position: unit.position.get(),
+    //         color: this.color.replace('0x', '#'),
+    //     }))
+    // }
 
     getPublicPlayerState(): PublicPlayerState {
         return {
@@ -92,38 +71,12 @@ export abstract class AbstractPlayer {
         }
     }
 
-    unitAction(action: UnitAction) {
-        const unit = xyMapToArray<BaseUnit>(this.units).find((unit) => unit.id === action.unitId)
-        if (unit) {
-            unit.addAction(action)
-        }
-    }
-
-    update(map: Map, players: AbstractPlayer[]) {
-        if (this.isDead) {
-            return
-        }
-        this.unitCount = 0
-        iterateOnXYMap<BaseUnit>(this.units, (unit, x, y) => {
-            unit.update(map)
-            const unitNewPos = unit.position.getRounded()
-            if (unitNewPos.x !== x || unitNewPos.y !== y) {
-                // Unit may be wrongfully displayed on the grid, or just moved from one square to another, this align everything
-                delete this.units[x][y]
-                if (!this.units[unitNewPos.x]) {
-                    this.units[unitNewPos.x] = {}
-                }
-                if (this.units[unitNewPos.x][unitNewPos.y]) {
-                    // merge unit on same player
-                    this.units[unitNewPos.x][unitNewPos.y].life.heal(unit.life.getHP())
-                    delete this.units[x][y]
-                } else {
-                    this.units[unitNewPos.x][unitNewPos.y] = unit
-                }
-            }
-            this.unitCount += unit.life.getHP()
-        })
-    }
+    /**
+     * Update the players (only the IA Player type
+     * @param map
+     * @param units
+     */
+    update(map: Map, units: UnitsTiles): void {}
 
     updateIncome(ownedCountriesIds: string[], emitter: SocketEmitter) {
         if (this.isDead) {
@@ -132,8 +85,8 @@ export abstract class AbstractPlayer {
         this.ownedCountriesIds = ownedCountriesIds
         this.income = ownedCountriesIds.reduce((acc: number, id) => {
             return acc + (COUNTRIES_INCOME[id] || 0)
-        }, MONEY_START)
-        if (this.income === MONEY_START && this.ownedCountriesIds.length === 0 && this.unitCount === 0) {
+        }, MONEY_INCOME_START)
+        if (this.income === MONEY_INCOME_START && this.ownedCountriesIds.length === 0 && this.unitCount === 0) {
             this.isDead = true
             emitter.emitMessage(`Player is dead: ${this.name}`, this)
         }

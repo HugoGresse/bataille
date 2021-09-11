@@ -78,7 +78,7 @@ export class Map {
         return this.tiles
     }
 
-    getTowns(): Tile[] {
+    getTowns(): Town[] {
         return this.towns
     }
 

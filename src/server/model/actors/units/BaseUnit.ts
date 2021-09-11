@@ -7,6 +7,7 @@ import { UnitAction, UnitActionType } from '../../../../common/UnitAction'
 import { Velocity } from '../Velocity'
 import { Map } from '../../map/Map'
 import { AbstractPlayer } from '../../player/AbstractPlayer'
+import { UnitState } from '../../GameState'
 
 export abstract class BaseUnit extends Actor {
     public readonly id: string
@@ -44,13 +45,13 @@ export abstract class BaseUnit extends Actor {
         this.postponedAction = true
     }
 
-    update(map: Map) {
+    update(map: Map): boolean {
         if (this.actions.length === 0) {
-            return
+            return false
         }
         if (this.postponedAction) {
             this.postponedAction = false
-            return
+            return false
         }
         const currentSpeed = this.velocity.modulate(this.position, map)
         this.actions = this.actions.reduce((acc: UnitAction[], action) => {
@@ -68,5 +69,16 @@ export abstract class BaseUnit extends Actor {
             }
             return acc
         }, [])
+        return true
+    }
+
+    getPublicState(): UnitState {
+        return {
+            id: this.id,
+            type: this.type,
+            hp: this.life.get(),
+            position: this.position.get(),
+            color: this.owner.color.replace('0x', '#'),
+        }
     }
 }

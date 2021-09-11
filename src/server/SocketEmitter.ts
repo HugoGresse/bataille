@@ -53,6 +53,11 @@ export class SocketEmitter {
 
     async emitGameUpdate(game: Game) {
         const gameState = game.getState()
+
+        const keys = Object.keys(gameState)
+        // @ts-ignore
+        console.log(keys.map((key) => `${key}: ${gameState[key].length}`))
+
         const deltas = this.diffPatcher.diff(this.lastGameState, gameState)
 
         const socketIds = await this.sockets.allSockets()

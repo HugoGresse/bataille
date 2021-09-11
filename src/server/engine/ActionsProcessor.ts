@@ -7,9 +7,10 @@ import { AbstractPlayer } from '../model/player/AbstractPlayer'
 import { UnitAction } from '../../common/UnitAction'
 import { NewUnitDataEvent } from '../../common/NewUnitDataEvent'
 import { BaseUnit } from '../model/actors/units/BaseUnit'
+import { UnitsProcessor } from './UnitsProcessor'
 
 export class ActionsProcessor {
-    constructor(private map: Map) {}
+    constructor(private map: Map, private unitsProcessor: UnitsProcessor) {}
 
     addUnit(player: AbstractPlayer, { x, y }: NewUnitDataEvent): BaseUnit | null {
         if (player.money >= UnitsType.Stick) {
@@ -20,7 +21,7 @@ export class ActionsProcessor {
                 return null
             }
             const unit = new StickUnit(player, position)
-            const createdUnit = player.addUnit(unit, gridPosition.x, gridPosition.y)
+            const createdUnit = this.unitsProcessor.addUnit(unit, player, gridPosition.x, gridPosition.y)
             if (createdUnit) {
                 player.spendMoney(UnitsType.Stick)
                 return createdUnit
@@ -30,6 +31,6 @@ export class ActionsProcessor {
     }
 
     unitEvent(player: AbstractPlayer, event: UnitAction) {
-        player.unitAction(event)
+        this.unitsProcessor.unitAction(player, event)
     }
 }

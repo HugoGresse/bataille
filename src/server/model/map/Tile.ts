@@ -82,5 +82,5 @@ export class Tile {
 }
 
 export interface Town extends Tile {
-    player: HumanPlayer
+    player: AbstractPlayer
 }

@@ -6,33 +6,41 @@ import { Map } from './model/map/Map'
 import { SocketEmitter } from './SocketEmitter'
 import { ExportType } from './model/types/ExportType'
 import { townAssignation } from './utils/townAssignation'
-import { detectTownIntersections } from './engine/detectTownIntersections'
-import { updatePlayerIncome } from './engine/updatePlayerIncome'
-import { IncomeDispatcher } from './model/income/IncomeDispatcher'
-import { INCOME_MS } from '../common/GameSettings'
 import { NewUnitDataEvent } from '../common/NewUnitDataEvent'
-import { detectUnitsIntersections } from './engine/detectUnitsIntersections'
 import { ActionsProcessor } from './engine/ActionsProcessor'
 import { AbstractPlayer } from './model/player/AbstractPlayer'
 import { IAPlayer } from './model/player/IAPlayer'
+import { UnitsProcessor } from './engine/UnitsProcessor'
+import { GameUpdateProcessor } from './engine/GameUpdateProcessor'
+import { PlayersById } from './model/types/PlayersById'
+import { IncomeDispatcher } from './model/income/IncomeDispatcher'
+import { INCOME_MS } from '../common/GameSettings'
 
 export class Game {
-    protected players: {
-        [socketId: string]: AbstractPlayer
-    } = {}
-    protected gameLoop: GameLoop
-    protected map: Map
+    private playersBySocketIds: PlayersById = {}
+    private playersByIds: PlayersById = {}
+    private players: AbstractPlayer[] = []
+    private humanPlayers: HumanPlayer[] = []
+    private iaPlayers: IAPlayer[] = []
+    private gameLoop: GameLoop
+    private map: Map
+    private unitsProcessor: UnitsProcessor
+    private actionsProcessor: ActionsProcessor
+    private gameUpdateProcessor: GameUpdateProcessor
     protected incomeDispatcher: IncomeDispatcher = new IncomeDispatcher(INCOME_MS)
-    protected actionsProcessor: ActionsProcessor
-
-    playersIntersections: Array<number> = []
-    townsIntersections: Array<number> = []
-    playerUpdates: Array<number> = []
 
     constructor(public readonly id: string, protected emitter: SocketEmitter) {
         this.map = new Map()
         this.gameLoop = new GameLoop(this.emitter)
-        this.actionsProcessor = new ActionsProcessor(this.map)
+        this.unitsProcessor = new UnitsProcessor({})
+        this.actionsProcessor = new ActionsProcessor(this.map, this.unitsProcessor)
+        this.gameUpdateProcessor = new GameUpdateProcessor(
+            this.map,
+            this.playersByIds,
+            this.emitter,
+            this.unitsProcessor,
+            this.incomeDispatcher
+        )
     }
 
     getGameStartTime(): number {
@@ -51,10 +59,8 @@ export class Game {
     }
 
     getState(): GameState {
-        const units = Object.values(this.players).reduce((acc: UnitState[], player) => {
-            return acc.concat(player.getUnitsState())
-        }, [])
-        const players = Object.values(this.players)
+        const units = this.gameUpdateProcessor.getLastUpdatedUnits().map((unit) => unit.getPublicState())
+        const players = this.players
             .map((player) => player.getPublicPlayerState())
             .sort((p1, p2) => {
                 return p2.income - p1.income
@@ -69,8 +75,8 @@ export class Game {
         }
     }
 
-    getPlayerPrivateState(playerId: string): PrivatePlayerState {
-        return this.players[playerId].getPrivatePlayerState()
+    getPlayerPrivateState(socketId: string): PrivatePlayerState {
+        return this.playersBySocketIds[socketId].getPrivatePlayerState()
     }
 
     addPlayer(player: AbstractPlayer, socketId: string) {
@@ -78,42 +84,45 @@ export class Game {
             console.log('Attempt to join a game but is already started...')
             return
         }
-        if (!this.players[socketId]) {
-            this.players[socketId] = player
+        if (!this.playersBySocketIds[socketId]) {
+            this.playersByIds[player.id] = player
+            this.playersBySocketIds[socketId] = player
+            this.players.push(player)
             if (player instanceof IAPlayer) {
-                player.setActionsProcessor(this.actionsProcessor)
-            }
+                player.setProcessor(this.actionsProcessor, this.unitsProcessor)
+                this.iaPlayers.push(player)
+            } else if (player instanceof HumanPlayer) this.humanPlayers.push(player)
         }
     }
 
     getPlayers(): AbstractPlayer[] {
-        return Object.values(this.players)
+        return this.players
     }
 
     addUnit(socketId: string, event: NewUnitDataEvent) {
-        if (!this.players[socketId] || !this.gameLoop.isRunning) {
+        if (!this.playersBySocketIds[socketId] || !this.gameLoop.isRunning) {
             return
         }
-        this.actionsProcessor.addUnit(this.players[socketId], event)
+        this.actionsProcessor.addUnit(this.playersBySocketIds[socketId], event)
     }
 
     unitEvent(playerId: string, event: UnitAction) {
-        if (!this.players[playerId] || !this.gameLoop.isRunning) {
+        if (!this.playersBySocketIds[playerId] || !this.gameLoop.isRunning) {
             return
         }
-        this.actionsProcessor.unitEvent(this.players[playerId], event)
+        this.actionsProcessor.unitEvent(this.playersBySocketIds[playerId], event)
     }
 
     playerMessage(playerId: string, message: string) {
-        if (!this.players[playerId]) {
+        if (!this.playersBySocketIds[playerId]) {
             return
         }
-        this.emitter.emitMessage(message, this.players[playerId], true)
+        this.emitter.emitMessage(message, this.playersBySocketIds[playerId], true)
     }
 
     start() {
         this.emitter.emitInitialGameState(this)
-        townAssignation(this.getPlayers(), this.map)
+        townAssignation(this.getPlayers(), this.map, this.unitsProcessor)
         if (!this.gameLoop.isRunning) {
             this.gameLoop.start(this)
         }
@@ -131,36 +140,20 @@ export class Game {
     }
 
     update(): boolean {
-        let now = Date.now()
-        detectUnitsIntersections(this.players)
-        this.playersIntersections.push(Date.now() - now)
+        this.gameUpdateProcessor.run()
 
-        const playersValues = Object.values(this.players)
-
-        playersValues.forEach((player) => {
-            const step1 = Date.now()
-            player.update(this.map, playersValues)
-
-            const step2 = Date.now()
-            this.playerUpdates.push(Date.now() - step1)
-
-            detectTownIntersections(this.map, player)
-
-            this.townsIntersections.push(Date.now() - step2)
-
-            updatePlayerIncome(this.map.getTownsByCountries(), player, this.emitter)
-        })
-
-        this.incomeDispatcher.update(this.players)
+        for (const player of this.iaPlayers) {
+            player.update(this.map, this.unitsProcessor.getUnits())
+        }
 
         const connectedHumanPlayers = this.getConnectedHumanPlayers()
-        const deadPlayers = playersValues.filter((player) => player.isDead || !player.isConnected).length
-        const oneOrNoAlivePlayers = deadPlayers >= playersValues.length - 1 // one player cannot play alone
-        return connectedHumanPlayers.length === 0 || (oneOrNoAlivePlayers && playersValues.length > 1) // also check if we are playing alone (in dev)
+        const deadPlayers = this.players.filter((player) => player.isDead || !player.isConnected).length
+        const oneOrNoAlivePlayers = deadPlayers >= this.players.length - 1 // one player cannot play alone
+        return connectedHumanPlayers.length === 0 || (oneOrNoAlivePlayers && this.players.length > 1) // also check if we are playing alone (in dev)
     }
 
     getHumanPlayers(): HumanPlayer[] {
-        return this.getPlayers().filter((player) => player instanceof HumanPlayer) as HumanPlayer[]
+        return this.humanPlayers
     }
 
     getConnectedHumanPlayers(): HumanPlayer[] {
@@ -168,18 +161,7 @@ export class Game {
     }
 
     getWinner(): AbstractPlayer | undefined {
-        const averageStep1 = average(this.playersIntersections) * 1000
-        const averageStep2 = average(this.playerUpdates) * 1000
-        const averageStep3 = average(this.townsIntersections) * 1000
-
-        console.log(`
-            pInt: ${averageStep1}
-            pUpd: ${averageStep2}
-            town: ${averageStep3}
-        `)
-
-        return Object.values(this.players).find((player) => !player.isDead && player.isConnected)
+        this.gameUpdateProcessor.printRuntimes()
+        return this.players.find((player) => !player.isDead && player.isConnected)
     }
 }
-
-const average = (arr: Array<number>) => arr.reduce((p, c) => p + c, 0) / arr.length

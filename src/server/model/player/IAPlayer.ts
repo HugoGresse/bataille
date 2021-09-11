@@ -5,12 +5,12 @@ import { Town } from '../map/Tile'
 import { ActionsProcessor } from '../../engine/ActionsProcessor'
 import { UnitAction, UnitActionMoveData, UnitActionType } from '../../../common/UnitAction'
 import { Position } from '../actors/Position'
-import { createUnitMaps } from '../../engine/utils/createUnitMaps'
 import { TILE_WIDTH_HEIGHT } from '../../../common/UNITS'
 import { BaseUnit } from '../actors/units/BaseUnit'
 import { getRandomNumberBetween } from '../../../utils/getRandomNumberBetween'
 import { SocketEmitter } from '../../SocketEmitter'
 import { XYMapWithType } from '../../utils/xyMapToArray'
+import { UnitsProcessor, UnitsTiles } from '../../engine/UnitsProcessor'
 
 const IA_UPDATE_INTERVAL = 2000 // ms
 const MAX_ACTION_UPDATE = 5
@@ -18,26 +18,30 @@ const MAX_ACTION_UPDATE = 5
 export class IAPlayer extends AbstractPlayer {
     private lastRunTime: number = 0
     private actionsProcessor!: ActionsProcessor
+    private unitsProcessor!: UnitsProcessor
     private actionByCountries: {
         [countryId: string]: string
     } = {}
     private countriesToRecapture: string[] = []
     private actionByUpdate = 0
+    private updateDelay = getRandomNumberBetween(500, 3000)
 
     constructor(color: string, name?: string) {
         super(name, color)
     }
 
-    setActionsProcessor(actionsProcessor: ActionsProcessor) {
+    setProcessor(actionsProcessor: ActionsProcessor, unitsProcessor: UnitsProcessor) {
         this.actionsProcessor = actionsProcessor
+        this.unitsProcessor = unitsProcessor
     }
 
-    update(map: Map, players: AbstractPlayer[]) {
-        super.update(map, players)
-        if (this.lastRunTime + IA_UPDATE_INTERVAL + getRandomNumberBetween(500, 3000) >= Date.now()) {
+    update(map: Map, units: UnitsTiles): void {
+        super.update(map, units)
+        if (this.lastRunTime + IA_UPDATE_INTERVAL + this.updateDelay >= Date.now()) {
             return
         }
         this.lastRunTime = Date.now()
+        this.updateDelay = getRandomNumberBetween(500, 3000)
 
         if ((this.money > 0 && this.unitCount === 0) || this.isDead) {
             return
@@ -45,16 +49,15 @@ export class IAPlayer extends AbstractPlayer {
 
         this.actionByUpdate = 0
 
-        const unitsMaps = createUnitMaps(players)
-
-        const currentCountriesAllOwned = this.checkCurrentCountries(map, unitsMaps)
+        const currentCountriesAllOwned = this.checkCurrentCountries(map, units)
         if (currentCountriesAllOwned) {
             if (this.countriesToRecapture.length > 0) {
                 // console.log("capturing lost country")
                 // Not used currently
             }
-            this.captureNeighboursCountries(map, unitsMaps)
+            this.captureNeighboursCountries(map, units)
         }
+        return
     }
 
     updateIncome(ownedCountriesIds: string[], emitter: SocketEmitter) {
