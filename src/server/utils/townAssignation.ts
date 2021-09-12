@@ -10,11 +10,21 @@ import { IAPlayer } from '../model/player/IAPlayer'
 import { UnitsProcessor } from '../engine/UnitsProcessor'
 
 export const townAssignation = (players: AbstractPlayer[], map: Map, unitsProcessor: UnitsProcessor) => {
-    const towns = map.getTowns()
+    const townsByCountries = map.getTownsByCountries()
+    const towns = Object.keys(townsByCountries)
+        .flatMap((countryId) => {
+            if (townsByCountries[countryId].length < 2) {
+                // Only country with more than one town can be auto-assigned
+                return null
+            }
+            return townsByCountries[countryId]
+        })
+        .filter((town) => {
+            return !!town
+        })
 
     // Only let 1/5 of the towns to be assigned to player at start
     const townByPlayer = Math.floor(towns.length / players.length / 5)
-    // TODO : remove towns from 1 town countries
 
     const shuffledTowns: Town[] = shuffleArray(towns)
 
