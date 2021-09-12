@@ -8,11 +8,13 @@ import { UnitsProcessor } from './UnitsProcessor'
 import { BaseUnit } from '../model/actors/units/BaseUnit'
 import { xyMapToArray } from '../utils/xyMapToArray'
 import { UnitState } from '../model/GameState'
+import { TilePublic } from '../model/map/Tile'
 
 export class GameUpdateProcessor {
     private players?: AbstractPlayer[]
     private lastUpdatedUnits: UnitState[] = []
     private lastDeletedUnits: UnitState[] = []
+    private lastChangedTownsStates: TilePublic[] = []
     private wasFirstUnitSent = false
 
     private unitsUpdatesRuntimes: Array<number> = []
@@ -41,6 +43,7 @@ export class GameUpdateProcessor {
 
         this.lastUpdatedUnits = updatedUnits
         this.lastDeletedUnits = deletedUnits
+        this.lastChangedTownsStates = []
 
         this.unitsUpdatesRuntimes.push(Date.now() - step1)
 
@@ -58,12 +61,12 @@ export class GameUpdateProcessor {
                 for (const player of this.players) {
                     updatePlayerIncome(this.map.getTownsByCountries(), player, this.emitter)
                 }
+                this.lastChangedTownsStates.push(...towns)
             }
             this.countriesUpdatesRuntimes.push(Date.now() - step3)
         } else {
             this.townsUpdatesRuntimes.push(0)
             this.countriesUpdatesRuntimes.push(0)
-            console.log('nothing to do')
         }
 
         this.incomeDispatcher.update(this.players)
@@ -80,6 +83,9 @@ export class GameUpdateProcessor {
     }
     public getLastDeletedUnitsStates(): UnitState[] {
         return this.lastDeletedUnits
+    }
+    public getLastTownsStates(): TilePublic[] {
+        return this.lastChangedTownsStates
     }
 
     printRuntimes() {

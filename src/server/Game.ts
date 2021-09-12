@@ -76,7 +76,7 @@ export class Game {
                 updated: updatedUnits,
                 deleted: deletedUnits,
             },
-            towns: this.map.getTownsState(),
+            towns: this.gameUpdateProcessor.getLastTownsStates(),
         }
     }
 

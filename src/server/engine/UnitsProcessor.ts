@@ -5,7 +5,7 @@ import { UnitAction } from '../../common/UnitAction'
 import { iterateOnXYMap, xyMapToArray } from '../utils/xyMapToArray'
 import { Map } from '../model/map/Map'
 import { PlayersById } from '../model/types/PlayersById'
-import { Town } from '../model/map/Tile'
+import { TilePublic } from '../model/map/Tile'
 import { UnitState } from '../model/GameState'
 
 export type UnitsTiles = {
@@ -87,18 +87,18 @@ export class UnitsProcessor {
      * @param map
      */
     public updateTownsFromUnits(map: Map): {
-        towns: Town[]
+        towns: TilePublic[]
         deletedUnits: UnitState[]
     } {
         const towns = map.getTowns()
-        const changedTowns: Town[] = []
+        const changedTowns: TilePublic[] = []
         const deletedUnits: UnitState[] = []
         for (const town of towns) {
             const unitOnTown = this.units[town.x] ? this.units[town.x][town.y] : null
             if (unitOnTown) {
                 if (town.player?.id !== unitOnTown.owner.id) {
-                    changedTowns.push(town)
                     town.player = unitOnTown.owner
+                    changedTowns.push(town.export())
                     unitOnTown.life.takeDamage(1)
                     if (unitOnTown.life.getHP() <= 0) {
                         delete this.units[town.x][town.y]
