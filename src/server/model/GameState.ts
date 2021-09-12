@@ -1,7 +1,12 @@
 import { TilePublic } from './map/Tile'
 
+export enum GameStatus {
+    running,
+    stopped,
+}
+
 export interface GameState {
-    status: 'running' | 'stopped'
+    status: GameStatus
     nextIncome: number
     players: PublicPlayerState[]
     units: {

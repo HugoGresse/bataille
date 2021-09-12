@@ -5,7 +5,7 @@ import { GAME_MESSAGE, GAME_STATE_INIT, GAME_STATE_UPDATE, LOBBY_STATE } from '.
 import { socketIOServer } from './utils/io'
 import { GameLobby } from './GameLobby'
 import { AbstractPlayer } from './model/player/AbstractPlayer'
-import { GameState } from './model/GameState'
+import { GameState, GameStatus } from './model/GameState'
 import * as jsondiffpatch from 'jsondiffpatch'
 
 /**
@@ -13,7 +13,7 @@ import * as jsondiffpatch from 'jsondiffpatch'
  */
 export class SocketEmitter {
     private lastGameState: GameState = {
-        status: 'running',
+        status: GameStatus.running,
         nextIncome: 0,
         players: [],
         towns: [],

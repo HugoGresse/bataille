@@ -7,11 +7,12 @@ import { AbstractPlayer } from '../model/player/AbstractPlayer'
 import { UnitsProcessor } from './UnitsProcessor'
 import { BaseUnit } from '../model/actors/units/BaseUnit'
 import { xyMapToArray } from '../utils/xyMapToArray'
+import { UnitState } from '../model/GameState'
 
 export class GameUpdateProcessor {
     private players?: AbstractPlayer[]
-    private lastUpdatedUnits: BaseUnit[] = []
-    private lastDeletedUnits: BaseUnit[] = []
+    private lastUpdatedUnits: UnitState[] = []
+    private lastDeletedUnits: UnitState[] = []
     private wasFirstUnitSent = false
 
     private unitsUpdatesRuntimes: Array<number> = []
@@ -41,7 +42,6 @@ export class GameUpdateProcessor {
         this.lastUpdatedUnits = updatedUnits
         this.lastDeletedUnits = deletedUnits
 
-        // TODO : because units are now grouped in an array, the fight is done only on the next iteration, the first being the unit move: 1. The unit move to a new tile, on next turn, the unit is fighting on this new tile
         this.unitsUpdatesRuntimes.push(Date.now() - step1)
 
         // 2. Update towns if needed
@@ -69,14 +69,16 @@ export class GameUpdateProcessor {
         this.incomeDispatcher.update(this.players)
     }
 
-    public getLastUpdatedUnits(): BaseUnit[] {
+    public getLastUpdatedUnitsStates(): UnitState[] {
         if (!this.wasFirstUnitSent) {
             this.wasFirstUnitSent = true
-            return xyMapToArray<BaseUnit>(this.unitsProcessor.getUnits()).filter((unit) => !!unit)
+            return xyMapToArray<BaseUnit>(this.unitsProcessor.getUnits())
+                .filter((unit) => !!unit)
+                .map((unit) => unit.getPublicState())
         }
         return this.lastUpdatedUnits
     }
-    public getLastDeletedUnits(): BaseUnit[] {
+    public getLastDeletedUnitsStates(): UnitState[] {
         return this.lastDeletedUnits
     }
 

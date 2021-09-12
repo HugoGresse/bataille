@@ -6,6 +6,7 @@ import { iterateOnXYMap, xyMapToArray } from '../utils/xyMapToArray'
 import { Map } from '../model/map/Map'
 import { PlayersById } from '../model/types/PlayersById'
 import { Town } from '../model/map/Tile'
+import { UnitState } from '../model/GameState'
 
 export type UnitsTiles = {
     [x: number]: {
@@ -25,11 +26,11 @@ export class UnitsProcessor {
         map: Map,
         players: PlayersById
     ): {
-        updatedUnits: BaseUnit[]
-        deletedUnits: BaseUnit[]
+        updatedUnits: UnitState[]
+        deletedUnits: UnitState[]
     } {
-        const updatedUnits: BaseUnit[] = []
-        const deletedUnits: BaseUnit[] = []
+        const updatedUnits: UnitState[] = []
+        const deletedUnits: UnitState[] = []
 
         Object.values(players).forEach((player) => player.setUnitCount(0))
 
@@ -45,7 +46,7 @@ export class UnitsProcessor {
 
             unitMoved = unit.update(map)
             if (unitMoved) {
-                updatedUnits.push(unit)
+                updatedUnits.push(unit.getPublicState())
                 const unitNewPos = unit.position.getRounded()
                 if (unitNewPos.x != x || unitNewPos.y != y) {
                     // Unit may be wrongfully displayed on the grid, or just moved from one square to another, this align everything
@@ -54,14 +55,14 @@ export class UnitsProcessor {
                     if (!this.units[unitNewPos.x]) {
                         this.units[unitNewPos.x] = {}
                         this.units[unitNewPos.x][unitNewPos.y] = unit
-                        updatedUnits.push(unit)
+                        updatedUnits.push(unit.getPublicState())
                     } else if (this.units[unitNewPos.x][unitNewPos.y]) {
                         // collisions
                         const { deadUnits, aliveUnit } = this.processUnitsOnSameTile(
                             unit,
                             this.units[unitNewPos.x][unitNewPos.y]
                         )
-                        deletedUnits.push(...deadUnits)
+                        deletedUnits.push(...deadUnits.map((u) => u.getPublicState()))
                         if (aliveUnit) {
                             this.units[unitNewPos.x][unitNewPos.y] = aliveUnit
                         } else {
@@ -69,7 +70,7 @@ export class UnitsProcessor {
                         }
                     } else {
                         this.units[unitNewPos.x][unitNewPos.y] = unit
-                        updatedUnits.push(unit)
+                        updatedUnits.push(unit.getPublicState())
                     }
                 }
             }
@@ -87,11 +88,11 @@ export class UnitsProcessor {
      */
     public updateTownsFromUnits(map: Map): {
         towns: Town[]
-        deletedUnits: BaseUnit[]
+        deletedUnits: UnitState[]
     } {
         const towns = map.getTowns()
         const changedTowns: Town[] = []
-        const deletedUnits: BaseUnit[] = []
+        const deletedUnits: UnitState[] = []
         for (const town of towns) {
             const unitOnTown = this.units[town.x] ? this.units[town.x][town.y] : null
             if (unitOnTown) {
@@ -101,7 +102,7 @@ export class UnitsProcessor {
                     unitOnTown.life.takeDamage(1)
                     if (unitOnTown.life.getHP() <= 0) {
                         delete this.units[town.x][town.y]
-                        deletedUnits.push(unitOnTown)
+                        deletedUnits.push(unitOnTown.getPublicState())
                     }
                 }
             }
