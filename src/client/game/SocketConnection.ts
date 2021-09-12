@@ -13,8 +13,6 @@ import { SOCKET_URL } from './utils/clientEnv'
 import { LobbyState } from '../../server/GameLobby'
 import { Message } from '../../server/model/types/Message'
 import { pickRandomPlayerName } from '../../utils/pickRandomPlayerName'
-import * as jsondiffpatch from 'jsondiffpatch'
-import { playTownCapturedSound } from './utils/sounds'
 
 let socketConnectionInstance: SocketConnection | null = null
 export const newSocketConnectionInstance = (
@@ -35,7 +33,6 @@ export class SocketConnection {
     private gameState: PrivateGameState | null = null
     public gameStartData: ExportTypeWithGameState | null = null
     private messageListener: ((message: Message) => void) | null = null
-    private diffPatcher
 
     constructor(
         protected socketUrl: string,
@@ -46,8 +43,6 @@ export class SocketConnection {
             transports: ['websocket'],
             autoConnect: true,
         })
-        this.diffPatcher = jsondiffpatch.create()
-
         this.socket.on('connect', () => {
             console.log('connected')
         })
@@ -83,40 +78,11 @@ export class SocketConnection {
     private handleGameInit(data: ExportTypeWithGameState) {
         this.onGameStart(data.gameId)
         this.gameStartData = data
-        this.gameState = JSON.parse(JSON.stringify(data.gameState)) // prevent diff to change the gameStartData ref and fuc everything
+        this.gameState = data.gameState
     }
 
     private handleGameState(gameState: PrivateGameState) {
-        if (!this.gameState) {
-            this.gameState = gameState
-        } else {
-            // In this case, the type is not a PrivateGameState but only the delta generated from jsondiffpatch on the server + the currentPlayer state which is private to the playing user
-            if (gameState.deltas) {
-                this.gameState = {
-                    ...this.diffPatcher.patch(this.gameState, gameState.deltas),
-                    currentPlayer: gameState.currentPlayer,
-                }
-
-                // Temporary until the switch to event based
-                if (gameState.deltas.towns) {
-                    const currentPlayerName = this.gameState?.currentPlayer.name
-                    const values = Object.values(gameState.deltas.towns)
-                    for (const townChange of values) {
-                        if (townChange.player?.name) {
-                            if (townChange.player?.name[0] === currentPlayerName) {
-                                playTownCapturedSound()
-                            }
-                        }
-                    }
-                }
-            } else {
-                // No diff for public state = no delta, only currentPlayer changed
-                this.gameState = {
-                    ...this.gameState,
-                    currentPlayer: gameState.currentPlayer,
-                }
-            }
-        }
+        this.gameState = gameState
     }
 
     private handleGameMessage(message: Message) {

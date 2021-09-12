@@ -6,7 +6,6 @@ import { socketIOServer } from './utils/io'
 import { GameLobby } from './GameLobby'
 import { AbstractPlayer } from './model/player/AbstractPlayer'
 import { GameState, GameStatus } from './model/GameState'
-import * as jsondiffpatch from 'jsondiffpatch'
 
 /**
  * Emit events to a specific Socket room provided at construction
@@ -22,15 +21,8 @@ export class SocketEmitter {
             deleted: [],
         },
     }
-    private diffPatcher
 
-    constructor(private sockets: BroadcastOperator<DefaultEventsMap>) {
-        this.diffPatcher = jsondiffpatch.create({
-            // objectHash: function(obj) {
-            //     return obj.name;
-            // }
-        })
-    }
+    constructor(private sockets: BroadcastOperator<DefaultEventsMap>) {}
 
     emitLobbyState(lobby: GameLobby) {
         this.sockets.emit(LOBBY_STATE, lobby.export())
@@ -59,12 +51,10 @@ export class SocketEmitter {
 
         // this.logUpdate(gameState)
 
-        const deltas = this.diffPatcher.diff(this.lastGameState, gameState)
-
         const socketIds = await this.sockets.allSockets()
         socketIds.forEach((socketId) => {
             socketIOServer.to(socketId).emit(GAME_STATE_UPDATE, {
-                deltas: deltas,
+                ...gameState,
                 currentPlayer: game.getPlayerPrivateState(socketId),
             })
         })
