@@ -65,6 +65,7 @@ export class UnitsProcessor {
                         deletedUnits.push(...deadUnits.map((u) => u.getPublicState()))
                         if (aliveUnit) {
                             this.units[unitNewPos.x][unitNewPos.y] = aliveUnit
+                            updatedUnits.push(aliveUnit.getPublicState())
                         } else {
                             delete this.units[unitNewPos.x][unitNewPos.y]
                         }
@@ -88,11 +89,13 @@ export class UnitsProcessor {
      */
     public updateTownsFromUnits(map: Map): {
         towns: TilePublic[]
+        updatedUnits: UnitState[]
         deletedUnits: UnitState[]
     } {
         const towns = map.getTowns()
         const changedTowns: TilePublic[] = []
         const deletedUnits: UnitState[] = []
+        const updatedUnits: UnitState[] = []
         for (const town of towns) {
             const unitOnTown = this.units[town.x] ? this.units[town.x][town.y] : null
             if (unitOnTown) {
@@ -103,6 +106,8 @@ export class UnitsProcessor {
                     if (unitOnTown.life.getHP() <= 0) {
                         delete this.units[town.x][town.y]
                         deletedUnits.push(unitOnTown.getPublicState())
+                    } else {
+                        updatedUnits.push(unitOnTown.getPublicState())
                     }
                 }
             }
@@ -110,6 +115,7 @@ export class UnitsProcessor {
         return {
             towns: changedTowns,
             deletedUnits,
+            updatedUnits,
         }
     }
 
@@ -139,10 +145,8 @@ export class UnitsProcessor {
                     return null
                 }
             }
-            {
-                this.units[x][y] = unit
-                return unit
-            }
+
+            return unit
         } else {
             this.units[x][y] = unit
         }

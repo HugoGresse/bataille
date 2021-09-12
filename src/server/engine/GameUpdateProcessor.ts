@@ -51,8 +51,9 @@ export class GameUpdateProcessor {
         if (this.lastUpdatedUnits.length) {
             // 3. Updates towns
             const step2 = Date.now()
-            const { towns, deletedUnits } = this.unitsProcessor.updateTownsFromUnits(this.map)
+            const { towns, deletedUnits, updatedUnits } = this.unitsProcessor.updateTownsFromUnits(this.map)
             this.lastDeletedUnits.push(...deletedUnits)
+            this.lastUpdatedUnits.push(...updatedUnits)
             this.townsUpdatesRuntimes.push(Date.now() - step2)
 
             // 4. Update country ownership / incomes
