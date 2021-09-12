@@ -51,8 +51,12 @@ export class StickUnit extends Actor {
         ;(this.scene as BaseScene).actions.moveUnit(this, pointer.worldX, pointer.worldY)
     }
 
-    update(refUnit: UnitState): void {
+    update(refUnit?: UnitState): void {
         super.update(refUnit)
+
+        if (!refUnit) {
+            return
+        }
 
         if (refUnit.position.x !== this.x && !this.scene.tweens.isTweening(this)) {
             this.scene.tweens.add({

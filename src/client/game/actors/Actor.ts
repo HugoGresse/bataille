@@ -26,13 +26,13 @@ export class Actor extends Phaser.GameObjects.Sprite {
         this.hpText.setDepth(2)
     }
 
-    public update(refUnit: UnitState) {
+    public update(refUnit?: UnitState) {
         if (this.selectedCircle) {
             this.selectedCircle.x = this.x
             this.selectedCircle.y = this.y
         }
 
-        if (refUnit.hp.current !== this.hp) {
+        if (refUnit && refUnit.hp.current !== this.hp) {
             this.hp = refUnit.hp.current
             this.hpText.text = this.hp.toString()
         }

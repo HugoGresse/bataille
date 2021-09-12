@@ -75,6 +75,12 @@ export class BatailleScene extends BaseScene {
         }
     }
 
+    updateAllUnits() {
+        for (const unit of Object.values(this.units)) {
+            unit.update()
+        }
+    }
+
     initSceneWithData(data: ExportTypeWithGameState) {
         this.map = this.make.tilemap({ key: 'map' })
         this.tileset = this.map.addTilesetImage('tile', 'tiles')
