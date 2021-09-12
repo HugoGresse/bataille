@@ -82,7 +82,7 @@ export abstract class BaseUnit extends Actor {
             id: this.id,
             hp: this.life.getHP(),
             position: this.position.get(),
-            color: this.owner.color.replace('0x', '#'),
+            color: this.owner.colorHex,
         }
     }
 }

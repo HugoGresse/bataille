@@ -16,10 +16,12 @@ export abstract class AbstractPlayer {
     public isConnected: boolean = true
     public isDead: boolean = false
     public ownedCountriesIds: string[] = []
+    public colorHex: string
 
     protected constructor(name = `${Date.now()}`, public color: string) {
         this.id = uuidv4()
         this.name = name
+        this.colorHex = color.replace('0x', '#')
     }
 
     set name(name: string) {
@@ -41,16 +43,6 @@ export abstract class AbstractPlayer {
     setConnected(isConnected: boolean) {
         this.isConnected = isConnected
     }
-
-    // getUnitsState(): UnitState[] {
-    //     return xyMapToArray<BaseUnit>(this.units).map((unit: BaseUnit) => ({
-    //         id: unit.id,
-    //         type: unit.type,
-    //         hp: unit.life.get(),
-    //         position: unit.position.get(),
-    //         color: this.color.replace('0x', '#'),
-    //     }))
-    // }
 
     getPublicPlayerState(): PublicPlayerState {
         return {

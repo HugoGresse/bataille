@@ -11,9 +11,7 @@ import { getRandomNumberBetween } from '../../../utils/getRandomNumberBetween'
 import { SocketEmitter } from '../../SocketEmitter'
 import { XYMapWithType } from '../../utils/xyMapToArray'
 import { UnitsProcessor, UnitsTiles } from '../../engine/UnitsProcessor'
-
-const IA_UPDATE_INTERVAL = 2000 // ms
-const MAX_ACTION_UPDATE = 5
+import { IASettings } from '../../../common/GameSettings'
 
 export class IAPlayer extends AbstractPlayer {
     private lastRunTime: number = 0
@@ -24,7 +22,7 @@ export class IAPlayer extends AbstractPlayer {
     } = {}
     private countriesToRecapture: string[] = []
     private actionByUpdate = 0
-    private updateDelay = getRandomNumberBetween(500, 3000)
+    private updateDelay = getRandomNumberBetween(IASettings.randomMin, IASettings.randomMax)
 
     constructor(color: string, name?: string) {
         super(name, color)
@@ -37,11 +35,19 @@ export class IAPlayer extends AbstractPlayer {
 
     update(map: Map, units: UnitsTiles): void {
         super.update(map, units)
-        if (this.lastRunTime + IA_UPDATE_INTERVAL + this.updateDelay >= Date.now()) {
+        if (this.lastRunTime === 0) {
+            // Game starting
+            this.lastRunTime =
+                Date.now() +
+                IASettings.updateInterval +
+                getRandomNumberBetween(IASettings.randomMin, IASettings.randomMax)
+            return
+        }
+        if (this.lastRunTime + IASettings.updateInterval + this.updateDelay >= Date.now()) {
             return
         }
         this.lastRunTime = Date.now()
-        this.updateDelay = getRandomNumberBetween(500, 3000)
+        this.updateDelay = getRandomNumberBetween(IASettings.randomMin, IASettings.randomMax)
 
         if ((this.money > 0 && this.unitCount === 0) || this.isDead) {
             return
@@ -143,8 +149,7 @@ export class IAPlayer extends AbstractPlayer {
     }
 
     sendUnit(from: Town, to: Town, unitsMap: XYMapWithType<BaseUnit>): boolean {
-        if (this.actionByUpdate > MAX_ACTION_UPDATE) {
-            // console.log("max out")
+        if (this.actionByUpdate > IASettings.maxActionsByRun) {
             return false
         }
         let enemyUnit
