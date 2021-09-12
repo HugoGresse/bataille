@@ -81,7 +81,7 @@ export class IAPlayer extends AbstractPlayer {
      *      // 1. Check if country contain one not current player town and one current player town
      *      // 2. if so, send unit to take the next town, on every update
      */
-    private checkCurrentCountries(map: Map, unitsMaps: XYMapWithType<BaseUnit[]>) {
+    private checkCurrentCountries(map: Map, unitsMaps: XYMapWithType<BaseUnit>) {
         const townByCountries = map.getTownsByCountries()
         let nothingToDo = true
         Object.keys(townByCountries).forEach((countryId) => {
@@ -123,7 +123,7 @@ export class IAPlayer extends AbstractPlayer {
         return nothingToDo
     }
 
-    private captureNeighboursCountries(map: Map, unitsMaps: XYMapWithType<BaseUnit[]>) {
+    private captureNeighboursCountries(map: Map, unitsMaps: XYMapWithType<BaseUnit>) {
         this.ownedCountriesIds.forEach((countryId) => {
             const neighbours = CountryIdToInfo[countryId].neighbours
             for (const neighboursCountryId of neighbours) {
@@ -142,14 +142,14 @@ export class IAPlayer extends AbstractPlayer {
         })
     }
 
-    sendUnit(from: Town, to: Town, unitsMap: XYMapWithType<BaseUnit[]>): boolean {
+    sendUnit(from: Town, to: Town, unitsMap: XYMapWithType<BaseUnit>): boolean {
         if (this.actionByUpdate > MAX_ACTION_UPDATE) {
             // console.log("max out")
             return false
         }
         let enemyUnit
         if (unitsMap[to.x] && unitsMap[to.x][to.y]) {
-            enemyUnit = unitsMap[to.x][to.y][0]
+            enemyUnit = unitsMap[to.x][to.y]
         }
         const unitCountToCreate = this.getUnitCountToSend(enemyUnit)
 

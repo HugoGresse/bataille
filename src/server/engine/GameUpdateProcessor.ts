@@ -72,9 +72,7 @@ export class GameUpdateProcessor {
     public getLastUpdatedUnits(): BaseUnit[] {
         if (!this.wasFirstUnitSent) {
             this.wasFirstUnitSent = true
-            return xyMapToArray<BaseUnit[]>(this.unitsProcessor.getUnits())
-                .map((units) => units[0])
-                .filter((unit) => !!unit)
+            return xyMapToArray<BaseUnit>(this.unitsProcessor.getUnits()).filter((unit) => !!unit)
         }
         return this.lastUpdatedUnits
     }
@@ -94,10 +92,8 @@ export class GameUpdateProcessor {
         `)
 
         console.log(
-            'dead unit',
-            xyMapToArray<BaseUnit[]>(this.unitsProcessor.getUnits())
-                .map((units) => units[0])
-                .filter((unit) => !!unit && unit.life.getHP() <= 0)
+            'dead units (should be empty)',
+            xyMapToArray<BaseUnit>(this.unitsProcessor.getUnits()).filter((unit) => !!unit && unit.life.getHP() <= 0)
         )
     }
 }
