@@ -3,7 +3,7 @@ import { BaseUnit } from '../model/actors/units/BaseUnit'
 import { MAX_UNIT_LIFE } from '../../common/UNITS'
 import { UnitAction } from '../../common/UnitAction'
 import { iterateOnXYMap, xyMapToArray } from '../utils/xyMapToArray'
-import { Map } from '../model/map/Map'
+import { GameMap } from '../model/map/GameMap'
 import { PlayersById } from '../model/types/PlayersById'
 import { TilePublic } from '../model/map/Tile'
 import { UnitState } from '../model/GameState'
@@ -23,7 +23,7 @@ export class UnitsProcessor {
      * 3. go to next unit
      */
     public updateUnits(
-        map: Map,
+        map: GameMap,
         players: PlayersById
     ): {
         updatedUnits: UnitState[]
@@ -87,7 +87,7 @@ export class UnitsProcessor {
      * Unit fight are done before reaching this, ensuring there should only be the town to conquer
      * @param map
      */
-    public updateTownsFromUnits(map: Map): {
+    public updateTownsFromUnits(map: GameMap): {
         towns: TilePublic[]
         updatedUnits: UnitState[]
         deletedUnits: UnitState[]

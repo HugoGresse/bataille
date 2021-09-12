@@ -1,6 +1,6 @@
 import { TownByCountries } from '../model/types/TownByCountries'
 import { SocketEmitter } from '../SocketEmitter'
-import { CountryIdToInfo } from '../model/map/Map'
+import { CountryIdToInfo } from '../model/map/GameMap'
 import { NeutralPlayer } from '../model/player/NeutralPlayer'
 import { AbstractPlayer } from '../model/player/AbstractPlayer'
 

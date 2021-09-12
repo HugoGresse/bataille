@@ -1,4 +1,4 @@
-import { Map } from '../model/map/Map'
+import { GameMap } from '../model/map/GameMap'
 import { updatePlayerIncome } from './updatePlayerIncome'
 import { SocketEmitter } from '../SocketEmitter'
 import { IncomeDispatcher } from '../model/income/IncomeDispatcher'
@@ -22,7 +22,7 @@ export class GameUpdateProcessor {
     private countriesUpdatesRuntimes: Array<number> = []
 
     constructor(
-        private map: Map,
+        private map: GameMap,
         private playersById: PlayersById,
         private emitter: SocketEmitter,
         private unitsProcessor: UnitsProcessor,

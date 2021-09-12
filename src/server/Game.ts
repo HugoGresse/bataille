@@ -2,7 +2,7 @@ import { HumanPlayer } from './model/player/HumanPlayer'
 import { GameLoop } from './GameLoop'
 import { GameState, GameStatus, PrivatePlayerState } from './model/GameState'
 import { UnitAction } from '../common/UnitAction'
-import { Map } from './model/map/Map'
+import { GameMap } from './model/map/GameMap'
 import { SocketEmitter } from './SocketEmitter'
 import { ExportType } from './model/types/ExportType'
 import { townAssignation } from './utils/townAssignation'
@@ -23,14 +23,14 @@ export class Game {
     private humanPlayers: HumanPlayer[] = []
     private iaPlayers: IAPlayer[] = []
     private gameLoop: GameLoop
-    private map: Map
+    private map: GameMap
     private unitsProcessor: UnitsProcessor
     private actionsProcessor: ActionsProcessor
     private gameUpdateProcessor: GameUpdateProcessor
     protected incomeDispatcher: IncomeDispatcher = new IncomeDispatcher(INCOME_MS)
 
     constructor(public readonly id: string, protected emitter: SocketEmitter) {
-        this.map = new Map()
+        this.map = new GameMap()
         this.gameLoop = new GameLoop(this.emitter)
         this.unitsProcessor = new UnitsProcessor({})
         this.actionsProcessor = new ActionsProcessor(this.map, this.unitsProcessor)

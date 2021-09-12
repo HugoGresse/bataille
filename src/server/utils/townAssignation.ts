@@ -1,4 +1,4 @@
-import { Map } from '../model/map/Map'
+import { GameMap } from '../model/map/GameMap'
 import { shuffleArray } from '../../utils/shuffleArray'
 import { Town } from '../model/map/Tile'
 import { StickUnit } from '../model/actors/units/StickUnit'
@@ -9,7 +9,7 @@ import { HumanPlayer } from '../model/player/HumanPlayer'
 import { IAPlayer } from '../model/player/IAPlayer'
 import { UnitsProcessor } from '../engine/UnitsProcessor'
 
-export const townAssignation = (players: AbstractPlayer[], map: Map, unitsProcessor: UnitsProcessor) => {
+export const townAssignation = (players: AbstractPlayer[], map: GameMap, unitsProcessor: UnitsProcessor) => {
     const townsByCountries = map.getTownsByCountries()
     const towns = Object.keys(townsByCountries)
         .flatMap((countryId) => {

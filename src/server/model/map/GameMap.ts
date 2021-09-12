@@ -20,7 +20,7 @@ export const CountryIdToInfo: {
     }
 } = {}
 
-export class Map {
+export class GameMap {
     private tiles: MapTiles = {}
     private townByCountries: TownByCountries = {}
     private towns: Town[] = []

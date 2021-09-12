@@ -2,7 +2,7 @@ import { MONEY_INCOME_START } from '../../../common/GameSettings'
 import { v4 as uuidv4 } from 'uuid'
 import { UnitsType } from '../../../common/UNITS'
 import { PrivatePlayerState, PublicPlayerState } from '../GameState'
-import { Map } from '../map/Map'
+import { GameMap } from '../map/GameMap'
 import { SocketEmitter } from '../../SocketEmitter'
 import { COUNTRIES_INCOME } from '../map/COUNTRIES_INCOME'
 import { UnitsTiles } from '../../engine/UnitsProcessor'
@@ -68,7 +68,7 @@ export abstract class AbstractPlayer {
      * @param map
      * @param units
      */
-    update(map: Map, units: UnitsTiles): void {}
+    update(map: GameMap, units: UnitsTiles): void {}
 
     updateIncome(ownedCountriesIds: string[], emitter: SocketEmitter) {
         if (this.isDead) {

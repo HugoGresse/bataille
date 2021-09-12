@@ -1,5 +1,5 @@
 import { AbstractPlayer } from './AbstractPlayer'
-import { CountryIdToInfo, Map } from '../map/Map'
+import { CountryIdToInfo, GameMap } from '../map/GameMap'
 import { NeutralPlayer } from './NeutralPlayer'
 import { Town } from '../map/Tile'
 import { ActionsProcessor } from '../../engine/ActionsProcessor'
@@ -33,7 +33,7 @@ export class IAPlayer extends AbstractPlayer {
         this.unitsProcessor = unitsProcessor
     }
 
-    update(map: Map, units: UnitsTiles): void {
+    update(map: GameMap, units: UnitsTiles): void {
         super.update(map, units)
         if (this.lastRunTime === 0) {
             // Game starting
@@ -87,7 +87,7 @@ export class IAPlayer extends AbstractPlayer {
      *      // 1. Check if country contain one not current player town and one current player town
      *      // 2. if so, send unit to take the next town, on every update
      */
-    private checkCurrentCountries(map: Map, unitsMaps: XYMapWithType<BaseUnit>) {
+    private checkCurrentCountries(map: GameMap, unitsMaps: XYMapWithType<BaseUnit>) {
         const townByCountries = map.getTownsByCountries()
         let nothingToDo = true
         Object.keys(townByCountries).forEach((countryId) => {
@@ -129,7 +129,7 @@ export class IAPlayer extends AbstractPlayer {
         return nothingToDo
     }
 
-    private captureNeighboursCountries(map: Map, unitsMaps: XYMapWithType<BaseUnit>) {
+    private captureNeighboursCountries(map: GameMap, unitsMaps: XYMapWithType<BaseUnit>) {
         this.ownedCountriesIds.forEach((countryId) => {
             const neighbours = CountryIdToInfo[countryId].neighbours
             for (const neighboursCountryId of neighbours) {

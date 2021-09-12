@@ -5,7 +5,7 @@ import { UnitsType } from '../../../../common/UNITS'
 import { v4 as uuidv4 } from 'uuid'
 import { UnitAction, UnitActionType } from '../../../../common/UnitAction'
 import { Velocity } from '../Velocity'
-import { Map } from '../../map/Map'
+import { GameMap } from '../../map/GameMap'
 import { AbstractPlayer } from '../../player/AbstractPlayer'
 import { UnitState } from '../../GameState'
 
@@ -46,7 +46,7 @@ export abstract class BaseUnit extends Actor {
         this.postponedAction = true
     }
 
-    update(map: Map): boolean {
+    update(map: GameMap): boolean {
         if (this.forceUpdate) {
             this.forceUpdate = false
             return true
