@@ -9,7 +9,6 @@ import { TILE_WIDTH_HEIGHT } from '../../../common/UNITS'
 import { BaseUnit } from '../actors/units/BaseUnit'
 import { getRandomNumberBetween } from '../../../utils/getRandomNumberBetween'
 import { SocketEmitter } from '../../SocketEmitter'
-import { XYMapWithType } from '../../utils/xyMapToArray'
 import { UnitsProcessor, UnitsTiles } from '../../engine/UnitsProcessor'
 import { IASettings } from '../../../common/GameSettings'
 
@@ -87,7 +86,7 @@ export class IAPlayer extends AbstractPlayer {
      *      // 1. Check if country contain one not current player town and one current player town
      *      // 2. if so, send unit to take the next town, on every update
      */
-    private checkCurrentCountries(map: GameMap, unitsMaps: XYMapWithType<BaseUnit>) {
+    private checkCurrentCountries(map: GameMap, unitsMaps: UnitsTiles) {
         const townByCountries = map.getTownsByCountries()
         let nothingToDo = true
         Object.keys(townByCountries).forEach((countryId) => {
@@ -129,7 +128,7 @@ export class IAPlayer extends AbstractPlayer {
         return nothingToDo
     }
 
-    private captureNeighboursCountries(map: GameMap, unitsMaps: XYMapWithType<BaseUnit>) {
+    private captureNeighboursCountries(map: GameMap, unitsMaps: UnitsTiles) {
         this.ownedCountriesIds.forEach((countryId) => {
             const neighbours = CountryIdToInfo[countryId].neighbours
             for (const neighboursCountryId of neighbours) {
@@ -148,14 +147,11 @@ export class IAPlayer extends AbstractPlayer {
         })
     }
 
-    sendUnit(from: Town, to: Town, unitsMap: XYMapWithType<BaseUnit>): boolean {
+    sendUnit(from: Town, to: Town, unitsMap: UnitsTiles): boolean {
         if (this.actionByUpdate > IASettings.maxActionsByRun) {
             return false
         }
-        let enemyUnit
-        if (unitsMap[to.x] && unitsMap[to.x][to.y]) {
-            enemyUnit = unitsMap[to.x][to.y]
-        }
+        const enemyUnit = unitsMap.get(to.x)?.get(to.y)
         const unitCountToCreate = this.getUnitCountToSend(enemyUnit)
 
         const startX = from.x * TILE_WIDTH_HEIGHT + 2

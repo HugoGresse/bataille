@@ -2,20 +2,15 @@ import { AbstractPlayer } from '../model/player/AbstractPlayer'
 import { BaseUnit } from '../model/actors/units/BaseUnit'
 import { MAX_UNIT_LIFE } from '../../common/UNITS'
 import { UnitAction } from '../../common/UnitAction'
-import { iterateOnXYMap, xyMapToArray } from '../utils/xyMapToArray'
 import { GameMap } from '../model/map/GameMap'
 import { PlayersById } from '../model/types/PlayersById'
 import { TilePublic } from '../model/map/Tile'
 import { UnitState } from '../model/GameState'
 
-export type UnitsTiles = {
-    [x: number]: {
-        [y: number]: BaseUnit
-    }
-}
+export type UnitsTiles = Map<number, Map<number, BaseUnit>>
 
 export class UnitsProcessor {
-    constructor(private units: UnitsTiles) {}
+    constructor(private units: UnitsTiles = new Map()) {}
 
     /**
      * 1. make unit move
@@ -36,46 +31,59 @@ export class UnitsProcessor {
 
         // 1. Update unit positions
         let unitMoved = false
-        iterateOnXYMap<BaseUnit>(this.units, (unit, x, y) => {
-            if (unit) {
-                players[unit.owner.id].incrementUnitCount(unit.life.getHP())
-            } else {
-                delete this.units[x][y]
-                return
-            }
 
-            unitMoved = unit.update(map)
-            if (unitMoved) {
-                updatedUnits.push(unit.getPublicState())
-                const unitNewPos = unit.position.getRounded()
-                if (unitNewPos.x != x || unitNewPos.y != y) {
-                    // Unit may be wrongfully displayed on the grid, or just moved from one square to another, this align everything
+        let x, xEntries, y, unit
+        for (const entryX of this.units) {
+            x = entryX[0]
+            xEntries = entryX[1]
 
-                    delete this.units[x][y]
-                    if (!this.units[unitNewPos.x]) {
-                        this.units[unitNewPos.x] = {}
-                        this.units[unitNewPos.x][unitNewPos.y] = unit
-                        updatedUnits.push(unit.getPublicState())
-                    } else if (this.units[unitNewPos.x][unitNewPos.y]) {
-                        // collisions
-                        const { deadUnits, aliveUnit } = this.processUnitsOnSameTile(
-                            unit,
-                            this.units[unitNewPos.x][unitNewPos.y]
-                        )
-                        deletedUnits.push(...deadUnits.map((u) => u.getPublicState()))
-                        if (aliveUnit) {
-                            this.units[unitNewPos.x][unitNewPos.y] = aliveUnit
-                            updatedUnits.push(aliveUnit.getPublicState())
+            for (const entryY of xEntries) {
+                y = entryY[0]
+                unit = entryY[1]
+
+                if (unit) {
+                    players[unit.owner.id].incrementUnitCount(unit.life.getHP())
+                } else {
+                    console.log('dead unit not removed...', x, y)
+                    continue
+                }
+
+                unitMoved = unit.update(map)
+                if (unitMoved) {
+                    updatedUnits.push(unit.getPublicState())
+                    const unitNewPos = unit.position.getRounded()
+                    if (unitNewPos.x != x || unitNewPos.y != y) {
+                        // Unit may be wrongfully displayed on the grid, or just moved from one square to another, this align everything
+                        xEntries.delete(y)
+
+                        const tempX = this.units.get(unitNewPos.x)
+
+                        if (!tempX) {
+                            const newMap = new Map()
+                            newMap.set(unitNewPos.y, unit)
+                            this.units.set(unitNewPos.x, newMap)
+                            updatedUnits.push(unit.getPublicState())
                         } else {
-                            delete this.units[unitNewPos.x][unitNewPos.y]
+                            const tempY = tempX.get(unitNewPos.y)
+                            if (tempY) {
+                                // collisions
+                                const { deadUnits, aliveUnit } = this.processUnitsOnSameTile(tempY, unit)
+                                deletedUnits.push(...deadUnits.map((u) => u.getPublicState()))
+                                if (aliveUnit) {
+                                    tempX.set(unitNewPos.y, aliveUnit)
+                                    updatedUnits.push(aliveUnit.getPublicState())
+                                } else {
+                                    tempX.delete(unitNewPos.y)
+                                }
+                            } else {
+                                tempX.set(unitNewPos.y, unit)
+                                updatedUnits.push(unit.getPublicState())
+                            }
                         }
-                    } else {
-                        this.units[unitNewPos.x][unitNewPos.y] = unit
-                        updatedUnits.push(unit.getPublicState())
                     }
                 }
             }
-        })
+        }
 
         return {
             updatedUnits,
@@ -97,14 +105,14 @@ export class UnitsProcessor {
         const deletedUnits: UnitState[] = []
         const updatedUnits: UnitState[] = []
         for (const town of towns) {
-            const unitOnTown = this.units[town.x] ? this.units[town.x][town.y] : null
+            const unitOnTown = this.units.get(town.x)?.get(town.y) || null
             if (unitOnTown) {
                 if (town.player?.id !== unitOnTown.owner.id) {
                     town.player = unitOnTown.owner
                     changedTowns.push(town.export())
                     unitOnTown.life.takeDamage(1)
                     if (unitOnTown.life.getHP() <= 0) {
-                        delete this.units[town.x][town.y]
+                        this.units.get(town.x)?.delete(town.y)
                         deletedUnits.push(unitOnTown.getPublicState())
                     } else {
                         updatedUnits.push(unitOnTown.getPublicState())
@@ -126,38 +134,44 @@ export class UnitsProcessor {
     // Actions
 
     public addUnit(unit: BaseUnit, player: AbstractPlayer, x: number, y: number): BaseUnit | null {
-        if (!this.units[x]) {
-            this.units[x] = {}
+        let tempX = this.units.get(x)
+        if (!tempX) {
+            tempX = new Map()
+            this.units.set(x, tempX)
         }
-        if (this.units[x][y]) {
-            const existingUnit = this.units[x][y]
-
-            if (existingUnit) {
-                if (existingUnit.owner.id === player.id) {
-                    if (existingUnit.life.getHP() >= MAX_UNIT_LIFE) {
-                        return null
-                    }
-                    existingUnit.life.heal(unit.life.getHP())
-                    existingUnit.forceUpdate = true
-                    return existingUnit
-                } else {
-                    console.warn('This town does not belong to the user')
+        const existingUnit = tempX.get(y)
+        if (existingUnit) {
+            if (existingUnit.owner.id === player.id) {
+                if (existingUnit.life.getHP() >= MAX_UNIT_LIFE) {
                     return null
                 }
+                existingUnit.life.heal(unit.life.getHP())
+                existingUnit.forceUpdate = true
+                return existingUnit
+            } else {
+                console.warn('This town does not belong to the user')
+                return null
             }
-
-            return unit
         } else {
-            this.units[x][y] = unit
+            tempX.set(y, unit)
         }
         return unit
     }
 
     public unitAction(player: AbstractPlayer, action: UnitAction) {
         // TODO : rather than getting the unit ID, get the unit position from the frontend, faster and safer
-        const unit = xyMapToArray<BaseUnit>(this.units).find((unit) => unit.id === action.unitId)
-        if (unit && unit.owner.id === player.id) {
-            unit.addAction(action)
+
+        let x, xEntries, yEntry
+        for (const entryX of this.units) {
+            x = entryX[0]
+            xEntries = entryX[1]
+
+            for (const entryY of xEntries) {
+                yEntry = entryY[1]
+                if (yEntry.id === action.unitId && yEntry.owner.id === player.id) {
+                    yEntry.addAction(action)
+                }
+            }
         }
     }
 

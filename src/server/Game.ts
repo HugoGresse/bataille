@@ -32,7 +32,7 @@ export class Game {
     constructor(public readonly id: string, protected emitter: SocketEmitter) {
         this.map = new GameMap()
         this.gameLoop = new GameLoop(this.emitter)
-        this.unitsProcessor = new UnitsProcessor({})
+        this.unitsProcessor = new UnitsProcessor()
         this.actionsProcessor = new ActionsProcessor(this.map, this.unitsProcessor)
         this.gameUpdateProcessor = new GameUpdateProcessor(
             this.map,

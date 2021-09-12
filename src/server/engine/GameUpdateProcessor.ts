@@ -5,8 +5,6 @@ import { IncomeDispatcher } from '../model/income/IncomeDispatcher'
 import { PlayersById } from '../model/types/PlayersById'
 import { AbstractPlayer } from '../model/player/AbstractPlayer'
 import { UnitsProcessor } from './UnitsProcessor'
-import { BaseUnit } from '../model/actors/units/BaseUnit'
-import { xyMapToArray } from '../utils/xyMapToArray'
 import { UnitState } from '../model/GameState'
 import { TilePublic } from '../model/map/Tile'
 
@@ -76,9 +74,13 @@ export class GameUpdateProcessor {
     public getLastUpdatedUnitsStates(): UnitState[] {
         if (!this.wasFirstUnitSent) {
             this.wasFirstUnitSent = true
-            return xyMapToArray<BaseUnit>(this.unitsProcessor.getUnits())
-                .filter((unit) => !!unit)
-                .map((unit) => unit.getPublicState())
+            const unitsArrays: UnitState[] = []
+            for (const xValues of this.unitsProcessor.getUnits().values()) {
+                for (const yValue of xValues.values()) {
+                    unitsArrays.push(yValue.getPublicState())
+                }
+            }
+            return unitsArrays
         }
         return this.lastUpdatedUnits
     }
