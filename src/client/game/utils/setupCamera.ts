@@ -13,7 +13,7 @@ let CURRENT_ZOOM = DEFAULT_ZOOM
 
 const changeFontSize = (scene: BatailleScene) => {
     UNIT_FONT_SIZE = (1 - CURRENT_ZOOM) / 0.012 + 15
-    if (CURRENT_ZOOM <= DEFAULT_ZOOM || UNIT_FONT_SIZE < 20) {
+    if (CURRENT_ZOOM >= DEFAULT_ZOOM || UNIT_FONT_SIZE < 20) {
         UNIT_FONT_SIZE = 20
     }
     scene.updateAllUnits()
