@@ -99,11 +99,6 @@ export class GameUpdateProcessor {
             tUpd: ${averageStep2}
             cUpd: ${averageStep3}
         `)
-
-        console.log(
-            'dead units (should be empty)',
-            xyMapToArray<BaseUnit>(this.unitsProcessor.getUnits()).filter((unit) => !!unit && unit.life.getHP() <= 0)
-        )
     }
 }
 
