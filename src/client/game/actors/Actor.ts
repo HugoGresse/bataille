@@ -32,8 +32,8 @@ export class Actor extends Phaser.GameObjects.Sprite {
             this.selectedCircle.y = this.y
         }
 
-        if (refUnit && refUnit.hp.current !== this.hp) {
-            this.hp = refUnit.hp.current
+        if (refUnit && refUnit.hp !== this.hp) {
+            this.hp = refUnit.hp
             this.hpText.text = this.hp.toString()
         }
 

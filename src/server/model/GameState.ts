@@ -1,4 +1,3 @@
-import { UnitsType } from '../../common/UNITS'
 import { TilePublic } from './map/Tile'
 
 export interface GameState {
@@ -32,11 +31,7 @@ export interface PublicPlayerState {
 
 export interface UnitState {
     id: string
-    type: UnitsType
-    hp: {
-        current: number
-        initial: number
-    }
+    hp: number
     position: {
         x: number
         y: number

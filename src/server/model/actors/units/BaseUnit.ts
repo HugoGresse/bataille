@@ -80,8 +80,7 @@ export abstract class BaseUnit extends Actor {
     getPublicState(): UnitState {
         return {
             id: this.id,
-            type: this.type,
-            hp: this.life.get(),
+            hp: this.life.getHP(),
             position: this.position.get(),
             color: this.owner.color.replace('0x', '#'),
         }
