@@ -7,6 +7,11 @@ import { AbstractPlayer } from '../model/player/AbstractPlayer'
 import { UnitsProcessor } from './UnitsProcessor'
 import { UnitState } from '../model/GameState'
 import { TilePublic } from '../model/map/Tile'
+import { INCOME_MS } from '../../common/GameSettings'
+import { StickUnit } from '../model/actors/units/StickUnit'
+import { Position } from '../model/actors/Position'
+import { getRandomNumberBetween } from '../../utils/getRandomNumberBetween'
+import { TILE_WIDTH_HEIGHT } from '../../common/UNITS'
 
 export class GameUpdateProcessor {
     private players?: AbstractPlayer[]
@@ -68,7 +73,27 @@ export class GameUpdateProcessor {
             this.countriesUpdatesRuntimes.push(0)
         }
 
-        this.incomeDispatcher.update(this.players)
+        if (this.incomeDispatcher.update(this.players)) {
+            this.checkOwnedCountryToAddBounty(this.players)
+        }
+    }
+
+    private checkOwnedCountryToAddBounty(players: AbstractPlayer[]) {
+        const ts = Date.now() - INCOME_MS
+        const townByCountries = this.map.getTownsByCountries()
+        for (const player of players) {
+            player.getCountriesEligibleForBounty(ts).forEach((countryId) => {
+                const town = townByCountries[countryId][getRandomNumberBetween(0, townByCountries[countryId].length)]
+                const unit = new StickUnit(
+                    player,
+                    new Position(
+                        town.x * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2,
+                        town.y * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
+                    )
+                )
+                this.unitsProcessor.addUnit(unit, player, town.x, town.y)
+            })
+        }
     }
 
     public getLastUpdatedUnitsStates(): UnitState[] {

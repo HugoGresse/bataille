@@ -16,12 +16,14 @@ export abstract class AbstractPlayer {
     public isConnected: boolean = true
     public isDead: boolean = false
     public ownedCountriesIds: string[] = []
+    public ownedCountriesFrom: Map<string, number>
     public colorHex: string
 
     protected constructor(name = `${Date.now()}`, public color: string) {
         this.id = uuidv4()
         this.name = name
         this.colorHex = color.replace('0x', '#')
+        this.ownedCountriesFrom = new Map()
     }
 
     set name(name: string) {
@@ -74,7 +76,18 @@ export abstract class AbstractPlayer {
         if (this.isDead) {
             return
         }
+        for (const previouslyOwnerCountry of this.ownedCountriesIds) {
+            if (!ownedCountriesIds.includes(previouslyOwnerCountry)) {
+                this.ownedCountriesFrom.delete(previouslyOwnerCountry)
+            }
+        }
+        for (const countryId of ownedCountriesIds) {
+            if (!this.ownedCountriesFrom.has(countryId)) {
+                this.ownedCountriesFrom.set(countryId, Date.now())
+            }
+        }
         this.ownedCountriesIds = ownedCountriesIds
+
         this.income = ownedCountriesIds.reduce((acc: number, id) => {
             return acc + (COUNTRIES_INCOME[id] || 0)
         }, MONEY_INCOME_START)
@@ -86,5 +99,11 @@ export abstract class AbstractPlayer {
 
     spendMoney(unitType: UnitsType) {
         this.money -= unitType
+    }
+
+    public getCountriesEligibleForBounty(ts: number) {
+        return this.ownedCountriesIds.filter((cid) => {
+            return (this.ownedCountriesFrom.get(cid) || Number.MAX_VALUE) < ts
+        })
     }
 }

@@ -114,7 +114,7 @@ export class IAPlayer extends AbstractPlayer {
             }
             if (townToCapture && fromTowns.length) {
                 const unitSent = this.sendUnit(
-                    fromTowns[getRandomNumberBetween(0, fromTowns.length - 1)],
+                    fromTowns[getRandomNumberBetween(0, fromTowns.length)],
                     townToCapture,
                     unitsMaps
                 )
