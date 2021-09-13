@@ -51,6 +51,12 @@ export class StickUnit extends Actor {
         ;(this.scene as BaseScene).actions.moveUnit(this, pointer.worldX, pointer.worldY)
     }
 
+    onTweenEnd(refUnit: UnitState) {
+        if (this.active) {
+            this.update(refUnit)
+        }
+    }
+
     update(refUnit?: UnitState): void {
         super.update(refUnit)
 
@@ -67,6 +73,9 @@ export class StickUnit extends Actor {
                 },
                 ease: 'Linear',
                 duration: 100,
+                onComplete: () => {
+                    this.onTweenEnd(refUnit)
+                },
             })
         }
         if (refUnit.position.y !== this.y && !this.scene.tweens.isTweening(this)) {
@@ -78,6 +87,9 @@ export class StickUnit extends Actor {
                 },
                 ease: 'Linear',
                 duration: 100,
+                onComplete: () => {
+                    this.onTweenEnd(refUnit)
+                },
             })
         }
     }

@@ -39,8 +39,6 @@ export class UIScene extends BaseScene {
             const currentPlayerName = this.getState()?.currentPlayer.name
             if (town.tileData.player?.name === currentPlayerName) {
                 this.buildingOverlay.onTownSelected(town)
-            } else {
-                console.log('not owning this building', town)
             }
         } else {
             console.log(building)
