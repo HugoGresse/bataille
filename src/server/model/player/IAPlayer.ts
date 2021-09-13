@@ -91,7 +91,6 @@ export class IAPlayer extends AbstractPlayer {
         let nothingToDo = true
         Object.keys(townByCountries).forEach((countryId) => {
             let ownAllTheTowns = true
-            let fromTown: Town | null = null
             let townToCapture: Town | null = null
 
             if (this.money <= 0) {
@@ -99,21 +98,26 @@ export class IAPlayer extends AbstractPlayer {
                 return nothingToDo
             }
 
+            const fromTowns = []
             for (const town of townByCountries[countryId]) {
                 if (town.player.id === this.id) {
-                    fromTown = town
+                    fromTowns.push(town)
                 } else if (town.player.id !== this.id || this instanceof NeutralPlayer) {
                     ownAllTheTowns = false
                     townToCapture = town
                 }
                 if (!ownAllTheTowns) {
-                    if (fromTown) {
+                    if (fromTowns.length) {
                         break
                     }
                 }
             }
-            if (townToCapture && fromTown) {
-                const unitSent = this.sendUnit(fromTown, townToCapture, unitsMaps)
+            if (townToCapture && fromTowns.length) {
+                const unitSent = this.sendUnit(
+                    fromTowns[getRandomNumberBetween(0, fromTowns.length - 1)],
+                    townToCapture,
+                    unitsMaps
+                )
                 this.actionByCountries[countryId] = townToCapture.id
                 if (unitSent) {
                     // console.log("take empty country")
