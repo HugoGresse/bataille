@@ -7,6 +7,7 @@ export class Actor extends Phaser.GameObjects.Sprite {
     protected hp = 0
     protected selectedCircle!: GameObjects.Arc | null
     private hpText: GameObjects.Text
+    private hpFontSize: number = 20
 
     constructor(
         scene: Phaser.Scene,
@@ -24,6 +25,7 @@ export class Actor extends Phaser.GameObjects.Sprite {
         })
         this.hpText.setStroke('#000000', 1)
         this.hpText.setDepth(2)
+        this.hpText.setOrigin(0.5, 0.5)
     }
 
     public update(refUnit?: UnitState) {
@@ -32,24 +34,45 @@ export class Actor extends Phaser.GameObjects.Sprite {
             this.selectedCircle.y = this.y
         }
 
-        if (refUnit && refUnit.hp !== this.hp) {
-            this.hp = refUnit.hp
+        if ((refUnit && refUnit.hp !== this.hp) || this.hpFontSize !== UNIT_FONT_SIZE) {
+            if (refUnit) {
+                this.hp = refUnit.hp
+            }
             this.hpText.text = this.hp.toString()
+            this.hpFontSize = UNIT_FONT_SIZE
+            this.hpText.setFontSize(UNIT_FONT_SIZE)
+            if (UNIT_FONT_SIZE > 20) {
+                this.hpText.setOrigin(0.5, -0.1)
+            } else {
+                this.hpText.setOrigin(0.5, 0.5)
+            }
         }
 
-        this.hpText.setFontSize(UNIT_FONT_SIZE)
-        if (UNIT_FONT_SIZE > 25) {
-            this.hpText.x = this.x - this.width + 20
-            this.hpText.y = this.y + this.height - 20
-        } else {
-            this.hpText.y = this.y - 11
-            if (this.hp > 999) {
-                this.hpText.x = this.x - 13
-            } else if (this.hp > 9) {
-                this.hpText.x = this.x - 11
-            } else {
-                this.hpText.x = this.x - 6
-            }
+        if (!refUnit) {
+            return
+        }
+
+        if (refUnit.position.x !== this.x && !this.scene.tweens.isTweening(this)) {
+            this.scene.tweens.add({
+                targets: [this, this.hpText, this.selectedCircle],
+                x: {
+                    from: this.x,
+                    to: refUnit.position.x,
+                },
+                ease: 'Linear',
+                duration: 100,
+            })
+        }
+        if (refUnit.position.y !== this.y && !this.scene.tweens.isTweening(this)) {
+            this.scene.tweens.add({
+                targets: [this, this.hpText, this.selectedCircle],
+                y: {
+                    from: this.y,
+                    to: refUnit.position.y,
+                },
+                ease: 'Linear',
+                duration: 100,
+            })
         }
     }
 

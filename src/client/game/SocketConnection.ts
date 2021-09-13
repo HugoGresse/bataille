@@ -30,7 +30,8 @@ export const getSocketConnectionInstance = () => {
 
 export class SocketConnection {
     private socket: Socket
-    private gameState: PrivateGameState | null = null
+    private lastGameState: PrivateGameState | null = null
+    private gameStates: PrivateGameState[] = []
     public gameStartData: ExportTypeWithGameState | null = null
     private messageListener: ((message: Message) => void) | null = null
 
@@ -78,11 +79,12 @@ export class SocketConnection {
     private handleGameInit(data: ExportTypeWithGameState) {
         this.onGameStart(data.gameId)
         this.gameStartData = data
-        this.gameState = data.gameState
+        this.gameStates.push(data.gameState)
     }
 
     private handleGameState(gameState: PrivateGameState) {
-        this.gameState = gameState
+        this.gameStates.push(gameState)
+        this.lastGameState = gameState
     }
 
     private handleGameMessage(message: Message) {
@@ -95,8 +97,11 @@ export class SocketConnection {
         this.socket.disconnect()
     }
 
+    public getStateUpdate(): PrivateGameState | undefined {
+        return this.gameStates.shift()
+    }
     public getLatestState(): PrivateGameState | null {
-        return this.gameState
+        return this.lastGameState
     }
 
     public getSocketIO() {

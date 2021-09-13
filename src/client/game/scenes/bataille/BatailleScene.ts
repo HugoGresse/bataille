@@ -43,7 +43,7 @@ export class BatailleScene extends BaseScene {
 
     update(time: number, delta: number) {
         super.update(time, delta)
-        const newState = this.socket.getLatestState()
+        const newState = this.socket.getStateUpdate()
         if (newState) {
             for (const unit of newState.units.updated) {
                 const id = unit.id
@@ -63,7 +63,7 @@ export class BatailleScene extends BaseScene {
                     delete this.units[id]
                 }
             }
-            const currentPlayerName = this.getState()?.currentPlayer.name
+            const currentPlayerName = newState.currentPlayer.name
             newState.towns.forEach((town) => {
                 if (this.towns[town.id]) {
                     this.towns[town.id].update(town, currentPlayerName)
