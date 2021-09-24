@@ -27,7 +27,7 @@ export class ScoresStats {
 
     update(scene: BaseScene) {
         const state = scene.getState()
-        const players = state?.players
+        const players = state?.ps
 
         players?.forEach((player, index) => {
             const playerText = getPlayerText(index, player)
@@ -37,7 +37,7 @@ export class ScoresStats {
             } else if (this.playersTexts[index].text !== playerText) {
                 this.playersTexts[index].text = playerText
             }
-            this.playersTexts[index].setColor('#' + player.color.replace('0x', ''))
+            this.playersTexts[index].setColor('#' + player.c.replace('0x', ''))
         })
         if (!this.backgroundAdjusted && players) {
             this.background.height = players?.length * Y_MARGIN + Y_MARGIN * 2
@@ -47,15 +47,15 @@ export class ScoresStats {
 }
 
 export const getPlayerText = (index: number, player: PublicPlayerState) => {
-    let text = `${index + 1}. ${player.name}: ${player.income} `
+    let text = `${index + 1}. ${player.n}: ${player.i} `
 
-    if (player.dead) {
+    if (player.d) {
         text += '☠️'
     }
-    if (!player.connected) {
+    if (!player.cnt) {
         text += '❌'
     }
-    if (player.surrender) {
+    if (player.s) {
         text += '🏳'
     }
 

@@ -52,23 +52,23 @@ export class Actor extends Phaser.GameObjects.Sprite {
             return
         }
 
-        if (refUnit.position.x !== this.x && !this.scene.tweens.isTweening(this)) {
+        if (refUnit.p.x !== this.x && !this.scene.tweens.isTweening(this)) {
             this.scene.tweens.add({
                 targets: [this, this.hpText, this.selectedCircle],
                 x: {
                     from: this.x,
-                    to: refUnit.position.x,
+                    to: refUnit.p.x,
                 },
                 ease: 'Linear',
                 duration: 100,
             })
         }
-        if (refUnit.position.y !== this.y && !this.scene.tweens.isTweening(this)) {
+        if (refUnit.p.y !== this.y && !this.scene.tweens.isTweening(this)) {
             this.scene.tweens.add({
                 targets: [this, this.hpText, this.selectedCircle],
                 y: {
                     from: this.y,
-                    to: refUnit.position.y,
+                    to: refUnit.p.y,
                 },
                 ease: 'Linear',
                 duration: 100,

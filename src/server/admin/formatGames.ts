@@ -9,7 +9,7 @@ export const formatGames = (games: { [id: string]: Game }): AdminUpdate => {
             return {
                 id: gameId,
                 duration,
-                players: game.getState().players,
+                players: game.getState().ps,
             }
         }),
     }

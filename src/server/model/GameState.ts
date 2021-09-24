@@ -6,15 +6,15 @@ export enum GameStatus {
 }
 
 export interface GameState {
-    status: GameStatus
-    nextIncome: number
-    players: PublicPlayerState[]
-    units: {
+    s: GameStatus // status
+    ni: number // next income seconds
+    ps: PublicPlayerState[] // players States
+    u: {
+        // units
         updated: UnitState[]
         deleted: UnitState[]
     }
-    towns: TownsState[]
-    deltas?: GameState
+    t: TownsState[] // towns
 }
 
 export interface PrivateGameState extends GameState {
@@ -25,29 +25,30 @@ export interface PrivateGameStateUpdate extends GameState {
 }
 
 export interface PrivatePlayerState extends PublicPlayerState {
-    money: number
+    m: number // Money
 }
 export interface PrivatePlayerStateUpdate {
-    money: number
+    m: number // Money
 }
 export interface PublicPlayerState {
-    name: string
-    income: number
-    color: string
-    countries: string[]
-    connected: boolean
-    dead: boolean
-    surrender: boolean
+    n: string // Name
+    i: number // Income
+    c: string // color
+    ctr: string[] // countries
+    cnt: boolean // connected
+    d: boolean // dead
+    s: boolean // surrender
 }
 
 export interface UnitState {
-    id: string
-    hp: number
-    position: {
+    id: string // id
+    hp: number // hp
+    p: {
+        // position
         x: number
         y: number
     }
-    color: string
+    c: string // color
 }
 
 export interface TownsState extends TilePublic {}

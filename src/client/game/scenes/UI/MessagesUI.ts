@@ -100,9 +100,9 @@ export class MessagesUI {
     private getTextMessage(message: Message): string[] {
         if (message.player) {
             if (message.isUserMessage) {
-                return [message.player.name + ': ', message.content]
+                return [message.player.n + ': ', message.content]
             } else {
-                return [message.content.replace(message.player.name, ''), message.player.name]
+                return [message.content.replace(message.player.n, ''), message.player.n]
             }
         }
         return [message.content]
@@ -133,9 +133,9 @@ export class MessagesUI {
 
         if (message.player) {
             if (message.isUserMessage) {
-                text.setColor(`#${message.player.color.replace('0x', '')}`)
+                text.setColor(`#${message.player.c.replace('0x', '')}`)
             } else {
-                groupElements[1].setColor(`#${message.player.color.replace('0x', '')}`)
+                groupElements[1].setColor(`#${message.player.c.replace('0x', '')}`)
             }
         }
 

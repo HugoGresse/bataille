@@ -13,11 +13,11 @@ import { ExportTypeWithGameState } from './model/types/ExportType'
  */
 export class SocketEmitter {
     private lastGameState: GameState = {
-        status: GameStatus.running,
-        nextIncome: 0,
-        players: [],
-        towns: [],
-        units: {
+        s: GameStatus.running,
+        ni: 0,
+        ps: [],
+        t: [],
+        u: {
             updated: [],
             deleted: [],
         },
@@ -51,8 +51,6 @@ export class SocketEmitter {
     async emitGameUpdate(game: Game) {
         const gameState = game.getState()
 
-        // this.logUpdate(gameState)
-
         const socketIds = await this.sockets.allSockets()
         socketIds.forEach((socketId) => {
             const data: PrivateGameStateUpdate = {
@@ -63,11 +61,6 @@ export class SocketEmitter {
         })
 
         this.lastGameState = gameState
-    }
-
-    logUpdate(gameState: GameState) {
-        console.log(`Unit: u:${gameState.units.updated.length} d:${gameState.units.deleted.length}`)
-        console.log(`Town: ${gameState.towns.length}`)
     }
 
     emitMessage(content: string, player?: AbstractPlayer, isUserMessage = false) {

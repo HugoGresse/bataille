@@ -20,8 +20,8 @@ export class Town extends Building {
 
         this.id = tileData.id
 
-        if (tileData.name) {
-            this.scene.add.text(this.x, this.y - 20, tileData.name, textStyle)
+        if (tileData.n) {
+            this.scene.add.text(this.x, this.y - 20, tileData.n, textStyle)
         }
 
         this.playerRectangle = this.scene.add.rectangle(
@@ -30,19 +30,19 @@ export class Town extends Building {
             TILE_WIDTH_HEIGHT,
             TILE_WIDTH_HEIGHT
         )
-        this.setTownColor(tileData.player as UIPlayer)
+        this.setTownColor(tileData.p as UIPlayer)
     }
 
     update(tile: TilePublic, currentPlayerName: string | undefined) {
-        if (this.tileData.player?.name === currentPlayerName && tile.player?.name !== currentPlayerName) {
+        if (this.tileData.p?.n === currentPlayerName && tile.p?.n !== currentPlayerName) {
             playTownCapturedSound()
         }
-        this.setTownColor(tile.player as UIPlayer)
-        this.tileData.player = tile.player
+        this.setTownColor(tile.p as UIPlayer)
+        this.tileData.p = tile.p
         super.update()
     }
 
     setTownColor(player: UIPlayer) {
-        this.playerRectangle.setStrokeStyle(3, Display.Color.HexStringToColor(player.color || '#000000').color)
+        this.playerRectangle.setStrokeStyle(3, Display.Color.HexStringToColor(player.c || '#000000').color)
     }
 }

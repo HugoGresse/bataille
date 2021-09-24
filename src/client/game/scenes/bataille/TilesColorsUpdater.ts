@@ -30,9 +30,9 @@ export class TilesColorsUpdater {
      */
     update(players: PublicPlayerState[]) {
         players.forEach((player) => {
-            player.countries.forEach((countryId) => {
+            player.ctr.forEach((countryId) => {
                 if (this.countriesPolygons[countryId]) {
-                    this.countriesPolygons[countryId].setColor(player.color)
+                    this.countriesPolygons[countryId].setColor(player.c)
                 } else {
                     console.log('This country id is missing in polygon', countryId)
                 }
@@ -50,7 +50,7 @@ export class TilesColorsUpdater {
         // Store last countries to un-color them on when lost at war
         this.lastCountries = []
         players.forEach((player) => {
-            player.countries.forEach((countryId) => {
+            player.ctr.forEach((countryId) => {
                 this.lastCountries.push(countryId)
             })
         })

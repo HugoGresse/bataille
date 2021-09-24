@@ -45,18 +45,18 @@ export class BatailleScene extends BaseScene {
         super.update(time, delta)
         const newState = this.socket.getStateUpdate()
         if (newState) {
-            for (const unit of newState.units.updated) {
+            for (const unit of newState.u.updated) {
                 const id = unit.id
                 if (this.units[id]) {
                     this.units[id].update(unit)
                 } else {
-                    const unitObj = new StickUnit(this, id, unit.position.x, unit.position.y)
-                    unitObj.setColor(unit.color)
+                    const unitObj = new StickUnit(this, id, unit.p.x, unit.p.y)
+                    unitObj.setColor(unit.c)
                     unitObj.update(unit)
                     this.units[id] = unitObj
                 }
             }
-            for (const unit of newState.units.deleted) {
+            for (const unit of newState.u.deleted) {
                 const id = unit.id
                 if (this.units[id]) {
                     this.units[id].destroy()
@@ -65,15 +65,15 @@ export class BatailleScene extends BaseScene {
             }
             const initialState = this.socket.getLatestState()
             if (initialState) {
-                const currentPlayerName = initialState.cp.name
-                for (const town of newState.towns) {
+                const currentPlayerName = initialState.cp.n
+                for (const town of newState.t) {
                     if (this.towns[town.id]) {
                         this.towns[town.id].update(town, currentPlayerName)
                     } else {
                         console.log('invalid town', town.id)
                     }
                 }
-                this.tilesColorsUpdater.update(initialState.players)
+                this.tilesColorsUpdater.update(initialState.ps)
             }
         }
     }
@@ -99,7 +99,7 @@ export class BatailleScene extends BaseScene {
                 .map(Number)
                 .forEach((y) => {
                     const tileData = data.map.tiles[x][y]
-                    if (tileData.isTown) {
+                    if (tileData.isT) {
                         const town = new Town(this, x * TILE_WIDTH_HEIGHT, y * TILE_WIDTH_HEIGHT, tileData)
                         this.towns[town.id] = town
                     }
@@ -112,12 +112,12 @@ export class BatailleScene extends BaseScene {
         setupCamera(this.cameras.main, this, this.map)
         displayCountriesInfo(data.map.countriesInfos, this)
 
-        for (const unit of data.gameState.units.updated) {
-            const unitObj = new StickUnit(this, unit.id, unit.position.x, unit.position.y)
-            unitObj.setColor(unit.color)
+        for (const unit of data.gameState.u.updated) {
+            const unitObj = new StickUnit(this, unit.id, unit.p.x, unit.p.y)
+            unitObj.setColor(unit.c)
             unitObj.update(unit)
             this.units[unit.id] = unitObj
         }
-        this.tilesColorsUpdater.update(data.gameState.players)
+        this.tilesColorsUpdater.update(data.gameState.ps)
     }
 }

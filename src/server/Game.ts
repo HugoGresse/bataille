@@ -65,18 +65,18 @@ export class Game {
         const players = this.players
             .map((player) => player.getPublicPlayerState())
             .sort((p1, p2) => {
-                return p2.income - p1.income
+                return p2.i - p1.i
             })
 
         return {
-            status: this.gameLoop.isRunning ? GameStatus.running : GameStatus.stopped,
-            nextIncome: this.incomeDispatcher.getNextIncomeDelay(),
-            players: players,
-            units: {
+            s: this.gameLoop.isRunning ? GameStatus.running : GameStatus.stopped,
+            ni: this.incomeDispatcher.getNextIncomeDelay(),
+            ps: players,
+            u: {
                 updated: updatedUnits,
                 deleted: deletedUnits,
             },
-            towns: this.gameUpdateProcessor.getLastTownsStates(),
+            t: this.gameUpdateProcessor.getLastTownsStates(),
         }
     }
 

@@ -1,4 +1,4 @@
 export interface UIPlayer {
-    name: string
-    color: string
+    n: string
+    c: string
 }

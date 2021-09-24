@@ -102,7 +102,7 @@ export const Admin = () => {
                                         </Typography>
                                         <Grid>
                                             {game.players.map((player, index) => (
-                                                <Grid key={player.name}>
+                                                <Grid key={player.n}>
                                                     <Typography>{getPlayerText(index, player)}</Typography>
                                                 </Grid>
                                             ))}

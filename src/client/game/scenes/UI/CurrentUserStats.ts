@@ -31,18 +31,18 @@ export class CurrentUserStats {
 
         const currentPlayer = state?.cp
         if (currentPlayer) {
-            if (!this.nameText.text.endsWith(currentPlayer?.name)) {
-                this.nameText.text = `${currentPlayer.name}`
-                this.nameText.setColor('#' + currentPlayer.color.replace('0x', ''))
+            if (!this.nameText.text.endsWith(currentPlayer?.n)) {
+                this.nameText.text = `${currentPlayer.n}`
+                this.nameText.setColor('#' + currentPlayer.c.replace('0x', ''))
             }
-            if (!this.incomeText.text.endsWith(`${currentPlayer?.income}`)) {
-                this.incomeText.text = `Income: ${currentPlayer.income}`
+            if (!this.incomeText.text.endsWith(`${currentPlayer?.i}`)) {
+                this.incomeText.text = `Income: ${currentPlayer.i}`
             }
-            if (!this.moneyText.text.endsWith(`${currentPlayer?.money}`)) {
-                this.moneyText.text = `Money: ${currentPlayer.money}`
+            if (!this.moneyText.text.endsWith(`${currentPlayer?.m}`)) {
+                this.moneyText.text = `Money: ${currentPlayer.m}`
             }
         }
 
-        this.nextIncomeText.text = `Next income: ${state?.nextIncome}s`
+        this.nextIncomeText.text = `Next income: ${state?.ni}s`
     }
 }

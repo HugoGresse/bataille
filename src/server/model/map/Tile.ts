@@ -6,12 +6,13 @@ import { NeutralPlayerInstance } from '../player/NeutralPlayer'
 
 export type TilePublic = {
     id: string
-    player?: {
-        name: string
-        color: string
+    p?: {
+        // Player
+        n: string // name
+        c: string // color
     }
-    isTown: boolean
-    name?: string
+    isT: boolean // isTown
+    n?: string // name
 }
 
 export class Tile {
@@ -67,13 +68,13 @@ export class Tile {
     export(): TilePublic {
         const exportData: TilePublic = {
             id: this.id,
-            isTown: this.isTown,
-            name: this.data?.name,
+            isT: this.isTown,
+            n: this.data?.name,
         }
         if (this.player) {
-            exportData.player = {
-                name: this.player.name,
-                color: this.player.color,
+            exportData.p = {
+                n: this.player.name,
+                c: this.player.color,
             }
         }
         return exportData

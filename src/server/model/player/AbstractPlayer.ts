@@ -48,25 +48,25 @@ export abstract class AbstractPlayer {
 
     getPublicPlayerState(): PublicPlayerState {
         return {
-            name: this.name,
-            income: this.income,
-            color: this.color,
-            countries: this.ownedCountriesIds,
-            connected: this.isConnected,
-            dead: this.isDead,
-            surrender: false,
+            n: this.name,
+            i: this.income,
+            c: this.color,
+            ctr: this.ownedCountriesIds,
+            cnt: this.isConnected,
+            d: this.isDead,
+            s: false,
         }
     }
 
     getPrivatePlayerState(): PrivatePlayerState {
         return {
             ...this.getPublicPlayerState(),
-            money: this.money,
+            m: this.money,
         }
     }
     getPrivatePlayerStateUpdate(): PrivatePlayerStateUpdate {
         return {
-            money: this.money,
+            m: this.money,
         }
     }
 
