@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client'
-import { PrivateGameState } from '../../server/model/GameState'
+import { PrivateGameState, PrivateGameStateUpdate, PrivatePlayerState } from '../../server/model/GameState'
 import {
     GAME_MESSAGE,
     GAME_STATE_INIT,
@@ -30,8 +30,8 @@ export const getSocketConnectionInstance = () => {
 
 export class SocketConnection {
     private socket: Socket
-    private lastGameState: PrivateGameState | null = null
-    private gameStates: PrivateGameState[] = []
+    private lastGameState: PrivateGameStateUpdate | null = null
+    private gameStates: PrivateGameStateUpdate[] = []
     public gameStartData: ExportTypeWithGameState | null = null
     private messageListener: ((message: Message) => void) | null = null
 
@@ -82,7 +82,7 @@ export class SocketConnection {
         this.gameStates.push(data.gameState)
     }
 
-    private handleGameState(gameState: PrivateGameState) {
+    private handleGameState(gameState: PrivateGameStateUpdate) {
         this.gameStates.push(gameState)
         this.lastGameState = gameState
     }
@@ -97,11 +97,20 @@ export class SocketConnection {
         this.socket.disconnect()
     }
 
-    public getStateUpdate(): PrivateGameState | undefined {
+    public getStateUpdate(): PrivateGameStateUpdate | undefined {
         return this.gameStates.shift()
     }
+
     public getLatestState(): PrivateGameState | null {
-        return this.lastGameState
+        const privatePlayerState: PrivatePlayerState = this.gameStartData!.gameState!.cp
+
+        if (this.lastGameState) {
+            return {
+                ...this.lastGameState,
+                cp: privatePlayerState,
+            }
+        }
+        return null
     }
 
     public getSocketIO() {

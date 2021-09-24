@@ -1,6 +1,6 @@
 import { HumanPlayer } from './model/player/HumanPlayer'
 import { GameLoop } from './GameLoop'
-import { GameState, GameStatus, PrivatePlayerState } from './model/GameState'
+import { GameState, GameStatus, PrivatePlayerState, PrivatePlayerStateUpdate } from './model/GameState'
 import { UnitAction } from '../common/UnitAction'
 import { GameMap } from './model/map/GameMap'
 import { SocketEmitter } from './SocketEmitter'
@@ -82,6 +82,9 @@ export class Game {
 
     getPlayerPrivateState(socketId: string): PrivatePlayerState {
         return this.playersBySocketIds[socketId].getPrivatePlayerState()
+    }
+    getPlayerPrivateStateUpdate(socketId: string): PrivatePlayerStateUpdate {
+        return this.playersBySocketIds[socketId].getPrivatePlayerStateUpdate()
     }
 
     addPlayer(player: AbstractPlayer, socketId: string) {

@@ -18,10 +18,16 @@ export interface GameState {
 }
 
 export interface PrivateGameState extends GameState {
-    currentPlayer: PrivatePlayerState
+    cp: PrivatePlayerState
+}
+export interface PrivateGameStateUpdate extends GameState {
+    cp: PrivatePlayerStateUpdate
 }
 
 export interface PrivatePlayerState extends PublicPlayerState {
+    money: number
+}
+export interface PrivatePlayerStateUpdate {
     money: number
 }
 export interface PublicPlayerState {

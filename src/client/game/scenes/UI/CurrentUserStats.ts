@@ -29,7 +29,7 @@ export class CurrentUserStats {
     update(scene: BaseScene) {
         const state = scene.getState()
 
-        const currentPlayer = state?.currentPlayer
+        const currentPlayer = state?.cp
         if (currentPlayer) {
             if (!this.nameText.text.endsWith(currentPlayer?.name)) {
                 this.nameText.text = `${currentPlayer.name}`

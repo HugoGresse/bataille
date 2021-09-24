@@ -63,15 +63,18 @@ export class BatailleScene extends BaseScene {
                     delete this.units[id]
                 }
             }
-            const currentPlayerName = newState.currentPlayer.name
-            newState.towns.forEach((town) => {
-                if (this.towns[town.id]) {
-                    this.towns[town.id].update(town, currentPlayerName)
-                } else {
-                    console.log('invalid town', town.id)
+            const initialState = this.socket.getLatestState()
+            if (initialState) {
+                const currentPlayerName = initialState.cp.name
+                for (const town of newState.towns) {
+                    if (this.towns[town.id]) {
+                        this.towns[town.id].update(town, currentPlayerName)
+                    } else {
+                        console.log('invalid town', town.id)
+                    }
                 }
-            })
-            this.tilesColorsUpdater.update(newState.players)
+                this.tilesColorsUpdater.update(initialState.players)
+            }
         }
     }
 

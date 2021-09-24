@@ -5,7 +5,8 @@ import { GAME_MESSAGE, GAME_STATE_INIT, GAME_STATE_UPDATE, LOBBY_STATE } from '.
 import { socketIOServer } from './utils/io'
 import { GameLobby } from './GameLobby'
 import { AbstractPlayer } from './model/player/AbstractPlayer'
-import { GameState, GameStatus } from './model/GameState'
+import { GameState, GameStatus, PrivateGameStateUpdate } from './model/GameState'
+import { ExportTypeWithGameState } from './model/types/ExportType'
 
 /**
  * Emit events to a specific Socket room provided at construction
@@ -35,13 +36,14 @@ export class SocketEmitter {
         const socketIds = await this.sockets.allSockets()
 
         socketIds.forEach((socketId) => {
-            socketIOServer.to(socketId).emit(GAME_STATE_INIT, {
+            const data: ExportTypeWithGameState = {
                 ...gameExport,
                 gameState: {
                     ...gameState,
-                    currentPlayer: game.getPlayerPrivateState(socketId),
+                    cp: game.getPlayerPrivateState(socketId),
                 },
-            })
+            }
+            socketIOServer.to(socketId).emit(GAME_STATE_INIT, data)
         })
         this.lastGameState = gameState
     }
@@ -53,10 +55,11 @@ export class SocketEmitter {
 
         const socketIds = await this.sockets.allSockets()
         socketIds.forEach((socketId) => {
-            socketIOServer.to(socketId).emit(GAME_STATE_UPDATE, {
+            const data: PrivateGameStateUpdate = {
                 ...gameState,
-                currentPlayer: game.getPlayerPrivateState(socketId),
-            })
+                cp: game.getPlayerPrivateStateUpdate(socketId),
+            }
+            socketIOServer.to(socketId).emit(GAME_STATE_UPDATE, data)
         })
 
         this.lastGameState = gameState

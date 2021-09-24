@@ -1,7 +1,7 @@
 import { MONEY_INCOME_START } from '../../../common/GameSettings'
 import { v4 as uuidv4 } from 'uuid'
 import { UnitsType } from '../../../common/UNITS'
-import { PrivatePlayerState, PublicPlayerState } from '../GameState'
+import { PrivatePlayerState, PrivatePlayerStateUpdate, PublicPlayerState } from '../GameState'
 import { GameMap } from '../map/GameMap'
 import { SocketEmitter } from '../../SocketEmitter'
 import { COUNTRIES_INCOME } from '../map/COUNTRIES_INCOME'
@@ -61,6 +61,11 @@ export abstract class AbstractPlayer {
     getPrivatePlayerState(): PrivatePlayerState {
         return {
             ...this.getPublicPlayerState(),
+            money: this.money,
+        }
+    }
+    getPrivatePlayerStateUpdate(): PrivatePlayerStateUpdate {
+        return {
             money: this.money,
         }
     }
