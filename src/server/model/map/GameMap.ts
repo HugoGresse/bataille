@@ -82,10 +82,6 @@ export class GameMap {
         return this.towns
     }
 
-    getTownsState(): TilePublic[] {
-        return this.towns.map((town) => town.export())
-    }
-
     getTownsByCountries() {
         return this.townByCountries
     }

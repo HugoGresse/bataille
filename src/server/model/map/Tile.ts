@@ -55,6 +55,18 @@ export class Tile {
             case TileType.WaterDeep:
                 this.velocityFactor = 0.1
                 break
+            case TileType.ForestSmall:
+                this.velocityFactor = 0.8
+                break
+            case TileType.ForestBig:
+                this.velocityFactor = 0.4
+                break
+            case TileType.MountainSmall:
+                this.velocityFactor = 0.5
+                break
+            case TileType.MountainBig:
+                this.velocityFactor = 0
+                break
             case TileType.WaterDeepSelected:
             case TileType.WaterSelected:
             case TileType.TownSelected:

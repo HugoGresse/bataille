@@ -55,5 +55,7 @@ export const EXPORTED_LAYER_NAMES = [
     'c-ly',
     'c-tn',
     'c-dz',
+    'g-mountain-forest',
     'towns',
 ]
+export const INPUT_LAYERS_SKIP = ['g-mountain-forest']
