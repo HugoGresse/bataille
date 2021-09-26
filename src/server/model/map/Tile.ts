@@ -91,6 +91,10 @@ export class Tile {
         }
         return exportData
     }
+
+    isCrossable(): boolean {
+        return this.velocityFactor > 0
+    }
 }
 
 export interface Town extends Tile {

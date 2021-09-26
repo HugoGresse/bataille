@@ -1,4 +1,4 @@
-import { GameMap } from '../map/GameMap'
+import { Tile } from '../map/Tile'
 import { Position } from './Position'
 
 export class Velocity {
@@ -7,11 +7,9 @@ export class Velocity {
     /**
      * Adjust the unit velocity depending of the current unit location
      */
-    public modulate(position: Position, map: GameMap): number {
-        const coords = position.getRounded()
-        const tile = map.getTileAt(coords.x, coords.y)
-        if (tile?.velocityFactor) {
-            return this.speed * tile?.velocityFactor
+    public modulate(position: Position, tile: Tile | null): number {
+        if (tile) {
+            return this.speed * tile.velocityFactor
         }
         return this.speed
     }

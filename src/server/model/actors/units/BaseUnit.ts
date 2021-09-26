@@ -8,6 +8,7 @@ import { Velocity } from '../Velocity'
 import { GameMap } from '../../map/GameMap'
 import { AbstractPlayer } from '../../player/AbstractPlayer'
 import { UnitState } from '../../GameState'
+import { AStarFinder } from 'pathfinding'
 
 export abstract class BaseUnit extends Actor {
     public readonly id: string
@@ -34,7 +35,7 @@ export abstract class BaseUnit extends Actor {
             case UnitActionType.Move:
                 // Remove any move action already saved
                 this.actions = this.actions.filter((action) => action.type !== UnitActionType.Move)
-                this.actions.push(action)
+                this.actions.push(new UnitAction(action.unitId, action.type, action.data))
                 break
             default:
                 console.log('addAction: Unit action type not managed', action)
@@ -58,12 +59,30 @@ export abstract class BaseUnit extends Actor {
             this.postponedAction = false
             return false
         }
-        const currentSpeed = this.velocity.modulate(this.position, map)
         this.actions = this.actions.reduce((acc: UnitAction[], action) => {
             switch (action.type) {
                 case UnitActionType.Move:
-                    const isDestinationReached = this.position.move(action.data.destination, currentSpeed)
-                    if (!isDestinationReached) {
+                    if (!action.path) {
+                        console.log(action)
+                        action.calculatePath(this.position, map)
+
+                        // TODO :
+                        // 1. use Path to calculate the vector to move to (not from the destination
+                        // 2. Remove element from path once the current path has been completed to start the new one
+                        // 3. WHen no more path, check destination reached
+                    }
+
+                    const [stopped, isDestinationReached] = this.position.move(
+                        action.data.destination,
+                        this.velocity,
+                        map
+                    )
+
+                    if (stopped && isDestinationReached) {
+                        // Calculate alternate path
+                    }
+
+                    if (!stopped) {
                         acc.push(action)
                     }
 

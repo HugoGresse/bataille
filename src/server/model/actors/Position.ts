@@ -1,5 +1,7 @@
 import { TILE_WIDTH_HEIGHT } from '../../../common/UNITS'
 import { round32 } from '../../../utils/Round32'
+import { Velocity } from './Velocity'
+import { GameMap } from '../map/GameMap'
 
 export class Position {
     // real position used for the movement
@@ -31,7 +33,11 @@ export class Position {
     /**
      * @return true if the target has been reached
      */
-    move(target: Position, speed: number): boolean {
+    move(target: Position, velocity: Velocity, map: GameMap): boolean {
+        const currentRoundedPos = this.getRounded()
+        const currentTile = map.getTileAt(currentRoundedPos.x, currentRoundedPos.y)
+        const speed = velocity.modulate(this, currentTile)
+
         const vector = pointMakeVector(new Position(this.rX, this.rY), target)
         const vLength = length(vector)
 
@@ -43,7 +49,6 @@ export class Position {
 
         this.rX = this.rX + factor * vector.x
         this.rY = this.rY + factor * vector.y
-
         this.x = round32(this.rX) * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
         this.y = round32(this.rY) * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
 
@@ -53,6 +58,13 @@ export class Position {
         }
 
         return false
+    }
+
+    copyFrom(position: Position) {
+        this.x = position.x
+        this.y = position.y
+        this.rX = position.rX
+        this.rY = position.rY
     }
 }
 
