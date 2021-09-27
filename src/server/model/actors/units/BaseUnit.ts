@@ -3,12 +3,11 @@ import { Position } from '../Position'
 import { Life } from '../Life'
 import { UnitsType } from '../../../../common/UNITS'
 import { v4 as uuidv4 } from 'uuid'
-import { UnitAction, UnitActionType } from '../../../../common/UnitAction'
+import { UnitAction, UnitActionMoveData, UnitActionType } from '../../../../common/UnitAction'
 import { Velocity } from '../Velocity'
 import { GameMap } from '../../map/GameMap'
 import { AbstractPlayer } from '../../player/AbstractPlayer'
 import { UnitState } from '../../GameState'
-import { AStarFinder } from 'pathfinding'
 
 export abstract class BaseUnit extends Actor {
     public readonly id: string
@@ -35,7 +34,13 @@ export abstract class BaseUnit extends Actor {
             case UnitActionType.Move:
                 // Remove any move action already saved
                 this.actions = this.actions.filter((action) => action.type !== UnitActionType.Move)
-                this.actions.push(new UnitAction(action.unitId, action.type, action.data))
+                this.actions.push(
+                    new UnitAction(
+                        action.unitId,
+                        action.type,
+                        new UnitActionMoveData(new Position(action.data.destination.x, action.data.destination.y))
+                    )
+                )
                 break
             default:
                 console.log('addAction: Unit action type not managed', action)
@@ -63,27 +68,21 @@ export abstract class BaseUnit extends Actor {
             switch (action.type) {
                 case UnitActionType.Move:
                     if (!action.path) {
-                        console.log(action)
                         action.calculatePath(this.position, map)
-
-                        // TODO :
-                        // 1. use Path to calculate the vector to move to (not from the destination
-                        // 2. Remove element from path once the current path has been completed to start the new one
-                        // 3. WHen no more path, check destination reached
+                        action.moveToNextPoint()
                     }
 
-                    const [stopped, isDestinationReached] = this.position.move(
-                        action.data.destination,
-                        this.velocity,
-                        map
-                    )
+                    const nextPoint = action.getNextPoint()
+                    if (nextPoint) {
+                        const moved = this.position.move(nextPoint, this.velocity, map)
 
-                    if (stopped && isDestinationReached) {
-                        // Calculate alternate path
-                    }
+                        if (moved) {
+                            action.moveToNextPoint()
+                        }
 
-                    if (!stopped) {
                         acc.push(action)
+                    } else {
+                        // destination reached
                     }
 
                     break

@@ -50,16 +50,16 @@ export class Tile {
                 }
                 break
             case TileType.Water:
-                this.velocityFactor = 0.15
+                this.velocityFactor = 0.3
                 break
             case TileType.WaterDeep:
-                this.velocityFactor = 0.1
+                this.velocityFactor = 0.2
                 break
             case TileType.ForestSmall:
                 this.velocityFactor = 0.8
                 break
             case TileType.ForestBig:
-                this.velocityFactor = 0.4
+                this.velocityFactor = 0.6
                 break
             case TileType.MountainSmall:
                 this.velocityFactor = 0.5
