@@ -64,7 +64,10 @@ export abstract class BaseUnit extends Actor {
             this.postponedAction = false
             return false
         }
-        this.actions = this.actions.reduce((acc: UnitAction[], action) => {
+        let unitMoved = false
+
+        const nextActions = []
+        for (const action of this.actions) {
             switch (action.type) {
                 case UnitActionType.Move:
                     if (!action.path) {
@@ -75,24 +78,22 @@ export abstract class BaseUnit extends Actor {
                     const nextPoint = action.getNextPoint()
                     if (nextPoint) {
                         const moved = this.position.move(nextPoint, this.velocity, map)
-
                         if (moved) {
                             action.moveToNextPoint()
+                            unitMoved = true
                         }
-
-                        acc.push(action)
+                        nextActions.push(action)
                     } else {
                         // destination reached
                     }
-
                     break
                 default:
                     console.log('update: Unit action type not managed', action)
                     break
             }
-            return acc
-        }, [])
-        return true
+        }
+        this.actions = nextActions
+        return unitMoved
     }
 
     getPublicState(): UnitState {
