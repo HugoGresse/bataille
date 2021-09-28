@@ -1,6 +1,5 @@
 import { MONEY_INCOME_START } from '../../../common/GameSettings'
 import { v4 as uuidv4 } from 'uuid'
-import { UnitsType } from '../../../common/UNITS'
 import { PrivatePlayerState, PrivatePlayerStateUpdate, PublicPlayerState } from '../GameState'
 import { GameMap } from '../map/GameMap'
 import { SocketEmitter } from '../../SocketEmitter'
@@ -102,8 +101,8 @@ export abstract class AbstractPlayer {
         }
     }
 
-    spendMoney(unitType: UnitsType) {
-        this.money -= unitType
+    spendMoney(moneyToSpend: number) {
+        this.money -= moneyToSpend
     }
 
     public getCountriesEligibleForBounty(ts: number) {
