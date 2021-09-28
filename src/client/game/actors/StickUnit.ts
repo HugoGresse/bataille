@@ -36,8 +36,15 @@ export class StickUnit extends Actor {
         this.input.hitArea.setSize(TILE_WIDTH_HEIGHT + 4, TILE_WIDTH_HEIGHT + 4)
         this.on('dragstart', this.onDragStart)
         this.on('dragend', this.onDragEnd)
-        this.on('drag', (pointer: PointerPhaser) => throttleFunction(() => this.onDrag(pointer), 200))
+        this.on('drag', (pointer: PointerPhaser) => throttleFunction(() => this.onDrag(pointer), 100))
         this.setDepth(DEPTH_UNIT)
+    }
+
+    clearThrottle() {
+        if (this.timerId) {
+            clearTimeout(this.timerId)
+            this.timerId = null
+        }
     }
 
     destroy() {
@@ -49,11 +56,14 @@ export class StickUnit extends Actor {
 
     onDragStart() {
         isUnitDragging = this.id
+        this.clearThrottle()
         this.onSelect()
     }
 
-    onDragEnd() {
+    onDragEnd(pointer: PointerPhaser) {
         isUnitDragging = null
+        this.clearThrottle()
+        this.onDrag(pointer) // always send last drag event due to throttle function killable state
         this.onUnselect()
     }
 
