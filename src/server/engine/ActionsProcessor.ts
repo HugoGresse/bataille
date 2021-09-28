@@ -12,8 +12,10 @@ import { UnitsProcessor } from './UnitsProcessor'
 export class ActionsProcessor {
     constructor(private map: GameMap, private unitsProcessor: UnitsProcessor) {}
 
-    addUnit(player: AbstractPlayer, { x, y }: NewUnitDataEvent): BaseUnit | null {
-        if (player.money >= UnitsType.Stick) {
+    addUnit(player: AbstractPlayer, { x, y, unitCount }: NewUnitDataEvent): BaseUnit | null {
+        const unitTypeToCreate = UnitsType.Stick
+
+        if (player.money >= unitTypeToCreate) {
             const position = new Position(x + TILE_WIDTH_HEIGHT / 2, y + TILE_WIDTH_HEIGHT / 2)
             const gridPosition = position.getRoundedPosition()
             const town = this.map.getTileAt<Town>(gridPosition.x, gridPosition.y)
@@ -21,9 +23,15 @@ export class ActionsProcessor {
                 return null
             }
             const unit = new StickUnit(player, position)
+
+            const unitCost = unitCount * unitTypeToCreate
+            const spendableMoney = unitCost > player.money ? player.money / unitTypeToCreate : unitCost
+            const unitLife = spendableMoney / unitTypeToCreate
+            unit.life.setHP(unitLife)
+
             const createdUnit = this.unitsProcessor.addUnit(unit, player, gridPosition.x, gridPosition.y)
             if (createdUnit) {
-                player.spendMoney(UnitsType.Stick)
+                player.spendMoney(spendableMoney)
                 return createdUnit
             }
         }

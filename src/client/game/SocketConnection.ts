@@ -105,9 +105,14 @@ export class SocketConnection {
         const privatePlayerState: PrivatePlayerState = this.gameStartData!.gameState!.cp
 
         if (this.lastGameState) {
+            const currentUserIncome = this.lastGameState.ps.find((p) => p.n === privatePlayerState.n)!.i
             return {
                 ...this.lastGameState,
-                cp: privatePlayerState,
+                cp: {
+                    ...privatePlayerState,
+                    m: this.lastGameState.cp.m,
+                    i: currentUserIncome,
+                },
             }
         }
         return null

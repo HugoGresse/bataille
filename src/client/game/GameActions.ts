@@ -12,10 +12,11 @@ export class GameActions {
         this.gameId = gameId
     }
 
-    newUnit(x: number, y: number) {
+    newUnit(x: number, y: number, unitCount = 1) {
         this.socket.emit(PLAYER_NEW_UNIT, this.gameId, {
             x,
             y,
+            unitCount,
         })
     }
 

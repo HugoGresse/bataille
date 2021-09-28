@@ -83,9 +83,7 @@ export class BuildingOverlay {
         if (!this.selectedTown) {
             return
         }
-        for (let i = 0; i < unitCount; i++) {
-            this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y)
-        }
+        this.scene.actions.newUnit(this.selectedTown.x, this.selectedTown.y, unitCount)
     }
 
     onEmptyTileSelected() {

@@ -3,7 +3,7 @@ import { Position } from '../Position'
 import { Life } from '../Life'
 import { UnitsType } from '../../../../common/UNITS'
 import { v4 as uuidv4 } from 'uuid'
-import { UnitAction, UnitActionType } from '../../../../common/UnitAction'
+import { UnitAction, UnitActionMoveData, UnitActionType } from '../../../../common/UnitAction'
 import { Velocity } from '../Velocity'
 import { GameMap } from '../../map/GameMap'
 import { AbstractPlayer } from '../../player/AbstractPlayer'
@@ -34,7 +34,13 @@ export abstract class BaseUnit extends Actor {
             case UnitActionType.Move:
                 // Remove any move action already saved
                 this.actions = this.actions.filter((action) => action.type !== UnitActionType.Move)
-                this.actions.push(action)
+                this.actions.push(
+                    new UnitAction(
+                        action.unitId,
+                        action.type,
+                        new UnitActionMoveData(new Position(action.data.destination.x, action.data.destination.y))
+                    )
+                )
                 break
             default:
                 console.log('addAction: Unit action type not managed', action)
@@ -58,13 +64,25 @@ export abstract class BaseUnit extends Actor {
             this.postponedAction = false
             return false
         }
-        const currentSpeed = this.velocity.modulate(this.position, map)
         this.actions = this.actions.reduce((acc: UnitAction[], action) => {
             switch (action.type) {
                 case UnitActionType.Move:
-                    const isDestinationReached = this.position.move(action.data.destination, currentSpeed)
-                    if (!isDestinationReached) {
+                    if (!action.path) {
+                        action.calculatePath(this.position, map)
+                        action.moveToNextPoint()
+                    }
+
+                    const nextPoint = action.getNextPoint()
+                    if (nextPoint) {
+                        const moved = this.position.move(nextPoint, this.velocity, map)
+
+                        if (moved) {
+                            action.moveToNextPoint()
+                        }
+
                         acc.push(action)
+                    } else {
+                        // destination reached
                     }
 
                     break

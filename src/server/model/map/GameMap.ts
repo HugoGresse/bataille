@@ -1,4 +1,4 @@
-import { Tile, TilePublic, Town } from './Tile'
+import { Tile, Town } from './Tile'
 import mapData from '../../../../public/assets/tilemaps/json/map.json'
 import { MapTilesPublic } from '../types/MapTilesPublic'
 import { MapTiles } from '../types/MapTiles'
@@ -10,6 +10,8 @@ import { CountryInfo } from '../types/CountryInfo'
 import { RawMapLayerObjectProperties } from '../types/RawMapLayerObjectProperties'
 import { COUNTRIES_INCOME } from './COUNTRIES_INCOME'
 import { EXPORTED_LAYER_NAMES } from './EXPORTED_LAYER_NAMES'
+import { Grid } from 'pathfinding'
+import { generateGrid } from './pathfinding/generateGrid'
 
 export const CountryIdToInfo: {
     [name: string]: {
@@ -26,6 +28,7 @@ export class GameMap {
     private towns: Town[] = []
     private readonly mapWidth: number
     private readonly mapHeight: number
+    public readonly pathFindingGrid: Grid
 
     constructor() {
         // @ts-ignore
@@ -72,6 +75,8 @@ export class GameMap {
                 return
             }
         })
+
+        this.pathFindingGrid = generateGrid(this.tiles, this.mapWidth, this.mapHeight)
     }
 
     getMapTiles(): MapTiles {
@@ -80,10 +85,6 @@ export class GameMap {
 
     getTowns(): Town[] {
         return this.towns
-    }
-
-    getTownsState(): TilePublic[] {
-        return this.towns.map((town) => town.export())
     }
 
     getTownsByCountries() {

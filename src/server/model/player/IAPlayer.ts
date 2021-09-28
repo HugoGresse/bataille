@@ -164,14 +164,9 @@ export class IAPlayer extends AbstractPlayer {
         const createdUnit = this.actionsProcessor.addUnit(this, {
             x: startX,
             y: startY,
+            unitCount: unitCountToCreate,
         })
 
-        for (let i = 1; i < unitCountToCreate; i++) {
-            this.actionsProcessor.addUnit(this, {
-                x: startX,
-                y: startY,
-            })
-        }
         if (createdUnit) {
             this.actionByUpdate++
             // console.log("move unit to dest", to.data)

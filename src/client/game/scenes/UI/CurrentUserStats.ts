@@ -11,6 +11,8 @@ export class CurrentUserStats {
     moneyText: Phaser.GameObjects.Text
     nameText: Phaser.GameObjects.Text
     nextIncomeText: Phaser.GameObjects.Text
+    lastIncome: number = 0
+    lastMoney: number = 0
 
     constructor(scene: Phaser.Scene) {
         let startYPosition = 10
@@ -35,10 +37,12 @@ export class CurrentUserStats {
                 this.nameText.text = `${currentPlayer.n}`
                 this.nameText.setColor('#' + currentPlayer.c.replace('0x', ''))
             }
-            if (!this.incomeText.text.endsWith(`${currentPlayer?.i}`)) {
+            if (this.lastIncome !== currentPlayer.i) {
+                this.lastIncome = currentPlayer.i
                 this.incomeText.text = `Income: ${currentPlayer.i}`
             }
-            if (!this.moneyText.text.endsWith(`${currentPlayer?.m}`)) {
+            if (this.lastMoney !== currentPlayer.m) {
+                this.lastMoney = currentPlayer.m
                 this.moneyText.text = `Money: ${currentPlayer.m}`
             }
         }
