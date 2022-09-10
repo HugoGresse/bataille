@@ -8,6 +8,7 @@ import {
     PLAYER_FORCE_START,
     PLAYER_UNIT,
     PLAYER_MESSAGE_POST,
+    PLAYER_LOBBY_WAIT_FOR_HUMAN,
 } from '../common/SOCKET_EMIT'
 import { UnitAction } from '../common/UnitAction'
 import { pickUnusedColor } from './utils/pickUnusedColor'
@@ -31,6 +32,7 @@ new AdminServer(games)
 socketIOServer.on('connection', (socket: Socket) => {
     socket.on(PLAYER_JOIN_LOBBY, handlePlayerJoin(socket))
     socket.on(PLAYER_FORCE_START, handlePlayerForceStart(socket))
+    socket.on(PLAYER_LOBBY_WAIT_FOR_HUMAN, handlePlayerWaitForHuman())
     socket.on(PLAYER_NEW_UNIT, handlePlayerNewUnit(socket))
     socket.on(PLAYER_UNIT, handlePlayerUnit(socket))
     socket.on(PLAYER_MESSAGE_POST, handlePlayerPostMessage(socket))
@@ -56,6 +58,12 @@ const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
 const handlePlayerForceStart = (socket: Socket) => (shouldForceStart: boolean) => {
     if (lobby) {
         lobby.handlePlayerForceStart(socket.id, shouldForceStart)
+    }
+}
+
+const handlePlayerWaitForHuman = () => () => {
+    if (lobby) {
+        lobby.handlePlayerWaitForHuman()
     }
 }
 
