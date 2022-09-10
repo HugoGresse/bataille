@@ -15,16 +15,18 @@ export const Lobby = () => {
         playerCount: 0,
         countdown: 0,
         ongoingGame: 0,
+        waitForHuman: false,
     })
     const [forceStart, setForceStart] = useState(false)
 
     const onForceStartPress = () => {
         const forceStartValue = !forceStart
         setForceStart(forceStartValue)
-        const socketConnection = getSocketConnectionInstance()
-        if (socketConnection) {
-            socketConnection.sendForceStart(forceStartValue)
-        }
+        getSocketConnectionInstance()?.sendForceStart(forceStartValue)
+    }
+
+    const onWaitForHumanPress = () => {
+        getSocketConnectionInstance()?.sendWaitForHuman()
     }
 
     useEffect(() => {
@@ -71,18 +73,38 @@ export const Lobby = () => {
                 <Typography variant="h3">
                     Waiting for more players... {lobbyState.playerCount}/{lobbyState.requiredPlayerCount}
                 </Typography>
-                {lobbyState.countdown ? <Typography>Game starting in {lobbyState.countdown}s</Typography> : null}
+                {!lobbyState.waitForHuman && lobbyState.countdown ? (
+                    <Typography>Game starting in {lobbyState.countdown}s</Typography>
+                ) : null}
+                {lobbyState.waitForHuman ? (
+                    <Typography>Waiting another player before starting the game (wait for human ON)</Typography>
+                ) : null}
                 <br />
-                <Button variant={forceStart ? 'contained' : 'outlined'} size="large" onClick={onForceStartPress}>
-                    Force start ({lobbyState.playerCountForceStart}/
-                    {lobbyState.playerCount > 1 ? lobbyState.playerCount : 2})
-                </Button>
 
-                <HelpDialogButton
-                    style={{
-                        float: 'right',
-                    }}
-                />
+                <Box display="flex" justifyContent="space-between">
+                    <Box display="flex" flexDirection="column">
+                        <Button
+                            variant={forceStart ? 'contained' : 'outlined'}
+                            size="large"
+                            onClick={onForceStartPress}>
+                            Force start ({lobbyState.playerCountForceStart}/
+                            {lobbyState.playerCount > 1 ? lobbyState.playerCount : 2})
+                        </Button>
+                        <br />
+                        <Button
+                            variant={lobbyState.waitForHuman ? 'contained' : 'outlined'}
+                            size="large"
+                            onClick={onWaitForHumanPress}>
+                            Wait for human: {lobbyState.waitForHuman ? 'on' : 'off'}
+                        </Button>
+                    </Box>
+
+                    <HelpDialogButton
+                        style={{
+                            float: 'right',
+                        }}
+                    />
+                </Box>
             </Box>
 
             <DonatingBanner />

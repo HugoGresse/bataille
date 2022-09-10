@@ -7,6 +7,7 @@ import {
     LOBBY_STATE,
     PLAYER_FORCE_START,
     PLAYER_JOIN_LOBBY,
+    PLAYER_LOBBY_WAIT_FOR_HUMAN,
 } from '../../common/SOCKET_EMIT'
 import { ExportTypeWithGameState } from '../../server/model/types/ExportType'
 import { SOCKET_URL } from './utils/clientEnv'
@@ -70,6 +71,10 @@ export class SocketConnection {
 
     public sendForceStart(shouldForceStart: boolean) {
         this.socket.emit(PLAYER_FORCE_START, shouldForceStart)
+    }
+
+    public sendWaitForHuman() {
+        this.socket.emit(PLAYER_LOBBY_WAIT_FOR_HUMAN)
     }
 
     private handleLobbyState(state: LobbyState) {
