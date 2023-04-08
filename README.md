@@ -21,6 +21,9 @@ Everything is build around Node & TypeScript, using Phaser3 for the game engine 
 
 ## Setup
 
+0. Copy `.env.example` to `.env` and fill: 
+    - `REACT_APP_SOCKET_URL=localhost:3001`
+    - `SUMOLOGIC_COLLECTOR` can stay blank (used to track number of games played)
 1. `npm i` 
 2. `npm run start`
 3. `npm run start-server`
