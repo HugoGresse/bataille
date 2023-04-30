@@ -24,7 +24,6 @@ export const newSocketConnectionInstance = (
     if (socketConnectionInstance) {
         socketConnectionInstance.disconnect()
     }
-    console.log('sc', SOCKET_URL)
     socketConnectionInstance = new SocketConnection(SOCKET_URL, onLobbyState, onGameStart)
 }
 export const getSocketConnectionInstance = () => {
