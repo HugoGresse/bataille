@@ -18,7 +18,7 @@ jobs:
             cache: 'npm'
       - run: npm ci && npm run build
         env:
-          REACT_APP_SOCKET_URL: '${{ secrets.REACT_APP_SOCKET_URL }}'
+          VITE_SOCKET_URL: '${{ secrets.VITE_SOCKET_URL }}'
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
