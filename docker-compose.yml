@@ -1,0 +1,5 @@
+version: '3'
+services:
+    bataille-server:
+        container_name: bataille-server
+        build: .
