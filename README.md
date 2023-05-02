@@ -1,5 +1,7 @@
 # Bataille
 
+[![Join the chat at https://gitter.im/bataille-game/community](https://badges.gitter.im/bataille-game/community.svg)](https://gitter.im/bataille-game/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 A risk like game, in TypeScript, revamped for quick bataille and fun.
 
 > https://bataille.ovh
