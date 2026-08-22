@@ -12,10 +12,12 @@
     "scripts": {
         "start": "vite",
         "build": "tsc && vite build",
-        "start-server": "tsx watch --tsconfig src/server/tsconfig.dev.json src/server/server.ts",
+        "start-server": "IA_PLAYER_PER_GAME=3 MIN_PLAYER=2 tsx watch --tsconfig src/server/tsconfig.dev.json src/server/server.ts",
         "build:server": "rm -rf lib && tsc --build src/server/tsconfig.json",
         "build:server:run": "npm run build:server && node lib/src/server/server.js",
         "start:server": "node lib/src/server/server.js",
+        "test": "vitest run",
+        "test:watch": "vitest",
         "play:test": "node scripts/play-headless.mjs",
         "release:patch": "npm run build:server && git add . && git commit -m \"update build\" && npm version patch",
         "release:minor": "npm run build:server && git add . && git commit -m \"update build\" && npm version minor",
@@ -31,7 +33,8 @@
         "lint-staged": "^17.3.0",
         "prettier": "^3.9.6",
         "tsx": "^4.23.12",
-        "vite": "^8.2.2"
+        "vite": "^8.2.2",
+        "vitest": "^4.1.11"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",

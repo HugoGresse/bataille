@@ -13,6 +13,8 @@ export abstract class AbstractPlayer {
     public money: number = MONEY_INCOME_START
     public isConnected: boolean = true
     public isDead: boolean = false
+    /** AI players death notices are not broadcast to humans (they only clutter the UI) */
+    public readonly isAI: boolean = false
     public ownedCountriesIds: string[] = []
     public ownedCountriesFrom: Map<string, number>
     public colorHex: string
@@ -99,7 +101,9 @@ export abstract class AbstractPlayer {
         }, MONEY_INCOME_START)
         if (this.income === MONEY_INCOME_START && this.ownedCountriesIds.length === 0 && this.unitCount === 0) {
             this.isDead = true
-            emitter.emitMessage(`Player is dead: ${this.name}`, this)
+            if (!this.isAI) {
+                emitter.emitMessage(`Player is dead: ${this.name}`, this)
+            }
         }
     }
 

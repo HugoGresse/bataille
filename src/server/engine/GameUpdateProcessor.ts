@@ -20,9 +20,15 @@ export class GameUpdateProcessor {
     private lastChangedTownsStates: TilePublic[] = []
     private wasFirstUnitSent = false
 
-    private unitsUpdatesRuntimes: Array<number> = []
-    private townsUpdatesRuntimes: Array<number> = []
-    private countriesUpdatesRuntimes: Array<number> = []
+    // Running averages instead of per-tick sample arrays: the arrays grew unbounded on long games
+    private unitsRuntime = { sum: 0, samples: 0 }
+    private townsRuntime = { sum: 0, samples: 0 }
+    private countriesRuntime = { sum: 0, samples: 0 }
+
+    private recordRuntime(runtime: { sum: number; samples: number }, start: number) {
+        runtime.sum += Date.now() - start
+        runtime.samples++
+    }
 
     constructor(
         private map: GameMap,
@@ -48,7 +54,7 @@ export class GameUpdateProcessor {
         this.lastDeletedUnits = deletedUnits
         this.lastChangedTownsStates = []
 
-        this.unitsUpdatesRuntimes.push(Date.now() - step1)
+        this.recordRuntime(this.unitsRuntime, step1)
 
         // 2. Update towns if needed
         if (this.lastUpdatedUnits.length) {
@@ -57,7 +63,7 @@ export class GameUpdateProcessor {
             const { towns, deletedUnits, updatedUnits } = this.unitsProcessor.updateTownsFromUnits(this.map)
             this.lastDeletedUnits.push(...deletedUnits)
             this.lastUpdatedUnits.push(...updatedUnits)
-            this.townsUpdatesRuntimes.push(Date.now() - step2)
+            this.recordRuntime(this.townsRuntime, step2)
 
             // 4. Update country ownership / incomes
             const step3 = Date.now()
@@ -67,10 +73,7 @@ export class GameUpdateProcessor {
                 }
                 this.lastChangedTownsStates.push(...towns)
             }
-            this.countriesUpdatesRuntimes.push(Date.now() - step3)
-        } else {
-            this.townsUpdatesRuntimes.push(0)
-            this.countriesUpdatesRuntimes.push(0)
+            this.recordRuntime(this.countriesRuntime, step3)
         }
 
         if (this.incomeDispatcher.update(this.players)) {
@@ -117,16 +120,13 @@ export class GameUpdateProcessor {
     }
 
     printRuntimes() {
-        const averageStep1 = average(this.unitsUpdatesRuntimes) * 1000
-        const averageStep2 = average(this.townsUpdatesRuntimes) * 1000
-        const averageStep3 = average(this.countriesUpdatesRuntimes) * 1000
+        const averageOf = (runtime: { sum: number; samples: number }) =>
+            runtime.samples === 0 ? 0 : runtime.sum / runtime.samples
 
         console.log(`
-            uUpd: ${averageStep1}
-            tUpd: ${averageStep2}
-            cUpd: ${averageStep3}
+            uUpd: ${averageOf(this.unitsRuntime).toFixed(3)}ms
+            tUpd: ${averageOf(this.townsRuntime).toFixed(3)}ms
+            cUpd: ${averageOf(this.countriesRuntime).toFixed(3)}ms
         `)
     }
 }
-
-const average = (arr: Array<number>) => arr.reduce((p, c) => p + c, 0) / arr.length

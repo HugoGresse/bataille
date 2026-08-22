@@ -16,6 +16,7 @@ export class IAPlayer extends AbstractPlayer {
     private lastRunTime: number = 0
     private actionsProcessor!: ActionsProcessor
     private unitsProcessor!: UnitsProcessor
+    public readonly isAI = true
     private actionByCountries: {
         [countryId: string]: string
     } = {}

@@ -28,6 +28,34 @@ export class TileSelection {
         })
 
         const layersReverse = [...this.map.layers].reverse()
+
+        const findTileAt = (pointer: Input.Pointer): Tile | null => {
+            for (const layer of layersReverse) {
+                if (INPUT_LAYERS_SKIP.includes(layer.name)) {
+                    continue
+                }
+                const tile = this.map.getTileAtWorldXY(pointer.worldX, pointer.worldY, false, undefined, layer.name)
+                if (tile) {
+                    return tile
+                }
+            }
+            return null
+        }
+
+        // Live path preview while a stack is selected (move mode)
+        this.scene.input.on(
+            'pointermove',
+            (pointer: Input.Pointer) => {
+                if (!this.scene.isUnitMoveSelectionActive()) {
+                    return
+                }
+                const tile = findTileAt(pointer)
+                if (tile) {
+                    this.scene.onPathPreviewHovered(tile)
+                }
+            }
+        )
+
         this.scene.input.on('pointerup', (pointer: Input.Pointer) => {
             // Clicks on UI scene widgets (buttons, slider...) must not select tiles or move units
             if (consumeUIPointer()) {
@@ -37,26 +65,21 @@ export class TileSelection {
             if (Phaser.Math.Distance.Between(downScreenX, downScreenY, pointer.x, pointer.y) > CLICK_MAX_DISTANCE) {
                 return
             }
-            for (const layer of layersReverse) {
-                if (INPUT_LAYERS_SKIP.includes(layer.name)) {
-                    continue
-                }
-                const tile = this.map.getTileAtWorldXY(pointer.worldX, pointer.worldY, false, undefined, layer.name)
+            const tile = findTileAt(pointer)
 
-                if (tile) {
-                    if (this.scene.isUnitMoveSelectionActive()) {
-                        // A stack is selected: this click is the move destination
-                        this.scene.onMoveDestinationSelected(tile, pointer.worldX, pointer.worldY)
-                    } else {
-                        this.onTilePress(tile)
-                    }
-                    return
+            if (tile) {
+                if (this.scene.isUnitMoveSelectionActive()) {
+                    // A stack is selected: this click is the move destination
+                    this.scene.onMoveDestinationSelected(tile, pointer.worldX, pointer.worldY)
+                } else {
+                    this.onTilePress(tile)
                 }
             }
         })
         this.scene.events.on('destroy', () => {
             this.scene.events.off('pointerup')
             this.scene.events.off('pointerdown')
+            this.scene.events.off('pointermove')
         })
     }
 

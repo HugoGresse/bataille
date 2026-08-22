@@ -46,6 +46,13 @@ export class UnitAction {
         return this.currentPathItem
     }
 
+    /**
+     * True while the unit still has waypoints to cover on this action (ie. it is not done traveling)
+     */
+    hasNextPoint(): boolean {
+        return !!this.path && this.currentPathIndex < this.path.length
+    }
+
     moveToNextPoint() {
         if (this.path) {
             this.currentPathIndex++

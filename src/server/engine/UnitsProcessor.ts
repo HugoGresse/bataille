@@ -53,6 +53,16 @@ export class UnitsProcessor {
                     updatedUnits.push(unit.getPublicState())
                     const unitNewPos = unit.position.getRounded()
                     if (unitNewPos.x != x || unitNewPos.y != y) {
+                        const occupant = this.units.get(unitNewPos.x)?.get(unitNewPos.y)
+
+                        // A traveling stack crossing an allied tile must NOT merge with it:
+                        // it keeps its previous grid registration until it stops somewhere
+                        // (final destination or a fight). It also therefore cannot capture a
+                        // town it merely walks over.
+                        if (occupant && occupant.owner.id === unit.owner.id && unit.isTraveling()) {
+                            continue
+                        }
+
                         // Unit may be wrongfully displayed on the grid, or just moved from one square to another, this align everything
                         xEntries.delete(y)
 

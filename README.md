@@ -31,3 +31,13 @@ Requires Node 26 (see `.nvmrc`).
 2. `npm run start`
 3. `npm run start-server`
 4. Open `localhost:3000`, local dev should work with one player, online require 2 players.
+
+
+## Issues : 
+
+1. Unit moving crossing another allied troop merge, not idea if they are just on there way
+2. Display the path finding preview and selected cell 
+3. Add unit test on the server loop and code 
+4. Optimize server performance 
+5. Very fun game! However, one thing that bothered me is that in the early game, where there is a massive amount of cities changing hands, the center of the screen tends to be filled. I suggest moving takeover notices that don't include you to a bottom corner, while keeping the ones that do involve you in the center.
+6. Don't display AI killing themself messages

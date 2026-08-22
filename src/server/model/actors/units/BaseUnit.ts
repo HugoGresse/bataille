@@ -60,6 +60,14 @@ export abstract class BaseUnit extends Actor {
         }
     }
 
+    /**
+     * True while the unit still has a move action with waypoints to cover: it is traveling
+     * toward its destination and may cross tiles without stopping on them.
+     */
+    isTraveling(): boolean {
+        return this.actions.some((action) => action.type === UnitActionType.Move && action.hasNextPoint())
+    }
+
     postponeAction() {
         this.postponedAction = true
     }

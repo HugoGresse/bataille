@@ -1,6 +1,7 @@
 import 'phaser'
 import { StickUnit } from '../../actors/StickUnit'
 import { Tilemaps } from 'phaser'
+import { Grid } from 'pathfinding'
 import { BaseScene, SCENE_BATAILLE_KEY, SCENE_UI_KEY } from '../BaseScene'
 import { BatailleGame } from '../../BatailleGame'
 import { ExportTypeWithGameState } from '../../../../server/model/types/ExportType'
@@ -10,6 +11,7 @@ import { Town } from '../../actors/buildings/Town'
 import { TILE_WIDTH_HEIGHT } from '../../../../common/UNITS'
 import { TilesColorsUpdater } from './TilesColorsUpdater'
 import { displayCountriesInfo } from './displayCountriesInfo'
+import { PathPreview } from './PathPreview'
 import { SocketConnection } from '../../SocketConnection'
 
 export class BatailleScene extends BaseScene {
@@ -26,6 +28,7 @@ export class BatailleScene extends BaseScene {
     } = {}
     private socket!: SocketConnection
     private selectedUnit: StickUnit | null = null
+    private pathPreview: PathPreview | null = null
 
     constructor() {
         super(SCENE_BATAILLE_KEY)
@@ -135,9 +138,20 @@ export class BatailleScene extends BaseScene {
     clearUnitSelection(notifyUI: boolean = true) {
         this.selectedUnit?.onUnselect()
         this.selectedUnit = null
+        this.pathPreview?.clear()
         if (notifyUI) {
             this.getUIScene().onUnitDeselected()
         }
+    }
+
+    /**
+     * Live A* preview from the selected stack to the hovered tile (same grid + algorithm as the server)
+     */
+    onPathPreviewHovered(tile: Tilemaps.Tile) {
+        if (!this.selectedUnit) {
+            return
+        }
+        this.pathPreview?.update(this.selectedUnit.x, this.selectedUnit.y, { x: tile.x, y: tile.y })
     }
 
     private selectUnit(unit: StickUnit) {
@@ -172,6 +186,19 @@ export class BatailleScene extends BaseScene {
         this.tileSelectionDetector = new TileSelection(this, this.map)
         this.tileSelectionDetector.start()
         this.tilesColorsUpdater = new TilesColorsUpdater(this, data.map.countries)
+
+        // Rebuild the server walkability grid for client-side path previews
+        const { width, height, columns } = data.map.pathfinding
+        const walkabilityMatrix: number[][] = []
+        for (let x = 0; x < width; x++) {
+            const column: number[] = []
+            for (let y = 0; y < height; y++) {
+                column.push(columns[x]?.[y] === '1' ? 0 : 1)
+            }
+            walkabilityMatrix.push(column)
+        }
+        this.pathPreview = new PathPreview(this, new Grid(walkabilityMatrix))
+
         setupCamera(this.cameras.main, this, this.map)
         displayCountriesInfo(data.map.countriesInfos, this)
 
