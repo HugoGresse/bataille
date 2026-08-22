@@ -1,6 +1,15 @@
 import React, { useState } from 'react'
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@material-ui/core'
-import HelpIcon from '@material-ui/icons/HelpOutline'
+import type { CSSProperties } from 'react'
+import {
+    Button,
+    ButtonProps,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+} from '@mui/material'
+import HelpIcon from '@mui/icons-material/HelpOutlined'
 
 export type HelpDialogProps = {
     open: boolean
@@ -77,7 +86,12 @@ export const HelpDialog = ({ open, setOpen }: HelpDialogProps) => {
     )
 }
 
-export const HelpDialogButton = ({ buttonText = 'How to play', ...props }) => {
+type HelpDialogButtonProps = Omit<ButtonProps, 'children'> & {
+    buttonText?: string
+    style?: CSSProperties
+}
+
+export const HelpDialogButton = ({ buttonText = 'How to play', ...props }: HelpDialogButtonProps) => {
     const [helpOpen, setHelpOpen] = useState<boolean>(false)
 
     return (

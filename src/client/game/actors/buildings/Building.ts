@@ -1,3 +1,4 @@
+import * as Phaser from 'phaser'
 import { TILE_WIDTH_HEIGHT } from '../../../../common/UNITS'
 import { BaseScene } from '../../scenes/BaseScene'
 
@@ -6,8 +7,9 @@ export abstract class Building extends Phaser.GameObjects.Sprite {
         super(scene, x, y, texture, undefined)
 
         this.setInteractive()
-        this.input.hitArea.setSize(TILE_WIDTH_HEIGHT, TILE_WIDTH_HEIGHT)
-        this.input.hitArea.setPosition(TILE_WIDTH_HEIGHT / 2, TILE_WIDTH_HEIGHT / 2)
+        const input = this.input!
+        input.hitArea.setSize(TILE_WIDTH_HEIGHT, TILE_WIDTH_HEIGHT)
+        input.hitArea.setPosition(TILE_WIDTH_HEIGHT / 2, TILE_WIDTH_HEIGHT / 2)
         this.on(Phaser.Input.Events.POINTER_UP, this.onPress)
         this.off(Phaser.Input.Events.DESTROY, this.onPress)
     }

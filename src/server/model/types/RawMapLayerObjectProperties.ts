@@ -8,6 +8,6 @@ export interface RawMapLayerObjectProperties {
             }[]
             x: number
             y: number
-        }
+        },
     ]
 }

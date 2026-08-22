@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
 import { TownsData } from '../types/TownsData'
 import { TileType } from '../../../common/TileType'
 import { AbstractPlayer } from '../player/AbstractPlayer'
@@ -30,7 +29,7 @@ export class Tile {
         public readonly x: number,
         public readonly y: number
     ) {
-        this.id = uuidv4()
+        this.id = crypto.randomUUID()
         switch (tileNumber) {
             case TileType.None:
                 this.isNeutral = true

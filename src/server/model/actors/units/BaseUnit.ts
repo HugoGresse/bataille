@@ -2,7 +2,6 @@ import { Actor } from '../Actor'
 import { Position } from '../Position'
 import { Life } from '../Life'
 import { UnitsType } from '../../../../common/UNITS'
-import { v4 as uuidv4 } from 'uuid'
 import { UnitAction, UnitActionMoveData, UnitActionType } from '../../../../common/UnitAction'
 import { Velocity } from '../Velocity'
 import { GameMap } from '../../map/GameMap'
@@ -25,7 +24,7 @@ export abstract class BaseUnit extends Actor {
         protected velocity: Velocity
     ) {
         super(owner, position)
-        this.id = uuidv4()
+        this.id = crypto.randomUUID()
         this.life = new Life(hp)
     }
 

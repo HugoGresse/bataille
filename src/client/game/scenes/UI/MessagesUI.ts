@@ -1,3 +1,4 @@
+import * as Phaser from 'phaser'
 import { Message } from '../../../../server/model/types/Message'
 import { PublicPlayerState } from '../../../../server/model/GameState'
 import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
@@ -32,7 +33,7 @@ export class MessagesUI {
         this.onEnterPress = this.onEnterPress.bind(this)
         this.intervalId = setInterval(() => this.update(), 1000)
 
-        this.enterKey = this.scene.input.keyboard.addKey(ENTER_KEY, true, false)
+        this.enterKey = this.scene.input.keyboard!.addKey(ENTER_KEY, true, false)
         this.enterKey.on('up', this.onEnterPress)
     }
 
@@ -46,7 +47,7 @@ export class MessagesUI {
         this.enterKey.removeAllListeners()
         this.enterKey.off('up', this.onEnterPress)
         BatailleGame.setInputEnable(false)
-        this.scene.input.keyboard.disableGlobalCapture()
+        this.scene.input.keyboard!.disableGlobalCapture()
 
         const result = await promise
 
@@ -58,7 +59,7 @@ export class MessagesUI {
         setTimeout(() => {
             // Prevent the onTextRequested to be called directly because this is too fast...
             this.enterKey.on('up', this.onEnterPress)
-            this.scene.input.keyboard.enableGlobalCapture()
+            this.scene.input.keyboard!.enableGlobalCapture()
             BatailleGame.setInputEnable(true)
         }, 200)
     }

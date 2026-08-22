@@ -1,3 +1,4 @@
+import * as Phaser from 'phaser'
 import { Tilemaps, Input } from 'phaser'
 import { BatailleScene } from './BatailleScene'
 import { TileType } from '../../../../common/TileType'
@@ -8,7 +9,10 @@ type Tile = Tilemaps.Tile
 export class TileSelection {
     private selectedTile: Tile | null = null
 
-    constructor(private scene: BatailleScene, private map: Phaser.Tilemaps.Tilemap) {}
+    constructor(
+        private scene: BatailleScene,
+        private map: Phaser.Tilemaps.Tilemap
+    ) {}
 
     start(): void {
         const layersReverse = [...this.map.layers].reverse()

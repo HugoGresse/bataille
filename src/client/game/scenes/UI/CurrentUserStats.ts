@@ -1,3 +1,4 @@
+import * as Phaser from 'phaser'
 import { BaseScene } from '../BaseScene'
 import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
 

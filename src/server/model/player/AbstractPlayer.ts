@@ -1,5 +1,4 @@
 import { MONEY_INCOME_START } from '../../../common/GameSettings'
-import { v4 as uuidv4 } from 'uuid'
 import { PrivatePlayerState, PrivatePlayerStateUpdate, PublicPlayerState } from '../GameState'
 import { GameMap } from '../map/GameMap'
 import { SocketEmitter } from '../../SocketEmitter'
@@ -18,8 +17,11 @@ export abstract class AbstractPlayer {
     public ownedCountriesFrom: Map<string, number>
     public colorHex: string
 
-    protected constructor(name = `${Date.now()}`, public color: string) {
-        this.id = uuidv4()
+    protected constructor(
+        name = `${Date.now()}`,
+        public color: string
+    ) {
+        this.id = crypto.randomUUID()
         this.name = name
         this.colorHex = color.replace('0x', '#')
         this.ownedCountriesFrom = new Map()

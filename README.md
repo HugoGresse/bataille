@@ -18,12 +18,14 @@ A risk like game, in TypeScript, revamped for quick bataille and fun.
 
 # Developers
 
-Everything is build around Node & TypeScript, using Phaser3 for the game engine on the web (webgl) and socket.io for server-client communication.
+Everything is build around Node & TypeScript, using Phaser4 for the game engine on the web (webgl) and socket.io for server-client communication.
 
 ## Setup
 
+Requires Node 26 (see `.nvmrc`).
+
 0. Copy `.env.example` to `.env` and fill:
-    - `REACT_APP_SOCKET_URL=localhost:3001`
+    - `VITE_SOCKET_URL=localhost:3001`
     - `SUMOLOGIC_COLLECTOR` can stay blank (used to track number of games played)
 1. `npm i`
 2. `npm run start`

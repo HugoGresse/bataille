@@ -5,6 +5,6 @@ export interface RawMapLayerObjectPolygons {
             polygon: []
             x: number
             y: number
-        }
+        },
     ]
 }

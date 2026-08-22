@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Button, Dialog, DialogContent, TextField } from '@material-ui/core'
+import { Button, Dialog, DialogContent, TextField } from '@mui/material'
 
 type MessageDialogProps = {
     open: boolean
@@ -23,7 +23,7 @@ export const MessageDialog = ({ open, onSubmit }: MessageDialogProps) => {
                     fullWidth={true}
                     placeholder="Some message to all players (enter to submit)"
                     value={content}
-                    inputProps={{ maxLength: 255 }}
+                    slotProps={{ htmlInput: { maxLength: 255 } }}
                     onChange={(event) => setContent(event.target.value)}
                     onKeyPress={(event) => {
                         if (event.key === 'Enter') {

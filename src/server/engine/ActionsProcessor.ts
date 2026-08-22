@@ -10,7 +10,10 @@ import { BaseUnit } from '../model/actors/units/BaseUnit'
 import { UnitsProcessor } from './UnitsProcessor'
 
 export class ActionsProcessor {
-    constructor(private map: GameMap, private unitsProcessor: UnitsProcessor) {}
+    constructor(
+        private map: GameMap,
+        private unitsProcessor: UnitsProcessor
+    ) {}
 
     addUnit(player: AbstractPlayer, { x, y, unitCount }: NewUnitDataEvent): BaseUnit | null {
         const unitTypeToCreate = UnitsType.Stick

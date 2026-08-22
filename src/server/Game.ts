@@ -29,7 +29,10 @@ export class Game {
     private gameUpdateProcessor: GameUpdateProcessor
     protected incomeDispatcher: IncomeDispatcher = new IncomeDispatcher(INCOME_MS)
 
-    constructor(public readonly id: string, protected emitter: SocketEmitter) {
+    constructor(
+        public readonly id: string,
+        protected emitter: SocketEmitter
+    ) {
         this.map = new GameMap()
         this.gameLoop = new GameLoop(this.emitter)
         this.unitsProcessor = new UnitsProcessor()

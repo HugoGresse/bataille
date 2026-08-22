@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Button, Typography } from '@material-ui/core'
+import { Box, Button, Typography } from '@mui/material'
 import { DonatingBanner } from './DonatingBanner'
-import { Link as RouterLink, useHistory } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { getSocketConnectionInstance, newSocketConnectionInstance } from '../game/SocketConnection'
-import { ArrowBack } from '@material-ui/icons'
+import { ArrowBack } from '@mui/icons-material'
 import { LobbyState } from '../../server/GameLobby'
 import { HelpDialogButton } from './HelpDialog'
 
 export const Lobby = () => {
-    const history = useHistory()
+    const navigate = useNavigate()
     const [lobbyState, setLobbyState] = useState<LobbyState>({
         playerCountForceStart: 0,
         requiredPlayerCount: 0,
@@ -35,19 +35,21 @@ export const Lobby = () => {
                 setLobbyState(lobbyState)
             },
             (gameId: string) => {
-                history.push(`/g/${gameId}/`)
+                navigate(`/g/${gameId}/`)
             }
         )
-    }, [history])
+    }, [navigate])
 
     return (
         <Box
-            display="flex"
-            flex={1}
-            minHeight="100vh"
-            alignItems="center"
-            justifyContent="space-between"
-            flexDirection="column">
+            sx={{
+                display: 'flex',
+                flex: 1,
+                minHeight: '100vh',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexDirection: 'column',
+            }}>
             <Box>
                 <br />
                 <Button
@@ -81,8 +83,8 @@ export const Lobby = () => {
                 ) : null}
                 <br />
 
-                <Box display="flex" justifyContent="space-between">
-                    <Box display="flex" flexDirection="column">
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                         <Button
                             variant={forceStart ? 'contained' : 'outlined'}
                             size="large"

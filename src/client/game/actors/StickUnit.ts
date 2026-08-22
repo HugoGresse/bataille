@@ -1,3 +1,4 @@
+import * as Phaser from 'phaser'
 import { Actor } from './Actor'
 import { TILE_WIDTH_HEIGHT } from '../../../common/UNITS'
 import { DEPTH_UNIT } from '../scenes/depth'
@@ -31,9 +32,10 @@ export class StickUnit extends Actor {
         }
 
         this.setInteractive({ draggable: true })
-        this.input.hitArea.x -= 2
-        this.input.hitArea.y -= 2
-        this.input.hitArea.setSize(TILE_WIDTH_HEIGHT + 4, TILE_WIDTH_HEIGHT + 4)
+        const input = this.input!
+        input.hitArea.x -= 2
+        input.hitArea.y -= 2
+        input.hitArea.setSize(TILE_WIDTH_HEIGHT + 4, TILE_WIDTH_HEIGHT + 4)
         this.on('dragstart', this.onDragStart)
         this.on('dragend', this.onDragEnd)
         this.on('drag', (pointer: PointerPhaser) => throttleFunction(() => this.onDrag(pointer), 100))

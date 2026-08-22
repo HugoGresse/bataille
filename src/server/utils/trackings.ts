@@ -1,5 +1,3 @@
-import fetch from 'node-fetch'
-
 const collector = process.env.SUMOLOGIC_COLLECTOR
 
 export const trackGameStart = (players: number) => {

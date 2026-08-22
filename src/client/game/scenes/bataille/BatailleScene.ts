@@ -86,7 +86,7 @@ export class BatailleScene extends BaseScene {
 
     initSceneWithData(data: ExportTypeWithGameState) {
         this.map = this.make.tilemap({ key: 'map' })
-        this.tileset = this.map.addTilesetImage('tile', 'tiles')
+        this.tileset = this.map.addTilesetImage('tile', 'tiles')!
 
         data.map.layerNames.forEach((layerName) => {
             this.map.createLayer(layerName, this.tileset)

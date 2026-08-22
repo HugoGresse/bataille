@@ -1,7 +1,8 @@
+import * as Phaser from 'phaser'
 import { GameObjects, Input, Scene } from 'phaser'
 import { StickUnit } from '../actors/StickUnit'
 import { INPUT_ENABLE } from '../BatailleGame'
-import { debounce } from '@material-ui/core'
+import { debounce } from '../../utils/debounce'
 import { BatailleScene } from '../scenes/bataille/BatailleScene'
 
 type Camera = Phaser.Cameras.Scene2D.Camera
@@ -92,7 +93,7 @@ const dragMovements = (camera: Camera, scene: Scene, map: Phaser.Tilemaps.Tilema
         dY = 0
     })
     scene.events.on('destroy', () => {
-        scene.input.keyboard.off('drag')
+        scene.input.keyboard?.off('drag')
     })
 }
 
@@ -104,7 +105,7 @@ const keyMovements = (camera: Camera, scene: Scene) => {
 
     const movementSteps = 400
 
-    scene.input.keyboard.on('keydown', (event: { code: string }) => {
+    scene.input.keyboard?.on('keydown', (event: { code: string }) => {
         if (!INPUT_ENABLE) {
             return
         }
@@ -126,6 +127,6 @@ const keyMovements = (camera: Camera, scene: Scene) => {
     })
 
     scene.events.on('destroy', () => {
-        scene.input.keyboard.off('keydown')
+        scene.input.keyboard?.off('keydown')
     })
 }

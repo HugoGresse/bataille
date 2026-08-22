@@ -1,3 +1,4 @@
+import * as Phaser from 'phaser'
 import { Physics, GameObjects } from 'phaser'
 import { UnitState } from '../../../server/model/GameState'
 import { TEXT_STYLE } from '../../utils/TEXT_STYLE'
@@ -93,7 +94,7 @@ export class Actor extends Phaser.GameObjects.Sprite {
         if (this.selectedCircle) {
             this.selectedCircle.destroy()
         }
-        this.selectedCircle = this.scene.add.circle(centerX, centerY, this.input.hitArea.height, 0xffffff, 95)
+        this.selectedCircle = this.scene.add.circle(centerX, centerY, this.input?.hitArea.height ?? 0, 0xffffff, 95)
         this.selectedCircle.setDepth(0)
     }
 
@@ -127,7 +128,8 @@ export class Actor extends Phaser.GameObjects.Sprite {
     }
 
     protected checkFlip(): void {
-        if (this.body.velocity.x < 0) {
+        const body = this.getBody()
+        if (body.velocity.x < 0) {
             this.scaleX = -1
         } else {
             this.scaleX = 1

@@ -1,3 +1,4 @@
+import * as Phaser from 'phaser'
 import { UIScene } from './UIScene'
 import { Town } from '../../actors/buildings/Town'
 import { getGameWindowSize } from '../../../utils/getGameWindowSize'
@@ -68,11 +69,11 @@ export class BuildingOverlay {
     }
 
     listenForUnitShortcuts() {
-        const newUnitKey = this.scene.input.keyboard.addKey(NEW_UNIT_SHORTCUT_BIS, true, true)
+        const newUnitKey = this.scene.input.keyboard!.addKey(NEW_UNIT_SHORTCUT_BIS, true, true)
         newUnitKey.on('down', () => {
             this.createUnit(1)
         })
-        const newUnit10XKey = this.scene.input.keyboard.addKey(NEW_UNIT_10X_SHORTCUT_BIS, true, true)
+        const newUnit10XKey = this.scene.input.keyboard!.addKey(NEW_UNIT_10X_SHORTCUT_BIS, true, true)
 
         newUnit10XKey.on('down', () => {
             this.createUnit(10)
@@ -87,8 +88,8 @@ export class BuildingOverlay {
     }
 
     onEmptyTileSelected() {
-        this.scene.input.keyboard.removeKey(NEW_UNIT_SHORTCUT_BIS)
-        this.scene.input.keyboard.removeKey(NEW_UNIT_10X_SHORTCUT_BIS)
+        this.scene.input.keyboard!.removeKey(NEW_UNIT_SHORTCUT_BIS)
+        this.scene.input.keyboard!.removeKey(NEW_UNIT_10X_SHORTCUT_BIS)
         this.shapes.forEach((shape) => {
             shape.removeAllListeners()
             shape.destroy()

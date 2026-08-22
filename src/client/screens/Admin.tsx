@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client'
 import { SOCKET_URL } from '../game/utils/clientEnv'
 import { ADMIN_ACTION, ADMIN_UPDATE, AdminActionsTypes } from '../../common/SOCKET_EMIT'
 import { useQuery } from '../utils/hooks/useQuery'
-import { Card, CardContent, Container, Grid, TextField, Typography } from '@material-ui/core'
+import { Card, CardContent, Container, Grid, TextField, Typography } from '@mui/material'
 import { AdminUpdate } from '../../server/admin/types/AdminUpdate'
 import { getPlayerText } from '../game/scenes/UI/ScoresStats'
 
@@ -53,7 +53,7 @@ export const Admin = () => {
         <Container maxWidth="lg">
             <br />
             <Grid container spacing={2}>
-                <Grid item sm={12}>
+                <Grid size={{ sm: 12 }}>
                     <TextField
                         placeholder="Send message to all games"
                         fullWidth={true}
@@ -77,18 +77,18 @@ export const Admin = () => {
                     />
                 </Grid>
 
-                <Grid item sm={12}>
-                    <Typography variant="h3" textAlign="center">
+                <Grid size={{ sm: 12 }}>
+                    <Typography variant="h3" sx={{ textAlign: 'center' }}>
                         Ongoing Games: <b>{state.games.length}</b>
                     </Typography>
                 </Grid>
 
                 {state.games.map((game) => (
-                    <Grid key={game.id} item sm={6}>
+                    <Grid key={game.id} size={{ sm: 6 }}>
                         <Card>
                             <CardContent>
                                 <Grid container spacing={2}>
-                                    <Grid item xs={6}>
+                                    <Grid size={{ xs: 6 }}>
                                         <Typography variant="h6">
                                             <b>Id:</b> {game.id}
                                         </Typography>
@@ -96,17 +96,13 @@ export const Admin = () => {
                                             <b>Duration:</b> <b>{game.duration}</b> minutes
                                         </Typography>
                                     </Grid>
-                                    <Grid item xs={6}>
+                                    <Grid size={{ xs: 6 }}>
                                         <Typography>
                                             <b>Players:</b> {game.players.length}
                                         </Typography>
-                                        <Grid>
-                                            {game.players.map((player, index) => (
-                                                <Grid key={player.n}>
-                                                    <Typography>{getPlayerText(index, player)}</Typography>
-                                                </Grid>
-                                            ))}
-                                        </Grid>
+                                        {game.players.map((player, index) => (
+                                            <Typography key={player.n}>{getPlayerText(index, player)}</Typography>
+                                        ))}
                                     </Grid>
                                 </Grid>
                             </CardContent>

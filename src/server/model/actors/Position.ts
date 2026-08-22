@@ -10,7 +10,10 @@ export class Position {
     private rY: number
     private nextMoveTime: number = 0 // wait before next move (use map terrain to adjust)
 
-    constructor(public x: number, public y: number) {
+    constructor(
+        public x: number,
+        public y: number
+    ) {
         this.rX = x
         this.rY = y
     }

@@ -1,29 +1,31 @@
 import { Game } from './game/Game'
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import React from 'react'
 import { Home } from './screens/Home'
 import { Lobby } from './screens/Lobby'
 import { Admin } from './screens/Admin'
 
+const router = createBrowserRouter([
+    {
+        path: '/',
+        element: <Home />,
+    },
+    {
+        path: '/lobby',
+        element: <Lobby />,
+    },
+    {
+        path: '/g/:gameId',
+        element: <Game />,
+    },
+    {
+        path: '/admin/*',
+        element: <Admin />,
+    },
+])
+
 function App() {
-    return (
-        <Router>
-            <Switch>
-                <Route exact path="/">
-                    <Home />
-                </Route>
-                <Route exact path="/lobby">
-                    <Lobby />
-                </Route>
-                <Route path="/g/:gameId">
-                    <Game />
-                </Route>
-                <Route path="/admin/">
-                    <Admin />
-                </Route>
-            </Switch>
-        </Router>
-    )
+    return <RouterProvider router={router} />
 }
 
 export default App

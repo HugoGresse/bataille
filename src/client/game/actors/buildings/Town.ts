@@ -1,3 +1,4 @@
+import * as Phaser from 'phaser'
 import { Building } from './Building'
 import { UIPlayer } from '../UIPlayer'
 import { BUILDING_TOWN, TILE_WIDTH_HEIGHT } from '../../../../common/UNITS'
@@ -15,7 +16,12 @@ export class Town extends Building {
     private playerRectangle: GameObjects.Rectangle
     public readonly id: string
 
-    constructor(scene: Phaser.Scene, x: number, y: number, public tileData: TilePublic) {
+    constructor(
+        scene: Phaser.Scene,
+        x: number,
+        y: number,
+        public tileData: TilePublic
+    ) {
         super(scene, x, y, BUILDING_TOWN)
 
         this.id = tileData.id

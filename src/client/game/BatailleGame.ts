@@ -1,4 +1,4 @@
-import 'phaser'
+import * as Phaser from 'phaser'
 import { BatailleScene } from './scenes/bataille/BatailleScene'
 import { UIScene } from './scenes/UI/UIScene'
 import { LoadingScene } from './scenes/LoadingScene'

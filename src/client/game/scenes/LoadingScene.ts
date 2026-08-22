@@ -1,4 +1,4 @@
-import 'phaser'
+import * as Phaser from 'phaser'
 
 export class LoadingScene extends Phaser.Scene {
     constructor() {

@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "ES2024",
         "lib": ["dom", "dom.iterable", "esnext"],
-        "types": ["vite/client"],
+        "types": ["vite/client", "node"],
         "allowJs": true,
         "skipLibCheck": true,
         "esModuleInterop": true,
@@ -11,11 +11,11 @@
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true,
         "module": "esnext",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "isolatedModules": true,
         "noEmit": true,
         "jsx": "react-jsx"
     },
-    "include": ["src", "src/server"]
+    "include": ["src"]
 }

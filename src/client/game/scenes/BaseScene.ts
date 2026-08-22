@@ -1,3 +1,4 @@
+import * as Phaser from 'phaser'
 import { GameActions } from '../GameActions'
 import { PrivateGameState } from '../../../server/model/GameState'
 import { BatailleGame } from '../BatailleGame'
@@ -11,16 +12,11 @@ export abstract class BaseScene extends Phaser.Scene {
     }
 
     public runOnStart(func: () => void) {
-        if (this.scene.settings.active && this.scene.settings.visible) {
+        // this.scene/settings may still be null right after game boot (Phaser 4 boots scenes asynchronously)
+        if (this.scene?.settings?.active && this.scene.settings.visible) {
             func()
         } else {
-            this.events.on('start', () => {
-                func()
-                this.events.off('start')
-            })
-            this.events.on('destroy', () => {
-                this.events.off('start')
-            })
+            this.events.once('start', func)
         }
     }
 
