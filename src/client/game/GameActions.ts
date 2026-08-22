@@ -20,7 +20,7 @@ export class GameActions {
         })
     }
 
-    moveUnit(actor: Actor, tx: number, ty: number) {
+    moveUnit(actor: Actor, tx: number, ty: number, amount?: number) {
         this.socket.emit(PLAYER_UNIT, this.gameId, {
             unitId: actor.id,
             type: UnitActionType.Move,
@@ -29,6 +29,7 @@ export class GameActions {
                     x: tx,
                     y: ty,
                 },
+                amount,
             },
         })
     }

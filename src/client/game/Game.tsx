@@ -2,13 +2,14 @@ import React, { useEffect, useRef, useState } from 'react'
 import { BatailleGame } from './BatailleGame'
 import '../screens/game.css'
 import { useBlocker, useParams } from 'react-router-dom'
-import { Box, Button } from '@mui/material'
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
 import BackIcon from '@mui/icons-material/ArrowBack'
 import FeedbackIcon from '@mui/icons-material/Feedback'
 import { HelpDialogButton } from '../screens/HelpDialog'
 import { MessageDialog } from '../screens/MessageDialog'
 import { DeferredPromise } from '../utils/Deferred'
+import { getSocketConnectionInstance } from './SocketConnection'
 
 type GameParams = {
     gameId: string
@@ -20,6 +21,7 @@ export const Game = () => {
     const gameContainer = useRef<HTMLDivElement>(null)
     const [game, setGame] = useState<BatailleGame>()
     const [messageDialogOpen, setMessageDialogOpen] = useState<boolean>(false)
+    const [connectionLostOpen, setConnectionLostOpen] = useState<boolean>(false)
     const [deferredPromise, setDeferredPromise] = useState<null | DeferredPromise<string | null>>(null)
     const blocker = useBlocker(true)
 
@@ -31,6 +33,14 @@ export const Game = () => {
             blocker.reset()
         }
     }, [blocker])
+
+    useEffect(() => {
+        const socketInstance = getSocketConnectionInstance()
+        socketInstance?.setConnectionLostListener(() => setConnectionLostOpen(true))
+        return () => {
+            socketInstance?.setConnectionLostListener(null)
+        }
+    }, [])
 
     useEffect(() => {
         if (gameContainer.current) {
@@ -59,7 +69,7 @@ export const Game = () => {
                 <div>
                     <Button
                         color="secondary"
-                        href="https://discord.gg/tDhG5FnK"
+                        href="https://discord.gg/tQP5TVD9js"
                         target="_blank"
                         startIcon={<FeedbackIcon />}>
                         Discord (feedbacks/news)
@@ -90,6 +100,23 @@ export const Game = () => {
                     }
                 }}
             />
+            <Dialog
+                open={connectionLostOpen}
+                aria-labelledby="connection-lost-title"
+                aria-describedby="connection-lost-description">
+                <DialogTitle id="connection-lost-title">Connection lost</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="connection-lost-description">
+                        The connection to the game server was interrupted (network issue or server restart). The game
+                        has ended, you will not receive any further updates.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button variant="contained" onClick={() => window.location.assign('/')}>
+                        Back to menu
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     )
 }

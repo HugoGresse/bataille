@@ -15,6 +15,11 @@ export abstract class BaseUnit extends Actor {
     private actions: UnitAction[] = []
     private postponedAction: boolean = false
     public forceUpdate: boolean = true
+    /**
+     * When a stack is split to move only a part of it, the units left behind are kept here until
+     * the moving stack actually leaves its tile (the grid allows only one unit per tile).
+     */
+    public pendingRemnant: BaseUnit | null = null
 
     protected constructor(
         owner: AbstractPlayer,
@@ -28,6 +33,11 @@ export abstract class BaseUnit extends Actor {
         this.life = new Life(hp)
     }
 
+    /**
+     * Create a new unit of the same type at the same position with the given amount of HP (stack split).
+     */
+    public abstract spawnCopy(hp: number): BaseUnit
+
     addAction(action: UnitAction) {
         switch (action.type) {
             case UnitActionType.Move:
@@ -37,7 +47,10 @@ export abstract class BaseUnit extends Actor {
                     new UnitAction(
                         action.unitId,
                         action.type,
-                        new UnitActionMoveData(new Position(action.data.destination.x, action.data.destination.y))
+                        new UnitActionMoveData(
+                            new Position(action.data.destination.x, action.data.destination.y),
+                            action.data.amount
+                        )
                     )
                 )
                 break

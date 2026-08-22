@@ -2,6 +2,7 @@ import 'phaser'
 import { BaseScene } from '../BaseScene'
 import { CurrentUserStats } from './CurrentUserStats'
 import { BuildingOverlay } from './BuildingOverlay'
+import { UnitMoveOverlay } from './UnitMoveOverlay'
 import { Building } from '../../actors/buildings/Building'
 import { Town } from '../../actors/buildings/Town'
 import { ScoresStats } from './ScoresStats'
@@ -12,6 +13,7 @@ export class UIScene extends BaseScene {
     currentUserStats!: CurrentUserStats
     scoresStats!: ScoresStats
     buildingOverlay!: BuildingOverlay
+    unitMoveOverlay!: UnitMoveOverlay
     messagesUI!: MessagesUI
 
     constructor() {
@@ -23,6 +25,7 @@ export class UIScene extends BaseScene {
         this.currentUserStats = new CurrentUserStats(this)
         this.scoresStats = new ScoresStats(this)
         this.buildingOverlay = new BuildingOverlay(this)
+        this.unitMoveOverlay = new UnitMoveOverlay(this)
         this.messagesUI = new MessagesUI(this)
     }
 
@@ -47,6 +50,20 @@ export class UIScene extends BaseScene {
 
     onEmptyTileSelected() {
         this.buildingOverlay.onEmptyTileSelected()
+    }
+
+    onUnitSelected(unitId: string, hp: number) {
+        this.buildingOverlay.onEmptyTileSelected() // a town overlay may be open, close it
+        this.unitMoveOverlay.show(hp)
+    }
+
+    onUnitDeselected() {
+        this.unitMoveOverlay.hide()
+        this.getBatailleScene().clearUnitSelection(false)
+    }
+
+    getUnitMoveAmount(): number {
+        return this.unitMoveOverlay.getAmount()
     }
 
     onMessageReceived(message: Message) {

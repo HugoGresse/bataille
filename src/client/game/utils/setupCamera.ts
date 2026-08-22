@@ -1,6 +1,5 @@
 import * as Phaser from 'phaser'
 import { GameObjects, Input, Scene } from 'phaser'
-import { StickUnit } from '../actors/StickUnit'
 import { INPUT_ENABLE } from '../BatailleGame'
 import { debounce } from '../../utils/debounce'
 import { BatailleScene } from '../scenes/bataille/BatailleScene'
@@ -52,18 +51,12 @@ const dragMovements = (camera: Camera, scene: Scene, map: Phaser.Tilemaps.Tilema
     let dX = 0
     let dY = 0
     zone.on('dragstart', (pointer: PointerEvent, dragX: number, dragY: number) => {
-        if (StickUnit.isDragging()) {
-            return
-        }
         // @ts-ignore
         dX = pointer.worldX
         // @ts-ignore
         dY = pointer.worldY
     })
     zone.on('drag', (pointer: PointerEvent, dragX: number, dragY: number) => {
-        if (StickUnit.isDragging()) {
-            return
-        }
         if (dX === 0 && dY === 0) {
             // @ts-ignore
             dX = pointer.worldX

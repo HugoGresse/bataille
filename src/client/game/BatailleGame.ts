@@ -84,7 +84,6 @@ export class BatailleGame {
     destroy() {
         if (this.game) {
             this.game.destroy(true)
-            this.socket.disconnect()
         } else {
             console.log('Failed to destroy')
         }

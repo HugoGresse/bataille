@@ -55,7 +55,10 @@ export class UnitAction {
 }
 
 export class UnitActionMoveData {
-    constructor(public readonly destination: Position) {}
+    /**
+     * Amount of units to move. When undefined or greater or equal to the unit stack size, the whole stack moves.
+     */
+    constructor(public readonly destination: Position, public readonly amount?: number) {}
 }
 
 export enum UnitActionType {

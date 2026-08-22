@@ -3,8 +3,10 @@ import { GameActions } from '../GameActions'
 import { PrivateGameState } from '../../../server/model/GameState'
 import { BatailleGame } from '../BatailleGame'
 import { UIScene } from './UI/UIScene'
+import { BatailleScene } from './bataille/BatailleScene'
 
 export const SCENE_UI_KEY = 'UI'
+export const SCENE_BATAILLE_KEY = 'BatailleScene'
 
 export abstract class BaseScene extends Phaser.Scene {
     protected constructor(name: string) {
@@ -38,5 +40,9 @@ export abstract class BaseScene extends Phaser.Scene {
 
     public getUIScene(): UIScene {
         return this.scene.manager.getScene(SCENE_UI_KEY) as UIScene
+    }
+
+    public getBatailleScene(): BatailleScene {
+        return this.scene.manager.getScene(SCENE_BATAILLE_KEY) as BatailleScene
     }
 }

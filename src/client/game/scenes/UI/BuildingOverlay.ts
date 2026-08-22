@@ -4,6 +4,7 @@ import { Town } from '../../actors/buildings/Town'
 import { getGameWindowSize } from '../../../utils/getGameWindowSize'
 import { UnitsType } from '../../../../common/UNITS'
 import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
+import { onUIDown } from '../../utils/uiEventGuard'
 
 const OVERLAY_WIDTH = 200
 const OVERLAY_HEIGHT = 100
@@ -44,6 +45,7 @@ export class BuildingOverlay {
         newUnitText.setShadow(-1, -1, '#888', 1, true, true)
         newUnitText.setInteractive()
         newUnitText.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            onUIDown()
             this.createUnit(1)
         })
 
@@ -58,6 +60,7 @@ export class BuildingOverlay {
         newUnit10Text.setShadow(-1, -1, '#888', 1, true, true)
         newUnit10Text.setInteractive()
         newUnit10Text.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            onUIDown()
             this.createUnit(10)
         })
 

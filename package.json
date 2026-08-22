@@ -16,6 +16,7 @@
         "build:server": "rm -rf lib && tsc --build src/server/tsconfig.json",
         "build:server:run": "npm run build:server && node lib/src/server/server.js",
         "start:server": "node lib/src/server/server.js",
+        "play:test": "node scripts/play-headless.mjs",
         "release:patch": "npm run build:server && git add . && git commit -m \"update build\" && npm version patch",
         "release:minor": "npm run build:server && git add . && git commit -m \"update build\" && npm version minor",
         "prepare": "husky"

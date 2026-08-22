@@ -1,7 +1,7 @@
 import 'phaser'
 import { StickUnit } from '../../actors/StickUnit'
 import { Tilemaps } from 'phaser'
-import { BaseScene, SCENE_UI_KEY } from '../BaseScene'
+import { BaseScene, SCENE_BATAILLE_KEY, SCENE_UI_KEY } from '../BaseScene'
 import { BatailleGame } from '../../BatailleGame'
 import { ExportTypeWithGameState } from '../../../../server/model/types/ExportType'
 import { setupCamera } from '../../utils/setupCamera'
@@ -25,9 +25,10 @@ export class BatailleScene extends BaseScene {
         [id: string]: Town
     } = {}
     private socket!: SocketConnection
+    private selectedUnit: StickUnit | null = null
 
     constructor() {
-        super('BatailleScene')
+        super(SCENE_BATAILLE_KEY)
     }
 
     preload() {}
@@ -58,6 +59,9 @@ export class BatailleScene extends BaseScene {
             }
             for (const unit of newState.u.deleted) {
                 const id = unit.id
+                if (this.selectedUnit?.id === id) {
+                    this.clearUnitSelection()
+                }
                 if (this.units[id]) {
                     this.units[id].destroy()
                     delete this.units[id]
@@ -82,6 +86,65 @@ export class BatailleScene extends BaseScene {
         for (const unit of Object.values(this.units)) {
             unit.update()
         }
+    }
+
+    /**
+     * Step 1 of the move UX: click on one of the current player stacks to select it
+     * (click it again, another unit, ESC or ✕ to unselect).
+     * @return true when the click was handled (own unit), false to let the tile selection proceed.
+     */
+    onUnitClicked(unit: StickUnit): boolean {
+        if (!unit.isOwnedByCurrentPlayer(this.getState()?.cp.c)) {
+            return false
+        }
+        if (this.selectedUnit === unit) {
+            this.clearUnitSelection()
+        } else {
+            this.selectUnit(unit)
+        }
+        return true
+    }
+
+    isUnitMoveSelectionActive(): boolean {
+        return !!this.selectedUnit
+    }
+
+    /**
+     * Step 2 of the move UX: click a destination tile. Sends the amount picked in the bottom slider.
+     * Clicking the origin tile cancels the selection.
+     */
+    onMoveDestinationSelected(tile: Tilemaps.Tile, worldX: number, worldY: number) {
+        const unit = this.selectedUnit
+        if (!unit) {
+            return
+        }
+        const unitTileX = Math.floor(unit.x / TILE_WIDTH_HEIGHT)
+        const unitTileY = Math.floor(unit.y / TILE_WIDTH_HEIGHT)
+        if (tile.x === unitTileX && tile.y === unitTileY) {
+            this.clearUnitSelection()
+            return
+        }
+        const amount = this.getUIScene().getUnitMoveAmount()
+        this.actions.moveUnit(unit, worldX, worldY, amount)
+        this.clearUnitSelection()
+    }
+
+    /**
+     * @param notifyUI when false, the UI scene already knows about the deselection (avoids recursion)
+     */
+    clearUnitSelection(notifyUI: boolean = true) {
+        this.selectedUnit?.onUnselect()
+        this.selectedUnit = null
+        if (notifyUI) {
+            this.getUIScene().onUnitDeselected()
+        }
+    }
+
+    private selectUnit(unit: StickUnit) {
+        this.clearUnitSelection(false)
+        this.selectedUnit = unit
+        unit.onSelect()
+        this.getUIScene().onUnitSelected(unit.id, unit.getHPValue())
     }
 
     initSceneWithData(data: ExportTypeWithGameState) {

@@ -9,6 +9,13 @@ export class Actor extends Phaser.GameObjects.Sprite {
     protected selectedCircle!: GameObjects.Arc | null
     private hpText: GameObjects.Text
     private hpFontSize: number = 20
+    /**
+     * Latest server-known position. Every state update refreshes it and the movement tween
+     * chains hop after hop until the sprite caught up: dropping intermediate positions
+     * (as done previously) made units visually lag behind server events like town captures.
+     */
+    private targetX: number | null = null
+    private targetY: number | null = null
 
     constructor(
         scene: Phaser.Scene,
@@ -53,28 +60,36 @@ export class Actor extends Phaser.GameObjects.Sprite {
             return
         }
 
-        if (refUnit.p.x !== this.x && !this.scene.tweens.isTweening(this)) {
-            this.scene.tweens.add({
-                targets: [this, this.hpText, this.selectedCircle],
-                x: {
-                    from: this.x,
-                    to: refUnit.p.x,
-                },
-                ease: 'Linear',
-                duration: 100,
-            })
+        this.targetX = refUnit.p.x
+        this.targetY = refUnit.p.y
+        this.startMovementTween()
+    }
+
+    /**
+     * Tween toward the latest known server position. Slightly faster than the server tick
+     * (100ms) so the sprite stays in sync with server-side events (fights, town captures).
+     */
+    private startMovementTween() {
+        if (!this.scene || !this.active || this.scene.tweens.isTweening(this)) {
+            return
         }
-        if (refUnit.p.y !== this.y && !this.scene.tweens.isTweening(this)) {
-            this.scene.tweens.add({
-                targets: [this, this.hpText, this.selectedCircle],
-                y: {
-                    from: this.y,
-                    to: refUnit.p.y,
-                },
-                ease: 'Linear',
-                duration: 100,
-            })
+        if (this.targetX === null || this.targetY === null || (this.targetX === this.x && this.targetY === this.y)) {
+            return
         }
+        this.scene.tweens.add({
+            targets: [this, this.hpText, this.selectedCircle],
+            x: {
+                from: this.x,
+                to: this.targetX,
+            },
+            y: {
+                from: this.y,
+                to: this.targetY,
+            },
+            ease: 'Linear',
+            duration: 90,
+            onComplete: () => this.startMovementTween(), // target may have moved again meanwhile
+        })
     }
 
     public setColor(color: string) {
@@ -88,7 +103,7 @@ export class Actor extends Phaser.GameObjects.Sprite {
     }
 
     // When unit is selected, emphasis the actor
-    protected onSelect() {
+    public onSelect() {
         const centerX = this.x
         const centerY = this.y
         if (this.selectedCircle) {
@@ -98,7 +113,7 @@ export class Actor extends Phaser.GameObjects.Sprite {
         this.selectedCircle.setDepth(0)
     }
 
-    protected onUnselect() {
+    public onUnselect() {
         if (this.selectedCircle) {
             this.selectedCircle.destroy()
             this.selectedCircle = null
