@@ -6,9 +6,12 @@ import { UnitsType } from '../../../../common/UNITS'
 import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
 import { onUIDown } from '../../utils/uiEventGuard'
 
-const OVERLAY_WIDTH = 200
-const OVERLAY_HEIGHT = 100
+export const OVERLAY_WIDTH = 200
+export const OVERLAY_HEIGHT = 100
 const OVERLAY_PADDING = 10
+
+/** Top-left corner of the panel; defaults to bottom-centered when omitted */
+export type BuildingOverlayPlacement = { left: number; top: number }
 
 type Shapes = Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text
 
@@ -21,22 +24,28 @@ export class BuildingOverlay {
 
     constructor(private scene: UIScene) {}
 
-    onTownSelected(town: Town) {
+    /**
+     * @param placement where to draw the panel (eg. next to the unit move panel when the selected
+     * stack is parked on the town); bottom-centered by default.
+     */
+    onTownSelected(town: Town, placement?: BuildingOverlayPlacement) {
         if (this.selectedTown) {
             this.onEmptyTileSelected()
         }
         const { width, height } = getGameWindowSize(this.scene)
+        const left = placement?.left ?? width / 2 - OVERLAY_WIDTH / 2
+        const top = placement?.top ?? height - OVERLAY_HEIGHT
         const rectangle = this.scene.add.rectangle(
-            width / 2,
-            height - OVERLAY_HEIGHT / 2,
+            left + OVERLAY_WIDTH / 2,
+            top + OVERLAY_HEIGHT / 2,
             OVERLAY_WIDTH,
             OVERLAY_HEIGHT
         )
         rectangle.setFillStyle(0x000000, 0.5)
 
         const newUnitText = this.scene.add.text(
-            width / 2 - OVERLAY_WIDTH / 2 + OVERLAY_PADDING,
-            height - OVERLAY_HEIGHT + OVERLAY_PADDING,
+            left + OVERLAY_PADDING,
+            top + OVERLAY_PADDING,
             `1 Unit ${UnitsType.Stick}$ (R)`,
             TEXT_STYLE
         )
@@ -50,8 +59,8 @@ export class BuildingOverlay {
         })
 
         const newUnit10Text = this.scene.add.text(
-            width / 2 - OVERLAY_WIDTH / 2 + OVERLAY_PADDING,
-            height - OVERLAY_HEIGHT + OVERLAY_PADDING + OVERLAY_PADDING + newUnitText.height,
+            left + OVERLAY_PADDING,
+            top + OVERLAY_PADDING + OVERLAY_PADDING + newUnitText.height,
             `10 Unit ${UnitsType.Stick * 10}$ (T)`,
             TEXT_STYLE
         )

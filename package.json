@@ -12,10 +12,10 @@
     "scripts": {
         "start": "vite",
         "build": "tsc && vite build",
-        "start-server": "IA_PLAYER_PER_GAME=3 MIN_PLAYER=2 tsx watch --tsconfig src/server/tsconfig.dev.json src/server/server.ts",
+        "start-server": "IA_PLAYER_PER_GAME=3 MIN_PLAYER=2 tsx watch --env-file-if-exists=.env --tsconfig src/server/tsconfig.dev.json src/server/server.ts",
         "build:server": "rm -rf lib && tsc --build src/server/tsconfig.json",
-        "build:server:run": "npm run build:server && node lib/src/server/server.js",
-        "start:server": "node lib/src/server/server.js",
+        "build:server:run": "npm run build:server && node --env-file-if-exists=.env lib/src/server/server.js",
+        "start:server": "node --env-file-if-exists=.env lib/src/server/server.js",
         "test": "vitest run",
         "test:watch": "vitest",
         "play:test": "node scripts/play-headless.mjs",

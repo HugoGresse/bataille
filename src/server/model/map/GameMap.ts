@@ -12,6 +12,7 @@ import { COUNTRIES_INCOME } from './COUNTRIES_INCOME'
 import { EXPORTED_LAYER_NAMES } from './EXPORTED_LAYER_NAMES'
 import { Grid } from 'pathfinding'
 import { generateGrid } from './pathfinding/generateGrid'
+import { serializeGrid } from '../../../common/pathfinding/walkabilityGrid'
 
 export const CountryIdToInfo: {
     [name: string]: {
@@ -163,26 +164,13 @@ export class GameMap {
                 return acc
             }, [])
 
-        // Walkability grid snapshot so the client can preview paths like the server does
-        const pathfindingColumns: string[] = []
-        for (let x = 0; x < this.mapWidth; x++) {
-            let column = ''
-            for (let y = 0; y < this.mapHeight; y++) {
-                column += !this.tiles[x] || !this.tiles[x][y] || this.tiles[x][y].isCrossable() ? '1' : '0'
-            }
-            pathfindingColumns.push(column)
-        }
-
         return {
             tiles,
             layerNames: EXPORTED_LAYER_NAMES,
             countries: countriesPolygons,
             countriesInfos: countriesInfo,
-            pathfinding: {
-                width: this.mapWidth,
-                height: this.mapHeight,
-                columns: pathfindingColumns,
-            },
+            // Snapshot of the very grid units move on, so client path previews match server movement
+            pathfinding: serializeGrid(this.pathFindingGrid),
         }
     }
 }

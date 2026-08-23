@@ -15,7 +15,9 @@ export const GAME_MESSAGE = 's/gameMessage'
 // ADMINS
 export const ADMIN_NAMESPACE = 'stats'
 export const ADMIN_UPDATE = 's/admin/update'
+export const ADMIN_STATS = 's/admin/stats'
 export const ADMIN_ACTION = 'c/admin/action'
 export enum AdminActionsTypes {
     sendMessage,
+    getStats,
 }

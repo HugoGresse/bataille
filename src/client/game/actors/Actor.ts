@@ -142,6 +142,13 @@ export class Actor extends Phaser.GameObjects.Sprite {
         return this.hp
     }
 
+    /**
+     * Latest position received from the server (the sprite itself may still be tweening toward it)
+     */
+    public getServerPosition(): { x: number; y: number } {
+        return { x: this.targetX ?? this.x, y: this.targetY ?? this.y }
+    }
+
     protected checkFlip(): void {
         const body = this.getBody()
         if (body.velocity.x < 0) {

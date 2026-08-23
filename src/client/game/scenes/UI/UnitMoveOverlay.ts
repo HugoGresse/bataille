@@ -68,12 +68,9 @@ export class UnitMoveOverlay {
         handle.setStrokeStyle(2, 0xffffff)
         handle.setInteractive({ draggable: true })
         handle.on(Phaser.Input.Events.POINTER_DOWN, onUIDown)
-        handle.on(
-            Phaser.Input.Events.DRAG,
-            (_pointer: Phaser.Input.Pointer, dragX: number) => {
-                this.setHandlePosition(dragX)
-            }
-        )
+        handle.on(Phaser.Input.Events.DRAG, (_pointer: Phaser.Input.Pointer, dragX: number) => {
+            this.setHandlePosition(dragX)
+        })
 
         const cancelButton = this.scene.add.text(
             centerX + PANEL_WIDTH / 2 - PANEL_PADDING,
@@ -116,6 +113,32 @@ export class UnitMoveOverlay {
 
     getAmount(): number {
         return this.amount
+    }
+
+    isVisible(): boolean {
+        return this.shapes.length > 0
+    }
+
+    /** Panel bounds, to lay out other bottom widgets around it */
+    getPanelBounds(): { left: number; right: number; top: number } {
+        const { width, height } = getGameWindowSize(this.scene)
+        return { left: width / 2 - PANEL_WIDTH / 2, right: width / 2 + PANEL_WIDTH / 2, top: height - PANEL_HEIGHT }
+    }
+
+    /**
+     * The selected stack size changed (reinforcement, merge, fight): keep the slider consistent.
+     * "Send the whole stack" (the default) stays whole, any other pick is clamped to the new size.
+     */
+    updateMaxAmount(maxAmount: number) {
+        if (!this.handle) {
+            return
+        }
+        const sendWholeStack = this.amount >= this.maxAmount
+        this.maxAmount = Math.max(1, Math.floor(maxAmount))
+        this.amount = sendWholeStack ? this.maxAmount : Math.min(this.amount, this.maxAmount)
+        const ratio = this.maxAmount > 1 ? (this.amount - 1) / (this.maxAmount - 1) : 1
+        this.handle.x = this.trackLeft + ratio * SLIDER_WIDTH
+        this.updateLabel()
     }
 
     private setHandlePosition(x: number) {

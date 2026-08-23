@@ -21,6 +21,7 @@ import { trackGameStart } from './utils/trackings'
 import { IA_PLAYER_PER_GAME } from '../common/GameSettings'
 import { IAPlayer } from './model/player/IAPlayer'
 import { AdminServer } from './admin/AdminServer'
+import { gameStats } from './stats/GameStats'
 
 const games: {
     [gameId: string]: Game
@@ -128,6 +129,10 @@ const startGame = (
 
     game.start()
     trackGameStart(game.getConnectedHumanPlayers().length)
+    gameStats.recordGameStart(
+        game.id,
+        game.getPlayers().map((player) => ({ name: player.name, isAI: player.isAI }))
+    )
 }
 
 console.log(`Server started on port ${PORT}`)

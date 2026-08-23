@@ -1,7 +1,6 @@
 import 'phaser'
 import { StickUnit } from '../../actors/StickUnit'
 import { Tilemaps } from 'phaser'
-import { Grid } from 'pathfinding'
 import { BaseScene, SCENE_BATAILLE_KEY, SCENE_UI_KEY } from '../BaseScene'
 import { BatailleGame } from '../../BatailleGame'
 import { ExportTypeWithGameState } from '../../../../server/model/types/ExportType'
@@ -11,8 +10,13 @@ import { Town } from '../../actors/buildings/Town'
 import { TILE_WIDTH_HEIGHT } from '../../../../common/UNITS'
 import { TilesColorsUpdater } from './TilesColorsUpdater'
 import { displayCountriesInfo } from './displayCountriesInfo'
-import { PathPreview } from './PathPreview'
+import { PathPreview, PathPreviewOrigin } from './PathPreview'
 import { SocketConnection } from '../../SocketConnection'
+import { gridFromWalkability } from '../../../../common/pathfinding/walkabilityGrid'
+import { isSameTile, TileCoord } from '../../../../common/pathfinding/findTilePath'
+import { round32 } from '../../../../utils/Round32'
+
+const tileKey = ({ x, y }: TileCoord) => `${x},${y}`
 
 export class BatailleScene extends BaseScene {
     private map!: Tilemaps.Tilemap
@@ -26,6 +30,7 @@ export class BatailleScene extends BaseScene {
     private towns: {
         [id: string]: Town
     } = {}
+    private townsByTile = new Map<string, Town>()
     private socket!: SocketConnection
     private selectedUnit: StickUnit | null = null
     private pathPreview: PathPreview | null = null
@@ -53,6 +58,9 @@ export class BatailleScene extends BaseScene {
                 const id = unit.id
                 if (this.units[id]) {
                     this.units[id].update(unit)
+                    if (this.selectedUnit?.id === id) {
+                        this.onSelectedUnitUpdated(this.selectedUnit)
+                    }
                 } else {
                     const unitObj = new StickUnit(this, id, unit.p.x, unit.p.y)
                     unitObj.setColor(unit.c)
@@ -121,9 +129,7 @@ export class BatailleScene extends BaseScene {
         if (!unit) {
             return
         }
-        const unitTileX = Math.floor(unit.x / TILE_WIDTH_HEIGHT)
-        const unitTileY = Math.floor(unit.y / TILE_WIDTH_HEIGHT)
-        if (tile.x === unitTileX && tile.y === unitTileY) {
+        if (isSameTile(tile, this.getUnitTile(unit))) {
             this.clearUnitSelection()
             return
         }
@@ -151,14 +157,34 @@ export class BatailleScene extends BaseScene {
         if (!this.selectedUnit) {
             return
         }
-        this.pathPreview?.update(this.selectedUnit.x, this.selectedUnit.y, { x: tile.x, y: tile.y })
+        this.pathPreview?.update(this.getPreviewOrigin(this.selectedUnit), { x: tile.x, y: tile.y })
+    }
+
+    /**
+     * The selected stack moved or changed size: keep the preview and the move slider in sync
+     */
+    private onSelectedUnitUpdated(unit: StickUnit) {
+        this.pathPreview?.refresh(this.getPreviewOrigin(unit))
+        this.getUIScene().onSelectedUnitUpdated(unit.getHPValue())
     }
 
     private selectUnit(unit: StickUnit) {
         this.clearUnitSelection(false)
         this.selectedUnit = unit
         unit.onSelect()
-        this.getUIScene().onUnitSelected(unit.id, unit.getHPValue())
+        // A stack parked on one of our towns can also be reinforced from there
+        const town = this.townsByTile.get(tileKey(this.getUnitTile(unit))) ?? null
+        this.getUIScene().onUnitSelected(unit.id, unit.getHPValue(), town)
+    }
+
+    /** Tile the server considers the stack on (same rounding as the server side) */
+    private getUnitTile(unit: StickUnit): TileCoord {
+        const { x, y } = unit.getServerPosition()
+        return { x: round32(x), y: round32(y) }
+    }
+
+    private getPreviewOrigin(unit: StickUnit): PathPreviewOrigin {
+        return { worldX: unit.x, worldY: unit.y, tile: this.getUnitTile(unit) }
     }
 
     initSceneWithData(data: ExportTypeWithGameState) {
@@ -179,6 +205,7 @@ export class BatailleScene extends BaseScene {
                     if (tileData.isT) {
                         const town = new Town(this, x * TILE_WIDTH_HEIGHT, y * TILE_WIDTH_HEIGHT, tileData)
                         this.towns[town.id] = town
+                        this.townsByTile.set(tileKey({ x, y }), town)
                     }
                 })
         })
@@ -188,16 +215,7 @@ export class BatailleScene extends BaseScene {
         this.tilesColorsUpdater = new TilesColorsUpdater(this, data.map.countries)
 
         // Rebuild the server walkability grid for client-side path previews
-        const { width, height, columns } = data.map.pathfinding
-        const walkabilityMatrix: number[][] = []
-        for (let x = 0; x < width; x++) {
-            const column: number[] = []
-            for (let y = 0; y < height; y++) {
-                column.push(columns[x]?.[y] === '1' ? 0 : 1)
-            }
-            walkabilityMatrix.push(column)
-        }
-        this.pathPreview = new PathPreview(this, new Grid(walkabilityMatrix))
+        this.pathPreview = new PathPreview(this, gridFromWalkability(data.map.pathfinding))
 
         setupCamera(this.cameras.main, this, this.map)
         displayCountriesInfo(data.map.countriesInfos, this)
