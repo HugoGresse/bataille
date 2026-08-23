@@ -1,9 +1,12 @@
+import * as Phaser from 'phaser'
 import { GameActions } from '../GameActions'
 import { PrivateGameState } from '../../../server/model/GameState'
 import { BatailleGame } from '../BatailleGame'
 import { UIScene } from './UI/UIScene'
+import { BatailleScene } from './bataille/BatailleScene'
 
 export const SCENE_UI_KEY = 'UI'
+export const SCENE_BATAILLE_KEY = 'BatailleScene'
 
 export abstract class BaseScene extends Phaser.Scene {
     protected constructor(name: string) {
@@ -11,16 +14,11 @@ export abstract class BaseScene extends Phaser.Scene {
     }
 
     public runOnStart(func: () => void) {
-        if (this.scene.settings.active && this.scene.settings.visible) {
+        // this.scene/settings may still be null right after game boot (Phaser 4 boots scenes asynchronously)
+        if (this.scene?.settings?.active && this.scene.settings.visible) {
             func()
         } else {
-            this.events.on('start', () => {
-                func()
-                this.events.off('start')
-            })
-            this.events.on('destroy', () => {
-                this.events.off('start')
-            })
+            this.events.once('start', func)
         }
     }
 
@@ -42,5 +40,9 @@ export abstract class BaseScene extends Phaser.Scene {
 
     public getUIScene(): UIScene {
         return this.scene.manager.getScene(SCENE_UI_KEY) as UIScene
+    }
+
+    public getBatailleScene(): BatailleScene {
+        return this.scene.manager.getScene(SCENE_BATAILLE_KEY) as BatailleScene
     }
 }

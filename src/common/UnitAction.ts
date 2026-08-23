@@ -1,11 +1,7 @@
 import { Position } from '../server/model/actors/Position'
-import { AStarFinder, DiagonalMovement } from 'pathfinding'
 import { GameMap } from '../server/model/map/GameMap'
 import { TILE_WIDTH_HEIGHT, TILE_WIDTH_HEIGHT_HALF } from './UNITS'
-
-const pathFinder = new AStarFinder({
-    diagonalMovement: DiagonalMovement.OnlyWhenNoObstacles,
-})
+import { findTilePath } from './pathfinding/findTilePath'
 
 export class UnitAction {
     public path: number[][] | null = null
@@ -19,17 +15,13 @@ export class UnitAction {
     ) {}
 
     calculatePath(startPosition: Position, map: GameMap) {
-        const dest = this.data.destination.getRounded()
-        const startRounded = startPosition.getRounded()
-        const originalPath = pathFinder.findPath(
-            startRounded.x,
-            startRounded.y,
-            dest.x,
-            dest.y,
-            map.pathFindingGrid.clone()
+        const originalPath = findTilePath(
+            map.pathFindingGrid,
+            startPosition.getRounded(),
+            this.data.destination.getRounded()
         )
 
-        originalPath.shift()
+        originalPath.shift() // first point is the start tile
         this.path = []
         for (const p of originalPath) {
             this.path.push([
@@ -46,6 +38,13 @@ export class UnitAction {
         return this.currentPathItem
     }
 
+    /**
+     * True while the unit still has waypoints to cover on this action (ie. it is not done traveling)
+     */
+    hasNextPoint(): boolean {
+        return !!this.path && this.currentPathIndex < this.path.length
+    }
+
     moveToNextPoint() {
         if (this.path) {
             this.currentPathIndex++
@@ -55,7 +54,13 @@ export class UnitAction {
 }
 
 export class UnitActionMoveData {
-    constructor(public readonly destination: Position) {}
+    /**
+     * Amount of units to move. When undefined or greater or equal to the unit stack size, the whole stack moves.
+     */
+    constructor(
+        public readonly destination: Position,
+        public readonly amount?: number
+    ) {}
 }
 
 export enum UnitActionType {

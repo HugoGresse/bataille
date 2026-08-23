@@ -1,39 +1,35 @@
+import * as Phaser from 'phaser'
 import { GameObjects, Input, Scene } from 'phaser'
-import { StickUnit } from '../actors/StickUnit'
 import { INPUT_ENABLE } from '../BatailleGame'
-import { debounce } from '@material-ui/core'
+import { debounce } from '../../utils/debounce'
 import { BatailleScene } from '../scenes/bataille/BatailleScene'
+import { toCameraZoom, toLogicalZoom } from './renderScale'
 
 type Camera = Phaser.Cameras.Scene2D.Camera
 
-export let UNIT_FONT_SIZE = 20
 const DEFAULT_ZOOM = 0.7
 
 let CURRENT_ZOOM = DEFAULT_ZOOM
 
-const changeFontSize = (scene: BatailleScene) => {
-    UNIT_FONT_SIZE = (1 - CURRENT_ZOOM) / 0.012 + 15
-    if (CURRENT_ZOOM >= DEFAULT_ZOOM || UNIT_FONT_SIZE < 20) {
-        UNIT_FONT_SIZE = 20
-    }
-    scene.updateAllUnits()
-}
-const debouncedFontSize = debounce(changeFontSize, 100)
+/** Counters are world objects, so they need rescaling once the camera settles on a new zoom */
+const rescaleCounters = (scene: BatailleScene) => scene.updateAllUnits()
+const debouncedRescale = debounce(rescaleCounters, 100)
 
 export const setupCamera = (camera: Camera, scene: BatailleScene, map: Phaser.Tilemaps.Tilemap) => {
     camera.setBounds(0, 0, 5000, 6000)
     const minZoom = 0.2
     const maxZoom = 2
-    camera.zoom = CURRENT_ZOOM
+    camera.zoom = toCameraZoom(CURRENT_ZOOM)
     camera.centerOn(1500, 3000)
     scene.input.on(
         'wheel',
         (pointer: Input.Pointer, gameObjects: GameObjects.GameObject, deltaX: number, deltaY: number) => {
-            CURRENT_ZOOM = deltaY > 0 ? camera.zoom - 0.08 : camera.zoom + 0.08
+            const current = toLogicalZoom(camera.zoom)
+            CURRENT_ZOOM = deltaY > 0 ? current - 0.08 : current + 0.08
 
             if (CURRENT_ZOOM > minZoom && CURRENT_ZOOM < maxZoom) {
-                camera.zoomTo(CURRENT_ZOOM, 100, 'Power2', true)
-                debouncedFontSize(scene)
+                camera.zoomTo(toCameraZoom(CURRENT_ZOOM), 100, 'Power2', true)
+                debouncedRescale(scene)
             }
         }
     )
@@ -51,18 +47,12 @@ const dragMovements = (camera: Camera, scene: Scene, map: Phaser.Tilemaps.Tilema
     let dX = 0
     let dY = 0
     zone.on('dragstart', (pointer: PointerEvent, dragX: number, dragY: number) => {
-        if (StickUnit.isDragging()) {
-            return
-        }
         // @ts-ignore
         dX = pointer.worldX
         // @ts-ignore
         dY = pointer.worldY
     })
     zone.on('drag', (pointer: PointerEvent, dragX: number, dragY: number) => {
-        if (StickUnit.isDragging()) {
-            return
-        }
         if (dX === 0 && dY === 0) {
             // @ts-ignore
             dX = pointer.worldX
@@ -92,7 +82,7 @@ const dragMovements = (camera: Camera, scene: Scene, map: Phaser.Tilemaps.Tilema
         dY = 0
     })
     scene.events.on('destroy', () => {
-        scene.input.keyboard.off('drag')
+        scene.input.keyboard?.off('drag')
     })
 }
 
@@ -104,7 +94,7 @@ const keyMovements = (camera: Camera, scene: Scene) => {
 
     const movementSteps = 400
 
-    scene.input.keyboard.on('keydown', (event: { code: string }) => {
+    scene.input.keyboard?.on('keydown', (event: { code: string }) => {
         if (!INPUT_ENABLE) {
             return
         }
@@ -126,6 +116,6 @@ const keyMovements = (camera: Camera, scene: Scene) => {
     })
 
     scene.events.on('destroy', () => {
-        scene.input.keyboard.off('keydown')
+        scene.input.keyboard?.off('keydown')
     })
 }

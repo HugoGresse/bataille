@@ -36,6 +36,7 @@ export class SocketConnection {
     private gameStates: PrivateGameStateUpdate[] = []
     public gameStartData: ExportTypeWithGameState | null = null
     private messageListener: ((message: Message) => void) | null = null
+    private connectionLostListener: (() => void) | null = null
 
     constructor(
         protected socketUrl: string,
@@ -49,10 +50,14 @@ export class SocketConnection {
         this.socket.on('connect', () => {
             console.log('connected')
         })
-        this.socket.on('disconnect', function () {
-            console.log('disconnect')
-            // alert('You ware disconnected from the server (or unlikely the server crashed)')
-            // window.location.replace('/')
+        this.socket.on('disconnect', (reason: string) => {
+            console.log('disconnect', reason)
+            // Intentional disconnects (exit game, lobby re-creation) are ignored.
+            // An unexpected drop means the server ended (or lost) the current game:
+            // the socket will silently reconnect but never rejoin the game, leaving a frozen UI.
+            if (reason !== 'io client disconnect' && this.gameStartData) {
+                this.connectionLostListener?.()
+            }
         })
         this.socket.on('reconnect', () => {
             console.log('reconnect')
@@ -122,6 +127,10 @@ export class SocketConnection {
             }
         }
         return null
+    }
+
+    public setConnectionLostListener(listener: (() => void) | null) {
+        this.connectionLostListener = listener
     }
 
     public getSocketIO() {

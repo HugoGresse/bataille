@@ -2,7 +2,6 @@ import { Actor } from '../Actor'
 import { Position } from '../Position'
 import { Life } from '../Life'
 import { UnitsType } from '../../../../common/UNITS'
-import { v4 as uuidv4 } from 'uuid'
 import { UnitAction, UnitActionMoveData, UnitActionType } from '../../../../common/UnitAction'
 import { Velocity } from '../Velocity'
 import { GameMap } from '../../map/GameMap'
@@ -16,6 +15,11 @@ export abstract class BaseUnit extends Actor {
     private actions: UnitAction[] = []
     private postponedAction: boolean = false
     public forceUpdate: boolean = true
+    /**
+     * When a stack is split to move only a part of it, the units left behind are kept here until
+     * the moving stack actually leaves its tile (the grid allows only one unit per tile).
+     */
+    public pendingRemnant: BaseUnit | null = null
 
     protected constructor(
         owner: AbstractPlayer,
@@ -25,9 +29,14 @@ export abstract class BaseUnit extends Actor {
         protected velocity: Velocity
     ) {
         super(owner, position)
-        this.id = uuidv4()
+        this.id = crypto.randomUUID()
         this.life = new Life(hp)
     }
+
+    /**
+     * Create a new unit of the same type at the same position with the given amount of HP (stack split).
+     */
+    public abstract spawnCopy(hp: number): BaseUnit
 
     addAction(action: UnitAction) {
         switch (action.type) {
@@ -38,7 +47,10 @@ export abstract class BaseUnit extends Actor {
                     new UnitAction(
                         action.unitId,
                         action.type,
-                        new UnitActionMoveData(new Position(action.data.destination.x, action.data.destination.y))
+                        new UnitActionMoveData(
+                            new Position(action.data.destination.x, action.data.destination.y),
+                            action.data.amount
+                        )
                     )
                 )
                 break
@@ -46,6 +58,14 @@ export abstract class BaseUnit extends Actor {
                 console.log('addAction: Unit action type not managed', action)
                 break
         }
+    }
+
+    /**
+     * True while the unit still has a move action with waypoints to cover: it is traveling
+     * toward its destination and may cross tiles without stopping on them.
+     */
+    isTraveling(): boolean {
+        return this.actions.some((action) => action.type === UnitActionType.Move && action.hasNextPoint())
     }
 
     postponeAction() {

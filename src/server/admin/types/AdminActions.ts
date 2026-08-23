@@ -12,4 +12,14 @@ export type AdminActionSendMessage = {
     }
 }
 
-export type AdminActions = AdminActionSendMessage
+export type AdminActionGetStats = {
+    type: AdminActionsTypes.getStats
+    payload: {
+        /** YYYY-MM-DD inclusive */
+        from: string
+        /** YYYY-MM-DD inclusive */
+        to: string
+    }
+}
+
+export type AdminActions = AdminActionSendMessage | AdminActionGetStats

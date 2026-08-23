@@ -2,6 +2,7 @@ import { Game } from './Game'
 import { SocketEmitter } from './SocketEmitter'
 import { AbstractPlayer } from './model/player/AbstractPlayer'
 import { trackGameEnd } from './utils/trackings'
+import { gameStats } from './stats/GameStats'
 
 const FRAME_RATE = 10
 const INTERVAL_SPEED = 1000 / FRAME_RATE
@@ -12,7 +13,10 @@ export class GameLoop {
     public gameDuration: number = 0
     public gameStartTS: number = 0
 
-    constructor(protected emitter: SocketEmitter) {}
+    constructor(
+        protected emitter: SocketEmitter,
+        private readonly gameId: string
+    ) {}
 
     start(game: Game) {
         this.gameStartTS = Date.now()
@@ -44,6 +48,7 @@ export class GameLoop {
             clearInterval(this.intervalId)
             this.isRunning = false
             trackGameEnd(this.gameDuration)
+            gameStats.recordGameEnd(this.gameId, this.gameDuration)
         }
     }
 

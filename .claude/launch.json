@@ -1,0 +1,21 @@
+{
+    "version": "0.0.1",
+    "configurations": [
+        {
+            "name": "web",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "start"],
+            "port": 3000
+        },
+        {
+            "name": "server",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "start-server"],
+            "port": 3001
+        },
+        {
+            "name": "web-attach",
+            "url": "http://localhost:3000"
+        }
+    ]
+}

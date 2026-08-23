@@ -3,7 +3,11 @@ import { SocketEmitter } from '../../SocketEmitter'
 import { AbstractPlayer } from './AbstractPlayer'
 
 export class HumanPlayer extends AbstractPlayer {
-    constructor(protected socket: Socket, color: string, name?: string) {
+    constructor(
+        protected socket: Socket,
+        color: string,
+        name?: string
+    ) {
         super(name, color)
     }
 

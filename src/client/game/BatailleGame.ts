@@ -1,4 +1,4 @@
-import 'phaser'
+import * as Phaser from 'phaser'
 import { BatailleScene } from './scenes/bataille/BatailleScene'
 import { UIScene } from './scenes/UI/UIScene'
 import { LoadingScene } from './scenes/LoadingScene'
@@ -8,6 +8,8 @@ import { ExportTypeWithGameState } from '../../server/model/types/ExportType'
 import { playStartSound } from './utils/sounds'
 import { SCENE_UI_KEY } from './scenes/BaseScene'
 import { TextRequestListener } from './types/TextRequestListener'
+import { RENDER_SCALE } from './utils/renderScale'
+import { measure, trackParentSize } from './utils/trackParentSize'
 
 export let INPUT_ENABLE = true
 
@@ -17,10 +19,12 @@ export class BatailleGame {
     private onTextRequestListener: TextRequestListener | null = null
     private readonly game: Phaser.Game
     private readonly socket: SocketConnection
+    private readonly stopResizeTracking: () => void
 
     constructor(parent: HTMLElement, gameId: any, onTextRequestListener: TextRequestListener) {
         console.log('New game, id: ', gameId)
         this.onTextRequestListener = onTextRequestListener
+        const initialSize = measure(parent)
         const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
             backgroundColor: '#125555',
@@ -32,9 +36,13 @@ export class BatailleGame {
                 createContainer: false,
             },
             scale: {
-                mode: Phaser.Scale.RESIZE,
-                width: '100%',
-                height: '100%',
+                // The drawing buffer is sized in device pixels and the canvas scaled back down, so
+                // the game is rendered at the screen's real resolution instead of being stretched.
+                // RESIZE cannot express that: it always sizes the buffer in CSS pixels.
+                mode: Phaser.Scale.NONE,
+                width: initialSize.width * RENDER_SCALE,
+                height: initialSize.height * RENDER_SCALE,
+                zoom: 1 / RENDER_SCALE,
             },
             fps: {
                 // target: 2,
@@ -43,6 +51,9 @@ export class BatailleGame {
         }
 
         this.game = new Phaser.Game(config)
+        this.stopResizeTracking = trackParentSize(parent, (width, height) =>
+            this.game.scale.resize(width * RENDER_SCALE, height * RENDER_SCALE)
+        )
         const socketInstance = getSocketConnectionInstance()
         if (!socketInstance || !socketInstance.gameStartData) {
             console.log(socketInstance)
@@ -82,12 +93,17 @@ export class BatailleGame {
     }
 
     destroy() {
-        if (this.game) {
-            this.game.destroy(true)
-            this.socket.disconnect()
-        } else {
+        if (!this.game) {
             console.log('Failed to destroy')
+            return
         }
+        const canvas = this.game.canvas
+        this.stopResizeTracking()
+        this.game.destroy(true)
+        // Phaser defers teardown to its next step. A game destroyed before it ever steps never gets
+        // that step, so its canvas survives, stacked over the live game where it swallows every
+        // click. React StrictMode mounts, unmounts and remounts in dev, which hits exactly that.
+        window.setTimeout(() => canvas?.remove(), 0)
     }
 
     /**

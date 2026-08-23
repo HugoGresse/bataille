@@ -1,10 +1,18 @@
 import { Game } from '../Game'
 import { Socket } from 'socket.io'
-import { ADMIN_ACTION, ADMIN_NAMESPACE, ADMIN_UPDATE, AdminActionsTypes, GAME_MESSAGE } from '../../common/SOCKET_EMIT'
+import {
+    ADMIN_ACTION,
+    ADMIN_NAMESPACE,
+    ADMIN_STATS,
+    ADMIN_UPDATE,
+    AdminActionsTypes,
+    GAME_MESSAGE,
+} from '../../common/SOCKET_EMIT'
 import { ADMIN_KEY } from '../utils/serverEnv'
 import { socketIOServer } from '../utils/io'
 import { formatGames } from './formatGames'
 import { AdminActions } from './types/AdminActions'
+import { gameStats } from '../stats/GameStats'
 
 export class AdminServer {
     private connectedSocket: Socket | null = null
@@ -14,6 +22,7 @@ export class AdminServer {
         socketIOServer
             .of(`/${ADMIN_NAMESPACE}`)
             .on('connection', (socket) => {
+                console.log('<< connected to admin', ADMIN_KEY)
                 if (socket.handshake.auth?.token !== ADMIN_KEY) {
                     console.log('<< Not allowed admin access')
                     socket.disconnect(true)
@@ -62,6 +71,15 @@ export class AdminServer {
                         content: payload.message,
                     })
                     break
+                case AdminActionsTypes.getStats: {
+                    const from = typeof payload?.from === 'string' ? payload.from : ''
+                    const to = typeof payload?.to === 'string' ? payload.to : ''
+                    if (!from || !to) {
+                        break
+                    }
+                    socket.emit(ADMIN_STATS, gameStats.getStats({ from, to }))
+                    break
+                }
                 default:
                     console.log('Not managed action', type)
                     break

@@ -12,6 +12,7 @@ import { COUNTRIES_INCOME } from './COUNTRIES_INCOME'
 import { EXPORTED_LAYER_NAMES } from './EXPORTED_LAYER_NAMES'
 import { Grid } from 'pathfinding'
 import { generateGrid } from './pathfinding/generateGrid'
+import { serializeGrid } from '../../../common/pathfinding/walkabilityGrid'
 
 export const CountryIdToInfo: {
     [name: string]: {
@@ -168,6 +169,8 @@ export class GameMap {
             layerNames: EXPORTED_LAYER_NAMES,
             countries: countriesPolygons,
             countriesInfos: countriesInfo,
+            // Snapshot of the very grid units move on, so client path previews match server movement
+            pathfinding: serializeGrid(this.pathFindingGrid),
         }
     }
 }

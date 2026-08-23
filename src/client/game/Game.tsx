@@ -1,41 +1,46 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { BatailleGame } from './BatailleGame'
 import '../screens/game.css'
-import { useHistory, useParams } from 'react-router-dom'
-import { Box, Button } from '@material-ui/core'
-import FullscreenIcon from '@material-ui/icons/Fullscreen'
-import BackIcon from '@material-ui/icons/ArrowBack'
-import FeedbackIcon from '@material-ui/icons/Feedback'
+import { useBlocker, useParams } from 'react-router-dom'
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
+import FullscreenIcon from '@mui/icons-material/Fullscreen'
+import BackIcon from '@mui/icons-material/ArrowBack'
+import FeedbackIcon from '@mui/icons-material/Feedback'
 import { HelpDialogButton } from '../screens/HelpDialog'
 import { MessageDialog } from '../screens/MessageDialog'
 import { DeferredPromise } from '../utils/Deferred'
+import { getSocketConnectionInstance } from './SocketConnection'
 
 type GameParams = {
     gameId: string
 }
 
 export const Game = () => {
-    const history = useHistory()
     const { gameId } = useParams<GameParams>()
     const gameTopContainer = useRef<HTMLDivElement>(null)
     const gameContainer = useRef<HTMLDivElement>(null)
     const [game, setGame] = useState<BatailleGame>()
     const [messageDialogOpen, setMessageDialogOpen] = useState<boolean>(false)
+    const [connectionLostOpen, setConnectionLostOpen] = useState<boolean>(false)
     const [deferredPromise, setDeferredPromise] = useState<null | DeferredPromise<string | null>>(null)
+    const blocker = useBlocker(true)
 
     useEffect(() => {
-        // This prevent the user from going back using the Back button
-        // The push is done two times. The first one from the lobby, to get there, and a second one here to go back to
-        // this route on back press
-        history.push(`/g/${gameId}/`)
-        return history.listen((newLocation, action) => {
-            if (action === 'POP') {
-                // If a "POP" action event occurs,
-                // Send user back to the originating location
-                history.go(1)
-            }
-        })
-    }, [history, gameId])
+        // This prevents the user from going back using the browser Back button:
+        // the blocked POP navigation is immediately cancelled by going forward again
+        if (blocker.state === 'blocked') {
+            window.history.forward()
+            blocker.reset()
+        }
+    }, [blocker])
+
+    useEffect(() => {
+        const socketInstance = getSocketConnectionInstance()
+        socketInstance?.setConnectionLostListener(() => setConnectionLostOpen(true))
+        return () => {
+            socketInstance?.setConnectionLostListener(null)
+        }
+    }, [])
 
     useEffect(() => {
         if (gameContainer.current) {
@@ -56,15 +61,15 @@ export const Game = () => {
     }, [gameId, gameContainer])
 
     return (
-        <Box display="flex" flexDirection="column" height="100vh">
-            <Box display="flex" justifyContent="space-between" margin={1}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', margin: 1 }}>
                 <Button color="secondary" href="/" startIcon={<BackIcon />}>
                     Exit game
                 </Button>
                 <div>
                     <Button
                         color="secondary"
-                        href="https://discord.gg/tDhG5FnK"
+                        href="https://discord.gg/tQP5TVD9js"
                         target="_blank"
                         startIcon={<FeedbackIcon />}>
                         Discord (feedbacks/news)
@@ -82,7 +87,7 @@ export const Game = () => {
                     </Button>
                 </div>
             </Box>
-            <Box display="flex" overflow="hidden" ref={gameTopContainer} id="gameTopContainer">
+            <Box sx={{ display: 'flex', overflow: 'hidden' }} ref={gameTopContainer} id="gameTopContainer">
                 <div ref={gameContainer} id="gameContainer" />
             </Box>
             <MessageDialog
@@ -95,6 +100,23 @@ export const Game = () => {
                     }
                 }}
             />
+            <Dialog
+                open={connectionLostOpen}
+                aria-labelledby="connection-lost-title"
+                aria-describedby="connection-lost-description">
+                <DialogTitle id="connection-lost-title">Connection lost</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="connection-lost-description">
+                        The connection to the game server was interrupted (network issue or server restart). The game
+                        has ended, you will not receive any further updates.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button variant="contained" onClick={() => window.location.assign('/')}>
+                        Back to menu
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     )
 }

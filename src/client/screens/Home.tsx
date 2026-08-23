@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, Button, TextField, Typography } from '@material-ui/core'
+import { Box, Button, TextField, Typography } from '@mui/material'
 import { DonatingBanner } from './DonatingBanner'
 import { Link as RouterLink } from 'react-router-dom'
 import { HelpDialogButton } from './HelpDialog'
@@ -11,12 +11,14 @@ export const Home = () => {
 
     return (
         <Box
-            display="flex"
-            flex={1}
-            minHeight="100vh"
-            alignItems="center"
-            justifyContent="space-between"
-            flexDirection="column">
+            sx={{
+                display: 'flex',
+                flex: 1,
+                minHeight: '100vh',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexDirection: 'column',
+            }}>
             <Box></Box>
 
             <Box>
@@ -32,10 +34,10 @@ export const Home = () => {
                     />
                 </Box>
 
-                <Box marginTop={3}>
+                <Box sx={{ marginTop: 3 }}>
                     <TextField
                         value={playerName}
-                        inputProps={{ minLength: 2, maxLength: 20 }}
+                        slotProps={{ htmlInput: { minLength: 2, maxLength: 20 } }}
                         fullWidth
                         size="small"
                         label="Player name (2<->20 chars)"

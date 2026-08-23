@@ -53,8 +53,27 @@ export class UnitsProcessor {
                     updatedUnits.push(unit.getPublicState())
                     const unitNewPos = unit.position.getRounded()
                     if (unitNewPos.x != x || unitNewPos.y != y) {
+                        const occupant = this.units.get(unitNewPos.x)?.get(unitNewPos.y)
+
+                        // A traveling stack crossing an allied tile must NOT merge with it:
+                        // it keeps its previous grid registration until it stops somewhere
+                        // (final destination or a fight). It also therefore cannot capture a
+                        // town it merely walks over.
+                        if (occupant && occupant.owner.id === unit.owner.id && unit.isTraveling()) {
+                            continue
+                        }
+
                         // Unit may be wrongfully displayed on the grid, or just moved from one square to another, this align everything
                         xEntries.delete(y)
+
+                        // The moving stack leaves its tile: drop the units that were split from it into the vacated tile
+                        if (unit.pendingRemnant) {
+                            const remnant = unit.pendingRemnant
+                            unit.pendingRemnant = null
+                            remnant.forceUpdate = true
+                            xEntries.set(y, remnant)
+                            updatedUnits.push(remnant.getPublicState())
+                        }
 
                         const tempX = this.units.get(unitNewPos.x)
 
@@ -113,6 +132,16 @@ export class UnitsProcessor {
                     unitOnTown.life.takeDamage(1)
                     if (unitOnTown.life.getHP() <= 0) {
                         this.units.get(town.x)?.delete(town.y)
+                        // If the dead unit was a split stack still waiting to move, its remnant takes its place
+                        if (unitOnTown.pendingRemnant) {
+                            const remnant = unitOnTown.pendingRemnant
+                            unitOnTown.pendingRemnant = null
+                            const column = this.units.get(town.x)
+                            if (column && !column.has(town.y)) {
+                                column.set(town.y, remnant)
+                                updatedUnits.push(remnant.getPublicState())
+                            }
+                        }
                         deletedUnits.push(unitOnTown.getPublicState())
                     } else {
                         updatedUnits.push(unitOnTown.getPublicState())
@@ -169,10 +198,36 @@ export class UnitsProcessor {
             for (const entryY of xEntries) {
                 yEntry = entryY[1]
                 if (yEntry.id === action.unitId && yEntry.owner.id === player.id) {
-                    yEntry.addAction(action)
+                    this.applyUnitAction(yEntry, action)
                 }
             }
         }
+    }
+
+    /**
+     * Move a whole stack, or split it when the requested amount is lower than its size.
+     * The moving part keeps the original unit id, the units left behind are stored as `pendingRemnant`
+     * and materialized on the map once the moving stack leaves its tile.
+     */
+    private applyUnitAction(unit: BaseUnit, action: UnitAction) {
+        const hp = unit.life.getHP()
+        const rawAmount = action.data.amount
+        const amount = rawAmount != null ? Math.floor(rawAmount) : null
+
+        if (amount == null || amount <= 0 || amount >= hp) {
+            unit.addAction(action)
+            return
+        }
+
+        if (unit.pendingRemnant) {
+            // A remnant is already waiting for this stack to move: grow it instead of losing units
+            unit.pendingRemnant.life.heal(hp - amount)
+        } else {
+            unit.pendingRemnant = unit.spawnCopy(hp - amount)
+        }
+        unit.life.setHP(amount)
+        unit.forceUpdate = true
+        unit.addAction(action)
     }
 
     private processUnitsOnSameTile(

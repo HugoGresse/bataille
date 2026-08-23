@@ -1,3 +1,4 @@
+import * as Phaser from 'phaser'
 import { PublicPlayerState } from '../../../../server/model/GameState'
 import { GameObjects } from 'phaser'
 import { PolygonContainer } from '../../../../server/model/types/Polygon'
@@ -9,7 +10,10 @@ export class TilesColorsUpdater {
 
     private lastCountries: string[] = []
 
-    constructor(private scene: Phaser.Scene, countries: { [p: string]: PolygonContainer[] }) {
+    constructor(
+        private scene: Phaser.Scene,
+        countries: { [p: string]: PolygonContainer[] }
+    ) {
         this.countriesPolygons = Object.keys(countries).reduce(
             (
                 acc: {
