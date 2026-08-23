@@ -39,13 +39,29 @@ export class Town extends Building {
         this.setTownColor(tileData.p as UIPlayer)
     }
 
-    update(tile: TilePublic, currentPlayerName: string | undefined) {
-        if (this.tileData.p?.n === currentPlayerName && tile.p?.n !== currentPlayerName) {
+    /**
+     * @return the previous owner name when this update changed hands, null otherwise. The caller
+     * turns that into a ripple on the board.
+     */
+    update(tile: TilePublic, currentPlayerName: string | undefined): string | null {
+        const previousOwner = this.tileData.p?.n ?? null
+        const changed = previousOwner !== (tile.p?.n ?? null)
+        if (previousOwner === currentPlayerName && tile.p?.n !== currentPlayerName) {
             playTownCapturedSound()
         }
         this.setTownColor(tile.p as UIPlayer)
         this.tileData.p = tile.p
         super.update()
+        return changed ? previousOwner : null
+    }
+
+    /** Tile coordinates this town sits on */
+    getTile(): { x: number; y: number } {
+        return { x: Math.floor(this.x / TILE_WIDTH_HEIGHT), y: Math.floor(this.y / TILE_WIDTH_HEIGHT) }
+    }
+
+    getOwnerColor(): string | undefined {
+        return this.tileData.p?.c
     }
 
     setTownColor(player: UIPlayer) {

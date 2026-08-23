@@ -16,7 +16,10 @@ jobs:
         with:
             node-version-file: .nvmrc
             cache: 'npm'
-      - run: npm ci && npm run build
+      - run: npm ci
+      - name: Unit tests
+        run: npm test
+      - run: npm run build
         env:
           VITE_SOCKET_URL: '${{ secrets.VITE_SOCKET_URL }}'
       - uses: FirebaseExtended/action-hosting-deploy@v0

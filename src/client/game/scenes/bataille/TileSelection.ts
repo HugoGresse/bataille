@@ -4,11 +4,12 @@ import { BatailleScene } from './BatailleScene'
 import { TileType } from '../../../../common/TileType'
 import { INPUT_LAYERS_SKIP } from '../../../../server/model/map/EXPORTED_LAYER_NAMES'
 import { consumeUIPointer } from '../../utils/uiEventGuard'
+import { devicePx } from '../../utils/renderScale'
 
 type Tile = Tilemaps.Tile
 
 /** Screen pixels max between pointer down and up for it to count as a click (not a camera pan) */
-const CLICK_MAX_DISTANCE = 15
+const CLICK_MAX_DISTANCE = devicePx(15)
 
 export class TileSelection {
     private selectedTile: Tile | null = null
@@ -43,18 +44,15 @@ export class TileSelection {
         }
 
         // Live path preview while a stack is selected (move mode)
-        this.scene.input.on(
-            'pointermove',
-            (pointer: Input.Pointer) => {
-                if (!this.scene.isUnitMoveSelectionActive()) {
-                    return
-                }
-                const tile = findTileAt(pointer)
-                if (tile) {
-                    this.scene.onPathPreviewHovered(tile)
-                }
+        this.scene.input.on('pointermove', (pointer: Input.Pointer) => {
+            if (!this.scene.isUnitMoveSelectionActive()) {
+                return
             }
-        )
+            const tile = findTileAt(pointer)
+            if (tile) {
+                this.scene.onPathPreviewHovered(tile)
+            }
+        })
 
         this.scene.input.on('pointerup', (pointer: Input.Pointer) => {
             // Clicks on UI scene widgets (buttons, slider...) must not select tiles or move units
@@ -70,7 +68,7 @@ export class TileSelection {
             if (tile) {
                 if (this.scene.isUnitMoveSelectionActive()) {
                     // A stack is selected: this click is the move destination
-                    this.scene.onMoveDestinationSelected(tile, pointer.worldX, pointer.worldY)
+                    this.scene.onMoveDestinationSelected(tile, pointer.worldX, pointer.worldY, pointer)
                 } else {
                     this.onTilePress(tile)
                 }

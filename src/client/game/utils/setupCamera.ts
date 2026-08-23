@@ -3,37 +3,33 @@ import { GameObjects, Input, Scene } from 'phaser'
 import { INPUT_ENABLE } from '../BatailleGame'
 import { debounce } from '../../utils/debounce'
 import { BatailleScene } from '../scenes/bataille/BatailleScene'
+import { toCameraZoom, toLogicalZoom } from './renderScale'
 
 type Camera = Phaser.Cameras.Scene2D.Camera
 
-export let UNIT_FONT_SIZE = 20
 const DEFAULT_ZOOM = 0.7
 
 let CURRENT_ZOOM = DEFAULT_ZOOM
 
-const changeFontSize = (scene: BatailleScene) => {
-    UNIT_FONT_SIZE = (1 - CURRENT_ZOOM) / 0.012 + 15
-    if (CURRENT_ZOOM >= DEFAULT_ZOOM || UNIT_FONT_SIZE < 20) {
-        UNIT_FONT_SIZE = 20
-    }
-    scene.updateAllUnits()
-}
-const debouncedFontSize = debounce(changeFontSize, 100)
+/** Counters are world objects, so they need rescaling once the camera settles on a new zoom */
+const rescaleCounters = (scene: BatailleScene) => scene.updateAllUnits()
+const debouncedRescale = debounce(rescaleCounters, 100)
 
 export const setupCamera = (camera: Camera, scene: BatailleScene, map: Phaser.Tilemaps.Tilemap) => {
     camera.setBounds(0, 0, 5000, 6000)
     const minZoom = 0.2
     const maxZoom = 2
-    camera.zoom = CURRENT_ZOOM
+    camera.zoom = toCameraZoom(CURRENT_ZOOM)
     camera.centerOn(1500, 3000)
     scene.input.on(
         'wheel',
         (pointer: Input.Pointer, gameObjects: GameObjects.GameObject, deltaX: number, deltaY: number) => {
-            CURRENT_ZOOM = deltaY > 0 ? camera.zoom - 0.08 : camera.zoom + 0.08
+            const current = toLogicalZoom(camera.zoom)
+            CURRENT_ZOOM = deltaY > 0 ? current - 0.08 : current + 0.08
 
             if (CURRENT_ZOOM > minZoom && CURRENT_ZOOM < maxZoom) {
-                camera.zoomTo(CURRENT_ZOOM, 100, 'Power2', true)
-                debouncedFontSize(scene)
+                camera.zoomTo(toCameraZoom(CURRENT_ZOOM), 100, 'Power2', true)
+                debouncedRescale(scene)
             }
         }
     )

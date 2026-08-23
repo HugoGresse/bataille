@@ -1,53 +1,67 @@
 import * as Phaser from 'phaser'
 import { BaseScene } from '../BaseScene'
-import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
+import { crispText } from './crispText'
 
-const LEFT_MARGIN = 20
-const Y_MARGIN = 20
+const LEFT = 12
+const TOP = 12
+const PAD_X = 9
+const PAD_Y = 5
 
-const BACKGROUND_WIDTH = 200
-
+/**
+ * The wallet: what you can spend, and how long until more. Everything else about the players now
+ * lives in the standings panel below it.
+ */
 export class CurrentUserStats {
-    incomeText: Phaser.GameObjects.Text
-    moneyText: Phaser.GameObjects.Text
-    nameText: Phaser.GameObjects.Text
-    nextIncomeText: Phaser.GameObjects.Text
-    lastIncome: number = 0
-    lastMoney: number = 0
+    private panel: Phaser.GameObjects.Rectangle
+    private money: Phaser.GameObjects.Text
+    private next: Phaser.GameObjects.Text
+    private lastMoney = -1
+    private lastNext = -1
 
     constructor(scene: Phaser.Scene) {
-        let startYPosition = 10
-        const rectangle = scene.add.rectangle(BACKGROUND_WIDTH / 2, 50, BACKGROUND_WIDTH, 100)
-        rectangle.setFillStyle(0x000000, 0.5)
-        const nameLabel = scene.add.text(LEFT_MARGIN, startYPosition, 'Name: ', TEXT_STYLE)
-        this.nameText = scene.add.text(LEFT_MARGIN + nameLabel.width, startYPosition, '', TEXT_STYLE)
-        startYPosition += Y_MARGIN
-        this.moneyText = scene.add.text(LEFT_MARGIN, startYPosition, 'Money: ', TEXT_STYLE)
-        startYPosition += Y_MARGIN
-        this.incomeText = scene.add.text(LEFT_MARGIN, startYPosition, 'Income: ', TEXT_STYLE)
-        startYPosition += Y_MARGIN
-        this.nextIncomeText = scene.add.text(LEFT_MARGIN, startYPosition, 'Next income: ', TEXT_STYLE)
+        this.panel = scene.add.rectangle(LEFT, TOP, 120, 28, 0x060a12, 0.74)
+        this.panel.setOrigin(0, 0)
+        this.panel.setStrokeStyle(1, 0xffffff, 0.16)
+
+        this.money = crispText(scene, LEFT + PAD_X, TOP + PAD_Y, '0', {
+            fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+            fontStyle: 'bold',
+            fontSize: '17px',
+            color: '#ffffff',
+        })
+        this.next = crispText(scene, LEFT + PAD_X, TOP + PAD_Y + 6, '', {
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+            fontSize: '9px',
+            color: '#ffffff',
+        })
+        this.next.setAlpha(0.6)
     }
 
     update(scene: BaseScene) {
         const state = scene.getState()
-
-        const currentPlayer = state?.cp
-        if (currentPlayer) {
-            if (!this.nameText.text.endsWith(currentPlayer?.n)) {
-                this.nameText.text = `${currentPlayer.n}`
-                this.nameText.setColor('#' + currentPlayer.c.replace('0x', ''))
-            }
-            if (this.lastIncome !== currentPlayer.i) {
-                this.lastIncome = currentPlayer.i
-                this.incomeText.text = `Income: ${currentPlayer.i}`
-            }
-            if (this.lastMoney !== currentPlayer.m) {
-                this.lastMoney = currentPlayer.m
-                this.moneyText.text = `Money: ${currentPlayer.m}`
-            }
+        const player = state?.cp
+        if (!player) {
+            return
         }
 
-        this.nextIncomeText.text = `Next income: ${state?.ni}s`
+        if (this.lastMoney !== player.m) {
+            this.lastMoney = player.m
+            this.money.setText(`${player.m}$`)
+        }
+        const seconds = state?.ni ?? 0
+        if (this.lastNext !== seconds) {
+            this.lastNext = seconds
+            this.next.setText(`+${player.i}$ IN ${seconds}s`)
+        }
+
+        // The panel hugs its contents: the treasury grows past four digits in a long game
+        this.next.setX(LEFT + PAD_X + this.money.width + 8)
+        this.panel.width = PAD_X * 2 + this.money.width + 8 + this.next.width
+    }
+
+    destroy() {
+        this.panel.destroy()
+        this.money.destroy()
+        this.next.destroy()
     }
 }

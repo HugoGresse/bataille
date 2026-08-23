@@ -6,7 +6,7 @@ import { useQuery } from '../utils/hooks/useQuery'
 import { Card, CardContent, Container, Grid, TextField, Typography } from '@mui/material'
 import { AdminUpdate } from '../../server/admin/types/AdminUpdate'
 import { GameStatsSummary } from '../../server/stats/GameStats'
-import { getPlayerText } from '../game/scenes/UI/ScoresStats'
+import { getPlayerText } from '../game/scenes/UI/playerText'
 
 const toISODate = (date: Date) => date.toISOString().slice(0, 10)
 
@@ -16,15 +16,7 @@ const daysAgo = (days: number) => {
     return toISODate(date)
 }
 
-const BarChart = ({
-    title,
-    data,
-    unit,
-}: {
-    title: string
-    data: { label: string; value: number }[]
-    unit: string
-}) => {
+const BarChart = ({ title, data, unit }: { title: string; data: { label: string; value: number }[]; unit: string }) => {
     const max = Math.max(1, ...data.map((d) => d.value))
     return (
         <Card>
@@ -32,7 +24,7 @@ const BarChart = ({
                 <Typography variant="h6">{title}</Typography>
                 {data.length === 0 && <Typography>No data on this range</Typography>}
                 {data.map(({ label, value }) => (
-                    <Grid key={label} container spacing={1} sx={{ mb: 0.5, alignItems: "center" }}>
+                    <Grid key={label} container spacing={1} sx={{ mb: 0.5, alignItems: 'center' }}>
                         <Grid size={{ xs: 4 }}>
                             <Typography variant="caption" noWrap>
                                 {label}
@@ -269,7 +261,7 @@ export const Admin = () => {
                             <Typography variant="h6">Top players (game count)</Typography>
                             {(stats?.topPlayers ?? []).length === 0 && <Typography>No data on this range</Typography>}
                             {stats?.topPlayers.map((player, index) => (
-                                <Grid key={player.name} container spacing={1} sx={{ alignItems: "center" }}>
+                                <Grid key={player.name} container spacing={1} sx={{ alignItems: 'center' }}>
                                     <Grid size={1}>
                                         <Typography variant="caption">{index + 1}.</Typography>
                                     </Grid>
