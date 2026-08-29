@@ -4,6 +4,8 @@ import path from 'node:path'
 export type StatPlayer = {
     name: string
     isAI: boolean
+    /** Address the player connected from. Absent for AIs, and for games recorded before this existed. */
+    ip?: string
 }
 
 export type GameStatEvent = {
@@ -33,6 +35,21 @@ export type PlayerGameCount = {
     gameCount: number
 }
 
+export type IpGameCount = {
+    ip: string
+    gameCount: number
+    /** Distinct human names seen from this address, which is what makes one host stand out */
+    playerCount: number
+}
+
+export type IpPeriod = {
+    /** YYYY-MM-DD for days, YYYY-MM for months */
+    period: string
+    /** Games in this period played from a known address */
+    gameCount: number
+    ips: IpGameCount[]
+}
+
 export type GameStatsRange = {
     from: string // YYYY-MM-DD (inclusive)
     to: string // YYYY-MM-DD (inclusive)
@@ -48,10 +65,55 @@ export type GameStatsSummary = {
     totalPlayerCount: number
     /** 4. number of distinct human players by day */
     humanPlayersByDay: DayValue[]
+    /** 5. games played per client address over the whole range, busiest first */
+    gamesByIp: IpGameCount[]
+    /** 5a. the same split by day, most recent first */
+    gamesByIpByDay: IpPeriod[]
+    /** 5b. the same split by month, most recent first */
+    gamesByIpByMonth: IpPeriod[]
     gameCount: number
 }
 
 const dayOf = (isoDate: string): string => isoDate.slice(0, 10)
+const monthOf = (isoDate: string): string => isoDate.slice(0, 7)
+
+/** The panel shows a table, not a log: enough rows to spot a busy host without unbounded growth */
+const MAX_LISTED_IPS = 10
+/** A long range would otherwise return a row per day forever */
+const MAX_LISTED_DAYS = 31
+const MAX_LISTED_MONTHS = 12
+
+type IpTally = Map<string, { games: Set<string>; players: Set<string> }>
+
+/** Counted by game id, so several people behind one address count their shared game once */
+const tallyIp = (tally: IpTally, ip: string, gameId: string, playerName: string) => {
+    const entry = tally.get(ip) ?? { games: new Set<string>(), players: new Set<string>() }
+    entry.games.add(gameId)
+    entry.players.add(playerName)
+    tally.set(ip, entry)
+}
+
+const tallyIpIn = (periods: Map<string, IpTally>, period: string, ip: string, gameId: string, playerName: string) => {
+    const tally = periods.get(period) ?? (new Map() as IpTally)
+    tallyIp(tally, ip, gameId, playerName)
+    periods.set(period, tally)
+}
+
+const toIpCounts = (tally: IpTally): IpGameCount[] =>
+    [...tally.entries()]
+        .map(([ip, { games, players }]) => ({ ip, gameCount: games.size, playerCount: players.size }))
+        .sort((a, b) => b.gameCount - a.gameCount || a.ip.localeCompare(b.ip))
+        .slice(0, MAX_LISTED_IPS)
+
+const toIpPeriods = (periods: Map<string, IpTally>, limit: number): IpPeriod[] =>
+    [...periods.entries()]
+        .map(([period, tally]) => ({
+            period,
+            gameCount: new Set([...tally.values()].flatMap((entry) => [...entry.games])).size,
+            ips: toIpCounts(tally),
+        }))
+        .sort((a, b) => b.period.localeCompare(a.period))
+        .slice(0, limit)
 
 /**
  * Append-only NDJSON game statistics stored on the filesystem.
@@ -140,9 +202,13 @@ export class GameStats {
         }
 
         // 2. Top players game count (humans only) + 3. total distinct players + 4. humans by day
+        // + 5. games per address
         const gamesPerPlayer = new Map<string, number>()
         const playersByDay = new Map<string, Set<string>>()
         const allPlayers = new Set<string>()
+        const gamesPerIp: IpTally = new Map()
+        const gamesPerIpByDay = new Map<string, IpTally>()
+        const gamesPerIpByMonth = new Map<string, IpTally>()
         for (const event of startedInRange) {
             const day = dayOf(event.at)
             for (const player of event.players ?? []) {
@@ -154,6 +220,12 @@ export class GameStats {
                 dayPlayers.add(player.name)
                 playersByDay.set(day, dayPlayers)
                 allPlayers.add(player.name)
+
+                if (player.ip) {
+                    tallyIp(gamesPerIp, player.ip, event.gameId, player.name)
+                    tallyIpIn(gamesPerIpByDay, day, player.ip, event.gameId, player.name)
+                    tallyIpIn(gamesPerIpByMonth, monthOf(event.at), player.ip, event.gameId, player.name)
+                }
             }
         }
 
@@ -171,6 +243,9 @@ export class GameStats {
             humanPlayersByDay: [...playersByDay.entries()]
                 .map(([day, players]) => ({ day, value: players.size }))
                 .sort((a, b) => a.day.localeCompare(b.day)),
+            gamesByIp: toIpCounts(gamesPerIp),
+            gamesByIpByDay: toIpPeriods(gamesPerIpByDay, MAX_LISTED_DAYS),
+            gamesByIpByMonth: toIpPeriods(gamesPerIpByMonth, MAX_LISTED_MONTHS),
         }
     }
 

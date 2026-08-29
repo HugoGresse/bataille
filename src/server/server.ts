@@ -22,6 +22,7 @@ import { IA_PLAYER_PER_GAME } from '../common/GameSettings'
 import { IAPlayer } from './model/player/IAPlayer'
 import { AdminServer } from './admin/AdminServer'
 import { gameStats } from './stats/GameStats'
+import { getClientIp } from './utils/clientIp'
 
 const games: {
     [gameId: string]: Game
@@ -129,9 +130,15 @@ const startGame = (
 
     game.start()
     trackGameStart(game.getConnectedHumanPlayers().length)
+    // Matched on socket id rather than name: names are trimmed on the player and two people can
+    // pick the same one, so only the socket identifies a human unambiguously
     gameStats.recordGameStart(
         game.id,
-        game.getPlayers().map((player) => ({ name: player.name, isAI: player.isAI }))
+        game.getPlayers().map((player) => ({
+            name: player.name,
+            isAI: player.isAI,
+            ip: player instanceof HumanPlayer ? getClientIp(sockets[player.getSocketId()]) : undefined,
+        }))
     )
 }
 
