@@ -25,16 +25,30 @@ const daysAgo = (days: number) => {
     return toISODate(date)
 }
 
+/** A flag reads faster than a code, and the code stays alongside for anything unresolved */
+const countryLabel = (country?: string): string => {
+    if (!country) {
+        return '\u2014'
+    }
+    const flag = String.fromCodePoint(...[...country].map((letter) => 0x1f1a5 + letter.charCodeAt(0)))
+    return `${flag} ${country}`
+}
+
 const IpRows = ({ ips }: { ips: IpGameCount[] }) => (
     <>
         {ips.length === 0 && <Typography variant="caption">No address recorded</Typography>}
         {ips.map((entry, index) => (
-            <Grid key={entry.ip} container spacing={1} sx={{ alignItems: 'center' }}>
+            <Grid key={entry.ipHash} container spacing={1} sx={{ alignItems: 'center' }}>
                 <Grid size={1}>
                     <Typography variant="caption">{index + 1}.</Typography>
                 </Grid>
-                <Grid size={7}>
-                    <Typography sx={{ fontFamily: 'monospace' }}>{entry.ip}</Typography>
+                <Grid size={2}>
+                    <Typography>{countryLabel(entry.country)}</Typography>
+                </Grid>
+                <Grid size={5}>
+                    <Typography sx={{ fontFamily: 'monospace' }} variant="caption" title="Hashed address">
+                        {entry.ipHash}
+                    </Typography>
                 </Grid>
                 <Grid size={2}>
                     <Typography align="right" variant="caption">

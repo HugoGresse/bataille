@@ -1,11 +1,14 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { createIpHasher } from './ipHash'
 
 export type StatPlayer = {
     name: string
     isAI: boolean
-    /** Address the player connected from. Absent for AIs, and for games recorded before this existed. */
-    ip?: string
+    /** Keyed hash of the address; the address itself is never written down. Absent for AIs. */
+    ipHash?: string
+    /** ISO 3166-1 alpha-2, when the lookup resolved one */
+    country?: string
 }
 
 export type GameStatEvent = {
@@ -36,7 +39,9 @@ export type PlayerGameCount = {
 }
 
 export type IpGameCount = {
-    ip: string
+    ipHash: string
+    /** Country of that address, when known */
+    country?: string
     gameCount: number
     /** Distinct human names seen from this address, which is what makes one host stand out */
     playerCount: number
@@ -83,26 +88,34 @@ const MAX_LISTED_IPS = 10
 const MAX_LISTED_DAYS = 31
 const MAX_LISTED_MONTHS = 12
 
-type IpTally = Map<string, { games: Set<string>; players: Set<string> }>
+type IpTally = Map<string, { games: Set<string>; players: Set<string>; country?: string }>
 
 /** Counted by game id, so several people behind one address count their shared game once */
-const tallyIp = (tally: IpTally, ip: string, gameId: string, playerName: string) => {
-    const entry = tally.get(ip) ?? { games: new Set<string>(), players: new Set<string>() }
+const tallyIp = (tally: IpTally, player: StatPlayer, gameId: string) => {
+    const ipHash = player.ipHash!
+    const entry = tally.get(ipHash) ?? { games: new Set<string>(), players: new Set<string>() }
     entry.games.add(gameId)
-    entry.players.add(playerName)
-    tally.set(ip, entry)
+    entry.players.add(player.name)
+    // One address belongs to one place; the first lookup that resolved wins
+    entry.country = entry.country ?? player.country
+    tally.set(ipHash, entry)
 }
 
-const tallyIpIn = (periods: Map<string, IpTally>, period: string, ip: string, gameId: string, playerName: string) => {
+const tallyIpIn = (periods: Map<string, IpTally>, period: string, player: StatPlayer, gameId: string) => {
     const tally = periods.get(period) ?? (new Map() as IpTally)
-    tallyIp(tally, ip, gameId, playerName)
+    tallyIp(tally, player, gameId)
     periods.set(period, tally)
 }
 
 const toIpCounts = (tally: IpTally): IpGameCount[] =>
     [...tally.entries()]
-        .map(([ip, { games, players }]) => ({ ip, gameCount: games.size, playerCount: players.size }))
-        .sort((a, b) => b.gameCount - a.gameCount || a.ip.localeCompare(b.ip))
+        .map(([ipHash, { games, players, country }]) => ({
+            ipHash,
+            country,
+            gameCount: games.size,
+            playerCount: players.size,
+        }))
+        .sort((a, b) => b.gameCount - a.gameCount || a.ipHash.localeCompare(b.ipHash))
         .slice(0, MAX_LISTED_IPS)
 
 const toIpPeriods = (periods: Map<string, IpTally>, limit: number): IpPeriod[] =>
@@ -221,10 +234,10 @@ export class GameStats {
                 playersByDay.set(day, dayPlayers)
                 allPlayers.add(player.name)
 
-                if (player.ip) {
-                    tallyIp(gamesPerIp, player.ip, event.gameId, player.name)
-                    tallyIpIn(gamesPerIpByDay, day, player.ip, event.gameId, player.name)
-                    tallyIpIn(gamesPerIpByMonth, monthOf(event.at), player.ip, event.gameId, player.name)
+                if (player.ipHash) {
+                    tallyIp(gamesPerIp, player, event.gameId)
+                    tallyIpIn(gamesPerIpByDay, day, player, event.gameId)
+                    tallyIpIn(gamesPerIpByMonth, monthOf(event.at), player, event.gameId)
                 }
             }
         }
@@ -258,5 +271,8 @@ export class GameStats {
     }
 }
 
-const statsFilePath = path.resolve(process.env.STATS_DIR ?? 'data', 'stats.ndjson')
+const statsDir = path.resolve(process.env.STATS_DIR ?? 'data')
+const statsFilePath = path.join(statsDir, 'stats.ndjson')
+/** Keyed with a secret kept beside the stats, so a stolen stats file reveals no addresses */
+export const hashIp = createIpHasher(path.join(statsDir, 'ip-salt'))
 export const gameStats = new GameStats(statsFilePath)
