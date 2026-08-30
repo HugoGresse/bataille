@@ -17,7 +17,14 @@ describe('GameStats', () => {
     it('records and reloads events from disk', () => {
         const filePath = path.join(tempDir, 'stats.ndjson')
         const store = new GameStats(filePath)
-        store.recordGameStart('g1', [{ name: 'Hugo', isAI: false }, { name: 'AI-1', isAI: true }], at('2025-08-20'))
+        store.recordGameStart(
+            'g1',
+            [
+                { name: 'Hugo', isAI: false },
+                { name: 'AI-1', isAI: true },
+            ],
+            at('2025-08-20')
+        )
         store.recordGameEnd('g1', 12.5, at('2025-08-21'))
 
         const reloaded = new GameStats(filePath)
@@ -45,7 +52,10 @@ describe('GameStats', () => {
 
     it('computes top players, total player count and humans by day (AIs excluded)', () => {
         const store = new GameStats(path.join(tempDir, 'stats.ndjson'))
-        const humans = [{ name: 'Hugo', isAI: false }, { name: 'Alice', isAI: false }]
+        const humans = [
+            { name: 'Hugo', isAI: false },
+            { name: 'Alice', isAI: false },
+        ]
         const withAI = [...humans, { name: 'AI-1', isAI: true }]
 
         store.recordGameStart('g1', withAI, at('2025-08-20'))
@@ -61,6 +71,103 @@ describe('GameStats', () => {
             { day: '2025-08-20', value: 2 },
             { day: '2025-08-21', value: 1 },
             { day: '2025-08-25', value: 1 },
+        ])
+    })
+
+    it('counts games per address, once per game and excluding AIs', () => {
+        const store = new GameStats(path.join(tempDir, 'stats.ndjson'))
+        const home = 'hash-home'
+        const other = 'hash-other'
+
+        // two people behind one address in the same game: that game counts once for it
+        store.recordGameStart(
+            'g1',
+            [
+                { name: 'Hugo', isAI: false, ipHash: home },
+                { name: 'Alice', isAI: false, ipHash: home },
+                { name: 'AI-1', isAI: true },
+            ],
+            at('2025-08-20')
+        )
+        store.recordGameStart('g2', [{ name: 'Hugo', isAI: false, ipHash: home }], at('2025-08-21'))
+        store.recordGameStart('g3', [{ name: 'Bob', isAI: false, ipHash: other }], at('2025-08-22'))
+
+        const summary = store.getStats({ from: '2025-08-01', to: '2025-08-31' })
+        expect(summary.gamesByIp).toEqual([
+            { ipHash: home, gameCount: 2, playerCount: 2 },
+            { ipHash: other, gameCount: 1, playerCount: 1 },
+        ])
+    })
+
+    it('leaves out players recorded before addresses were captured', () => {
+        const store = new GameStats(path.join(tempDir, 'stats.ndjson'))
+        store.recordGameStart('old', [{ name: 'Hugo', isAI: false }], at('2025-08-20'))
+        store.recordGameStart('new', [{ name: 'Hugo', isAI: false, ipHash: '82.1.2.3' }], at('2025-08-21'))
+
+        const summary = store.getStats({ from: '2025-08-01', to: '2025-08-31' })
+        expect(summary.gamesByIp).toEqual([{ ipHash: '82.1.2.3', gameCount: 1, playerCount: 1 }])
+        expect(summary.topPlayers[0]).toEqual({ name: 'Hugo', gameCount: 2 })
+    })
+
+    it('keeps addresses out of the range it was not asked about', () => {
+        const store = new GameStats(path.join(tempDir, 'stats.ndjson'))
+        store.recordGameStart('g1', [{ name: 'Hugo', isAI: false, ipHash: '82.1.2.3' }], at('2025-07-31'))
+        store.recordGameStart('g2', [{ name: 'Hugo', isAI: false, ipHash: '82.1.2.3' }], at('2025-08-05'))
+
+        expect(store.getStats({ from: '2025-08-01', to: '2025-08-31' }).gamesByIp).toEqual([
+            { ipHash: '82.1.2.3', gameCount: 1, playerCount: 1 },
+        ])
+    })
+
+    it('splits games per address by day and by month, newest period first', () => {
+        const store = new GameStats(path.join(tempDir, 'stats.ndjson'))
+        const home = 'hash-home'
+        const other = 'hash-other'
+
+        store.recordGameStart('g1', [{ name: 'Hugo', isAI: false, ipHash: home }], at('2025-07-30'))
+        store.recordGameStart('g2', [{ name: 'Hugo', isAI: false, ipHash: home }], at('2025-08-20'))
+        store.recordGameStart('g3', [{ name: 'Alice', isAI: false, ipHash: home }], at('2025-08-20', 18))
+        store.recordGameStart('g4', [{ name: 'Bob', isAI: false, ipHash: other }], at('2025-08-21'))
+
+        const summary = store.getStats({ from: '2025-07-01', to: '2025-08-31' })
+
+        expect(summary.gamesByIpByDay).toEqual([
+            { period: '2025-08-21', gameCount: 1, ips: [{ ipHash: other, gameCount: 1, playerCount: 1 }] },
+            { period: '2025-08-20', gameCount: 2, ips: [{ ipHash: home, gameCount: 2, playerCount: 2 }] },
+            { period: '2025-07-30', gameCount: 1, ips: [{ ipHash: home, gameCount: 1, playerCount: 1 }] },
+        ])
+        expect(summary.gamesByIpByMonth).toEqual([
+            {
+                period: '2025-08',
+                gameCount: 3,
+                ips: [
+                    { ipHash: home, gameCount: 2, playerCount: 2 },
+                    { ipHash: other, gameCount: 1, playerCount: 1 },
+                ],
+            },
+            { period: '2025-07', gameCount: 1, ips: [{ ipHash: home, gameCount: 1, playerCount: 1 }] },
+        ])
+        // the range total still spans both months
+        expect(summary.gamesByIp).toEqual([
+            { ipHash: home, gameCount: 3, playerCount: 2 },
+            { ipHash: other, gameCount: 1, playerCount: 1 },
+        ])
+    })
+
+    it('counts a game shared by one address once within its period', () => {
+        const store = new GameStats(path.join(tempDir, 'stats.ndjson'))
+        store.recordGameStart(
+            'g1',
+            [
+                { name: 'Hugo', isAI: false, ipHash: '82.1.2.3' },
+                { name: 'Alice', isAI: false, ipHash: '82.1.2.3' },
+            ],
+            at('2025-08-20')
+        )
+
+        const summary = store.getStats({ from: '2025-08-01', to: '2025-08-31' })
+        expect(summary.gamesByIpByDay).toEqual([
+            { period: '2025-08-20', gameCount: 1, ips: [{ ipHash: '82.1.2.3', gameCount: 1, playerCount: 2 }] },
         ])
     })
 

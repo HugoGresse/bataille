@@ -3,9 +3,18 @@ import { io, Socket } from 'socket.io-client'
 import { SOCKET_URL } from '../game/utils/clientEnv'
 import { ADMIN_ACTION, ADMIN_STATS, ADMIN_UPDATE, AdminActionsTypes } from '../../common/SOCKET_EMIT'
 import { useQuery } from '../utils/hooks/useQuery'
-import { Card, CardContent, Container, Grid, TextField, Typography } from '@mui/material'
+import {
+    Card,
+    CardContent,
+    Container,
+    Grid,
+    TextField,
+    ToggleButton,
+    ToggleButtonGroup,
+    Typography,
+} from '@mui/material'
 import { AdminUpdate } from '../../server/admin/types/AdminUpdate'
-import { GameStatsSummary } from '../../server/stats/GameStats'
+import { GameStatsSummary, IpGameCount } from '../../server/stats/GameStats'
 import { getPlayerText } from '../game/scenes/UI/playerText'
 
 const toISODate = (date: Date) => date.toISOString().slice(0, 10)
@@ -15,6 +24,46 @@ const daysAgo = (days: number) => {
     date.setDate(date.getDate() - days)
     return toISODate(date)
 }
+
+/** A flag reads faster than a code, and the code stays alongside for anything unresolved */
+const countryLabel = (country?: string): string => {
+    if (!country) {
+        return '\u2014'
+    }
+    const flag = String.fromCodePoint(...[...country].map((letter) => 0x1f1a5 + letter.charCodeAt(0)))
+    return `${flag} ${country}`
+}
+
+const IpRows = ({ ips }: { ips: IpGameCount[] }) => (
+    <>
+        {ips.length === 0 && <Typography variant="caption">No address recorded</Typography>}
+        {ips.map((entry, index) => (
+            <Grid key={entry.ipHash} container spacing={1} sx={{ alignItems: 'center' }}>
+                <Grid size={1}>
+                    <Typography variant="caption">{index + 1}.</Typography>
+                </Grid>
+                <Grid size={2}>
+                    <Typography>{countryLabel(entry.country)}</Typography>
+                </Grid>
+                <Grid size={5}>
+                    <Typography sx={{ fontFamily: 'monospace' }} variant="caption" title="Hashed address">
+                        {entry.ipHash}
+                    </Typography>
+                </Grid>
+                <Grid size={2}>
+                    <Typography align="right" variant="caption">
+                        {entry.playerCount} {entry.playerCount === 1 ? 'name' : 'names'}
+                    </Typography>
+                </Grid>
+                <Grid size={2}>
+                    <Typography align="right">
+                        <b>{entry.gameCount}</b>
+                    </Typography>
+                </Grid>
+            </Grid>
+        ))}
+    </>
+)
 
 const BarChart = ({ title, data, unit }: { title: string; data: { label: string; value: number }[]; unit: string }) => {
     const max = Math.max(1, ...data.map((d) => d.value))
@@ -61,6 +110,7 @@ export const Admin = () => {
         games: [],
     })
     const [stats, setStats] = useState<GameStatsSummary | null>(null)
+    const [ipGrouping, setIpGrouping] = useState<'total' | 'day' | 'month'>('total')
     const [rangeFrom, setRangeFrom] = useState<string>(daysAgo(30))
     const [rangeTo, setRangeTo] = useState<string>(toISODate(new Date()))
 
@@ -118,6 +168,10 @@ export const Admin = () => {
     const humansByDay = useMemo(
         () => (stats?.humanPlayersByDay ?? []).map(({ day, value }) => ({ label: day, value })),
         [stats]
+    )
+    const ipPeriods = useMemo(
+        () => (ipGrouping === 'day' ? (stats?.gamesByIpByDay ?? []) : (stats?.gamesByIpByMonth ?? [])),
+        [stats, ipGrouping]
     )
     const totalHours = useMemo(
         () => (stats?.gameDurationByDay ?? []).reduce((acc, day) => acc + day.totalMinutes, 0) / 60,
@@ -253,6 +307,51 @@ export const Admin = () => {
                 </Grid>
                 <Grid size={{ sm: 12, md: 6 }}>
                     <BarChart title="Human players by day" data={humansByDay} unit="players" />
+                </Grid>
+
+                <Grid size={{ sm: 12, md: 6 }}>
+                    <Card>
+                        <CardContent>
+                            <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Typography variant="h6">Games by IP address</Typography>
+                                <ToggleButtonGroup
+                                    size="small"
+                                    exclusive
+                                    value={ipGrouping}
+                                    onChange={(_event, value) => value && setIpGrouping(value)}>
+                                    <ToggleButton value="total">Total</ToggleButton>
+                                    <ToggleButton value="day">By day</ToggleButton>
+                                    <ToggleButton value="month">By month</ToggleButton>
+                                </ToggleButtonGroup>
+                            </Grid>
+
+                            {ipGrouping === 'total' && (
+                                <>
+                                    {(stats?.gamesByIp ?? []).length === 0 && (
+                                        <Typography>No data on this range</Typography>
+                                    )}
+                                    <IpRows ips={stats?.gamesByIp ?? []} />
+                                </>
+                            )}
+
+                            {ipGrouping !== 'total' && (
+                                <>
+                                    {ipPeriods.length === 0 && <Typography>No data on this range</Typography>}
+                                    {ipPeriods.map((bucket) => (
+                                        <Grid key={bucket.period} sx={{ marginTop: 1.5 }}>
+                                            <Typography variant="subtitle2">
+                                                {bucket.period}{' '}
+                                                <Typography component="span" variant="caption">
+                                                    ({bucket.gameCount} {bucket.gameCount === 1 ? 'game' : 'games'})
+                                                </Typography>
+                                            </Typography>
+                                            <IpRows ips={bucket.ips} />
+                                        </Grid>
+                                    ))}
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
                 </Grid>
 
                 <Grid size={{ sm: 12, md: 6 }}>

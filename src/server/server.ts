@@ -21,7 +21,9 @@ import { trackGameStart } from './utils/trackings'
 import { IA_PLAYER_PER_GAME } from '../common/GameSettings'
 import { IAPlayer } from './model/player/IAPlayer'
 import { AdminServer } from './admin/AdminServer'
-import { gameStats } from './stats/GameStats'
+import { gameStats, hashIp } from './stats/GameStats'
+import { getClientIp } from './utils/clientIp'
+import { lookupCountry } from './utils/geoLookup'
 
 const games: {
     [gameId: string]: Game
@@ -129,10 +131,26 @@ const startGame = (
 
     game.start()
     trackGameStart(game.getConnectedHumanPlayers().length)
-    gameStats.recordGameStart(
-        game.id,
-        game.getPlayers().map((player) => ({ name: player.name, isAI: player.isAI }))
-    )
+    // Matched on socket id rather than name: names are trimmed on the player and two people can
+    // pick the same one, so only the socket identifies a human unambiguously
+    const addresses = game.getPlayers().map((player) => ({
+        player,
+        ip: player instanceof HumanPlayer ? getClientIp(sockets[player.getSocketId()]) : undefined,
+    }))
+
+    // The country lookup goes over the network, so it is resolved after the game is already running
+    // and can never hold up or break a start. The raw address stops here: only its hash is stored.
+    void (async () => {
+        const players = await Promise.all(
+            addresses.map(async ({ player, ip }) => ({
+                name: player.name,
+                isAI: player.isAI,
+                ipHash: ip ? hashIp(ip) : undefined,
+                country: ip ? await lookupCountry(ip) : undefined,
+            }))
+        )
+        gameStats.recordGameStart(game.id, players)
+    })()
 }
 
 console.log(`Server started on port ${PORT}`)

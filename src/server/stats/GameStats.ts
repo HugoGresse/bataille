@@ -1,9 +1,14 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { createIpHasher } from './ipHash'
 
 export type StatPlayer = {
     name: string
     isAI: boolean
+    /** Keyed hash of the address; the address itself is never written down. Absent for AIs. */
+    ipHash?: string
+    /** ISO 3166-1 alpha-2, when the lookup resolved one */
+    country?: string
 }
 
 export type GameStatEvent = {
@@ -33,6 +38,23 @@ export type PlayerGameCount = {
     gameCount: number
 }
 
+export type IpGameCount = {
+    ipHash: string
+    /** Country of that address, when known */
+    country?: string
+    gameCount: number
+    /** Distinct human names seen from this address, which is what makes one host stand out */
+    playerCount: number
+}
+
+export type IpPeriod = {
+    /** YYYY-MM-DD for days, YYYY-MM for months */
+    period: string
+    /** Games in this period played from a known address */
+    gameCount: number
+    ips: IpGameCount[]
+}
+
 export type GameStatsRange = {
     from: string // YYYY-MM-DD (inclusive)
     to: string // YYYY-MM-DD (inclusive)
@@ -48,10 +70,63 @@ export type GameStatsSummary = {
     totalPlayerCount: number
     /** 4. number of distinct human players by day */
     humanPlayersByDay: DayValue[]
+    /** 5. games played per client address over the whole range, busiest first */
+    gamesByIp: IpGameCount[]
+    /** 5a. the same split by day, most recent first */
+    gamesByIpByDay: IpPeriod[]
+    /** 5b. the same split by month, most recent first */
+    gamesByIpByMonth: IpPeriod[]
     gameCount: number
 }
 
 const dayOf = (isoDate: string): string => isoDate.slice(0, 10)
+const monthOf = (isoDate: string): string => isoDate.slice(0, 7)
+
+/** The panel shows a table, not a log: enough rows to spot a busy host without unbounded growth */
+const MAX_LISTED_IPS = 10
+/** A long range would otherwise return a row per day forever */
+const MAX_LISTED_DAYS = 31
+const MAX_LISTED_MONTHS = 12
+
+type IpTally = Map<string, { games: Set<string>; players: Set<string>; country?: string }>
+
+/** Counted by game id, so several people behind one address count their shared game once */
+const tallyIp = (tally: IpTally, player: StatPlayer, gameId: string) => {
+    const ipHash = player.ipHash!
+    const entry = tally.get(ipHash) ?? { games: new Set<string>(), players: new Set<string>() }
+    entry.games.add(gameId)
+    entry.players.add(player.name)
+    // One address belongs to one place; the first lookup that resolved wins
+    entry.country = entry.country ?? player.country
+    tally.set(ipHash, entry)
+}
+
+const tallyIpIn = (periods: Map<string, IpTally>, period: string, player: StatPlayer, gameId: string) => {
+    const tally = periods.get(period) ?? (new Map() as IpTally)
+    tallyIp(tally, player, gameId)
+    periods.set(period, tally)
+}
+
+const toIpCounts = (tally: IpTally): IpGameCount[] =>
+    [...tally.entries()]
+        .map(([ipHash, { games, players, country }]) => ({
+            ipHash,
+            country,
+            gameCount: games.size,
+            playerCount: players.size,
+        }))
+        .sort((a, b) => b.gameCount - a.gameCount || a.ipHash.localeCompare(b.ipHash))
+        .slice(0, MAX_LISTED_IPS)
+
+const toIpPeriods = (periods: Map<string, IpTally>, limit: number): IpPeriod[] =>
+    [...periods.entries()]
+        .map(([period, tally]) => ({
+            period,
+            gameCount: new Set([...tally.values()].flatMap((entry) => [...entry.games])).size,
+            ips: toIpCounts(tally),
+        }))
+        .sort((a, b) => b.period.localeCompare(a.period))
+        .slice(0, limit)
 
 /**
  * Append-only NDJSON game statistics stored on the filesystem.
@@ -140,9 +215,13 @@ export class GameStats {
         }
 
         // 2. Top players game count (humans only) + 3. total distinct players + 4. humans by day
+        // + 5. games per address
         const gamesPerPlayer = new Map<string, number>()
         const playersByDay = new Map<string, Set<string>>()
         const allPlayers = new Set<string>()
+        const gamesPerIp: IpTally = new Map()
+        const gamesPerIpByDay = new Map<string, IpTally>()
+        const gamesPerIpByMonth = new Map<string, IpTally>()
         for (const event of startedInRange) {
             const day = dayOf(event.at)
             for (const player of event.players ?? []) {
@@ -154,6 +233,12 @@ export class GameStats {
                 dayPlayers.add(player.name)
                 playersByDay.set(day, dayPlayers)
                 allPlayers.add(player.name)
+
+                if (player.ipHash) {
+                    tallyIp(gamesPerIp, player, event.gameId)
+                    tallyIpIn(gamesPerIpByDay, day, player, event.gameId)
+                    tallyIpIn(gamesPerIpByMonth, monthOf(event.at), player, event.gameId)
+                }
             }
         }
 
@@ -171,6 +256,9 @@ export class GameStats {
             humanPlayersByDay: [...playersByDay.entries()]
                 .map(([day, players]) => ({ day, value: players.size }))
                 .sort((a, b) => a.day.localeCompare(b.day)),
+            gamesByIp: toIpCounts(gamesPerIp),
+            gamesByIpByDay: toIpPeriods(gamesPerIpByDay, MAX_LISTED_DAYS),
+            gamesByIpByMonth: toIpPeriods(gamesPerIpByMonth, MAX_LISTED_MONTHS),
         }
     }
 
@@ -183,5 +271,8 @@ export class GameStats {
     }
 }
 
-const statsFilePath = path.resolve(process.env.STATS_DIR ?? 'data', 'stats.ndjson')
+const statsDir = path.resolve(process.env.STATS_DIR ?? 'data')
+const statsFilePath = path.join(statsDir, 'stats.ndjson')
+/** Keyed with a secret kept beside the stats, so a stolen stats file reveals no addresses */
+export const hashIp = createIpHasher(path.join(statsDir, 'ip-salt'))
 export const gameStats = new GameStats(statsFilePath)
