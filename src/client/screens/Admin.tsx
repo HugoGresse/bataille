@@ -302,6 +302,24 @@ export const Admin = () => {
                     </Card>
                 </Grid>
 
+                {stats?.storageError && (
+                    <Grid size={12}>
+                        <Card sx={{ borderLeft: '4px solid', borderColor: 'warning.main' }}>
+                            <CardContent>
+                                <Typography variant="h6" color="warning.main">
+                                    Statistics are not being saved
+                                </Typography>
+                                <Typography variant="body2">
+                                    The figures below are held in memory only and will be lost when the server restarts.
+                                </Typography>
+                                <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
+                                    {stats.storageError}
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                )}
+
                 <Grid size={{ sm: 12, md: 6 }}>
                     <BarChart title="Game duration by day" data={durationByDay} unit="min" />
                 </Grid>
