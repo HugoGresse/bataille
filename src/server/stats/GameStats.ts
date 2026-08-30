@@ -77,6 +77,12 @@ export type GameStatsSummary = {
     /** 5b. the same split by month, most recent first */
     gamesByIpByMonth: IpPeriod[]
     gameCount: number
+    /**
+     * Set when statistics are not reaching the disk. Events still accumulate in memory, so the
+     * numbers above look healthy right up until the process restarts and they are gone: without
+     * this the panel gives no hint that anything is wrong.
+     */
+    storageError?: string
 }
 
 const dayOf = (isoDate: string): string => isoDate.slice(0, 10)
@@ -135,6 +141,7 @@ const toIpPeriods = (periods: Map<string, IpTally>, limit: number): IpPeriod[] =
 export class GameStats {
     private events: GameStatEvent[] = []
     private loadError: string | null = null
+    private persistError: string | null = null
 
     constructor(private readonly filePath: string) {
         this.load()
@@ -188,8 +195,14 @@ export class GameStats {
         try {
             fs.mkdirSync(path.dirname(this.filePath), { recursive: true })
             fs.appendFileSync(this.filePath, `${JSON.stringify(event)}\n`)
+            this.persistError = null
         } catch (error) {
-            console.error('Failed to persist game stat event:', error)
+            // Only the first failure is worth logging: this runs on every game and the cause does
+            // not change on its own
+            if (!this.persistError) {
+                console.error(`Failed to persist game stats to ${this.filePath}:`, error)
+            }
+            this.persistError = String(error)
         }
     }
 
@@ -244,6 +257,7 @@ export class GameStats {
 
         return {
             range: { from, to },
+            storageError: this.persistError ?? this.loadError ?? undefined,
             gameCount: startedInRange.length,
             gameDurationByDay: [...durationByDay.entries()]
                 .map(([day, { totalMinutes, gameCount }]) => ({ day, totalMinutes, gameCount }))
@@ -268,6 +282,11 @@ export class GameStats {
 
     getLoadError(): string | null {
         return this.loadError
+    }
+
+    /** Set once a write has failed, cleared as soon as one succeeds */
+    getPersistError(): string | null {
+        return this.persistError
     }
 }
 

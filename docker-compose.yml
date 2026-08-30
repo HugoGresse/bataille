@@ -1,5 +1,13 @@
-version: '3'
 services:
     bataille-server:
         container_name: bataille-server
         build: .
+        # Statistics live on disk. Without this they sit in the container's writable layer, which is
+        # discarded every time the container is recreated, so each deploy looked like a stats reset.
+        # A named volume rather than a host path: it inherits the image's ownership on first use,
+        # whereas a bind mount would need a host directory owned by the same uid as the node user.
+        volumes:
+            - bataille-stats:/app/data
+
+volumes:
+    bataille-stats:

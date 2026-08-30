@@ -171,6 +171,32 @@ describe('GameStats', () => {
         ])
     })
 
+    it('reports when events are not reaching the disk, and stops once they are', () => {
+        const store = new GameStats(path.join(tempDir, 'stats.ndjson'))
+        const failure = new Error('EACCES: permission denied')
+        const append = vi.spyOn(fs, 'appendFileSync').mockImplementation(() => {
+            throw failure
+        })
+
+        store.recordGameStart('g1', [{ name: 'Hugo', isAI: false }], at('2025-08-20'))
+
+        // the numbers still look healthy, which is exactly why the failure has to be reported
+        const failing = store.getStats({ from: '2025-08-01', to: '2025-08-31' })
+        expect(failing.gameCount).toBe(1)
+        expect(failing.storageError).toContain('EACCES')
+
+        append.mockRestore()
+        store.recordGameStart('g2', [{ name: 'Hugo', isAI: false }], at('2025-08-21'))
+        expect(store.getStats({ from: '2025-08-01', to: '2025-08-31' }).storageError).toBeUndefined()
+    })
+
+    it('says nothing about storage when writes are fine', () => {
+        const store = new GameStats(path.join(tempDir, 'stats.ndjson'))
+        store.recordGameStart('g1', [{ name: 'Hugo', isAI: false }], at('2025-08-20'))
+
+        expect(store.getStats({ from: '2025-08-01', to: '2025-08-31' }).storageError).toBeUndefined()
+    })
+
     it('filters by time range inclusively', () => {
         const store = new GameStats(path.join(tempDir, 'stats.ndjson'))
         store.recordGameStart('g1', [{ name: 'Hugo', isAI: false }], at('2025-08-01'))
