@@ -32,6 +32,10 @@ export class BatailleGame {
             height: 800,
             scene: [LoadingScene, BatailleScene, UIScene],
             parent: parent,
+            render: {
+                // Chrome on dual-GPU laptops defaults WebGL to the integrated GPU
+                powerPreference: 'high-performance',
+            },
             dom: {
                 createContainer: false,
             },

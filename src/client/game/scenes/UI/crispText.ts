@@ -19,3 +19,13 @@ export const crispText = (
     label.setPosition(Math.round(x), Math.round(y))
     return label
 }
+
+/**
+ * Text#setColor re-rasterises the label and re-uploads its texture even when the color has not
+ * changed, so any per-frame caller must go through this guard.
+ */
+export const setColorIfChanged = (label: Phaser.GameObjects.Text, color: string) => {
+    if (label.style.color !== color) {
+        label.setColor(color)
+    }
+}

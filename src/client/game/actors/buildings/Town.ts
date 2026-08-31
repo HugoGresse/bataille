@@ -6,6 +6,7 @@ import { GameObjects, Display } from 'phaser'
 import { TilePublic } from '../../../../server/model/map/Tile'
 import { TEXT_STYLE } from '../../../utils/TEXT_STYLE'
 import { playTownCapturedSound } from '../../utils/sounds'
+import { DEPTH_MAP_LABEL, DEPTH_TOWN_MARK } from '../../scenes/depth'
 
 const textStyle = {
     ...TEXT_STYLE,
@@ -27,7 +28,7 @@ export class Town extends Building {
         this.id = tileData.id
 
         if (tileData.n) {
-            this.scene.add.text(this.x, this.y - 20, tileData.n, textStyle)
+            this.scene.add.text(this.x, this.y - 20, tileData.n, textStyle).setDepth(DEPTH_MAP_LABEL)
         }
 
         this.playerRectangle = this.scene.add.rectangle(
@@ -36,6 +37,7 @@ export class Town extends Building {
             TILE_WIDTH_HEIGHT,
             TILE_WIDTH_HEIGHT
         )
+        this.playerRectangle.setDepth(DEPTH_TOWN_MARK)
         this.setTownColor(tileData.p as UIPlayer)
     }
 

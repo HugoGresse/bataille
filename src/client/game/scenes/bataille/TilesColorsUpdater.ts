@@ -2,6 +2,7 @@ import * as Phaser from 'phaser'
 import { PublicPlayerState } from '../../../../server/model/GameState'
 import { GameObjects } from 'phaser'
 import { PolygonContainer } from '../../../../server/model/types/Polygon'
+import { DEPTH_TILE_OVERLAY } from '../depth'
 
 export class TilesColorsUpdater {
     private countriesPolygons: {
@@ -68,6 +69,7 @@ class CountryPolygons {
         polygons.forEach((polygon) => {
             const phaserPoly = scene.add.polygon(polygon.x, polygon.y, polygon.polygon, 0xff0000, 0)
             phaserPoly.setOrigin(0, 0)
+            phaserPoly.setDepth(DEPTH_TILE_OVERLAY)
             this.polygons.push(phaserPoly)
         })
     }

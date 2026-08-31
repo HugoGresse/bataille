@@ -1,9 +1,9 @@
 import * as Phaser from 'phaser'
 import { BaseScene } from '../BaseScene'
-import { PublicPlayerState } from '../../../../server/model/GameState'
+import { PrivateGameState, PublicPlayerState } from '../../../../server/model/GameState'
 import { toColorNumber, toCssColor } from '../../utils/colors'
 import { isOutOfGame, sortForDisplay } from '../../utils/standingsOrder'
-import { crispText } from './crispText'
+import { crispText, setColorIfChanged } from './crispText'
 
 const LEFT = 12
 const TOP = 46
@@ -42,6 +42,7 @@ export class Standings {
     private rows: Row[] = []
     private baseline = new Map<string, number>()
     private lastCountdown = -1
+    private lastPainted: PrivateGameState | null = null
 
     constructor(private scene: BaseScene) {
         this.panel = scene.add.rectangle(LEFT, TOP, WIDTH, HEADER_HEIGHT, PANEL, 0.74)
@@ -62,6 +63,12 @@ export class Standings {
         if (!players?.length) {
             return
         }
+        // The socket hands back the same object until a new server tick lands (~10Hz), so most of
+        // the 60+ frames per second have nothing to repaint
+        if (state === this.lastPainted) {
+            return
+        }
+        this.lastPainted = state
 
         this.refreshBaseline(players, state?.ni ?? 0)
         const ordered = sortForDisplay(players)
@@ -176,20 +183,20 @@ export class Standings {
         }
 
         const change = player.i - (this.baseline.get(player.n) ?? player.i)
-        if (out) {
-            row.delta.setText('-').setColor(FLAT).setAlpha(alpha)
-        } else if (offline) {
-            // The delta slot carries the state: whatever their income was doing stopped mattering
-            row.delta.setText('OFF').setColor(OFFLINE).setAlpha(1)
-        } else if (change > 0) {
-            row.delta.setText(`+${change}`).setColor(UP).setAlpha(1)
-        } else if (change < 0) {
-            row.delta.setText(`${change}`).setColor(DOWN).setAlpha(1)
-        } else {
-            row.delta.setText('0').setColor(FLAT).setAlpha(0.5)
-        }
+        // The delta slot carries the offline state: whatever their income was doing stopped mattering
+        const delta = out
+            ? { text: '-', color: FLAT, alpha }
+            : offline
+              ? { text: 'OFF', color: OFFLINE, alpha: 1 }
+              : change > 0
+                ? { text: `+${change}`, color: UP, alpha: 1 }
+                : change < 0
+                  ? { text: `${change}`, color: DOWN, alpha: 1 }
+                  : { text: '0', color: FLAT, alpha: 0.5 }
+        row.delta.setText(delta.text).setAlpha(delta.alpha)
+        setColorIfChanged(row.delta, delta.color)
 
-        row.name.setColor(offline ? OFFLINE : isMe ? '#ffffff' : toCssColor(player.c))
+        setColorIfChanged(row.name, offline ? OFFLINE : isMe ? '#ffffff' : toCssColor(player.c))
     }
 
     private hideRow(row: Row) {
