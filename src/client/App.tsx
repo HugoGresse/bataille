@@ -4,6 +4,7 @@ import React from 'react'
 import { Home } from './screens/Home'
 import { Lobby } from './screens/Lobby'
 import { Admin } from './screens/Admin'
+import { Changelog } from './screens/Changelog'
 
 const router = createBrowserRouter([
     {
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
     {
         path: '/admin/*',
         element: <Admin />,
+    },
+    {
+        path: '/changelog',
+        element: <Changelog />,
     },
 ])
 

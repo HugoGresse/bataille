@@ -9,6 +9,8 @@ name: Deploy to Firebase Hosting on merge
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
       - name: Setup Node.js environment
@@ -17,11 +19,27 @@ jobs:
             node-version-file: .nvmrc
             cache: 'npm'
       - run: npm ci
+      # Every merge on main ships as a patch version with its changelog entry baked into the app
+      - name: Bump version and append changelog entry
+        run: node scripts/append-changelog.mjs
       - name: Unit tests
         run: npm test
       - run: npm run build
         env:
           VITE_SOCKET_URL: '${{ secrets.VITE_SOCKET_URL }}'
+      - name: Push release commit and tag
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if git diff --quiet; then
+            echo "no release changes to push"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json src/client/changelog/changelog.json
+          git commit -m "release: v${version} [skip ci]"
+          git tag "v${version}" || true
+          git push --follow-tags
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'

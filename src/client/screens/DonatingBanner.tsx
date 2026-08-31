@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box, Button, Link, Typography } from '@mui/material'
-import packageJson from '../../../package.json'
+import { VersionBadge } from './VersionBadge'
 
 export const DonatingBanner = () => {
     return (
@@ -24,7 +24,7 @@ export const DonatingBanner = () => {
 
             <br />
             <br />
-            <Typography variant="body2">v{packageJson.version}</Typography>
+            <VersionBadge />
         </Box>
     )
 }

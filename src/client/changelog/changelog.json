@@ -1,0 +1,56 @@
+[
+    {
+        "version": "0.17.8",
+        "date": "2026-08-31",
+        "title": "Replace the logo and favicon with the sword mark",
+        "pr": 20
+    },
+    {
+        "version": "0.17.7",
+        "date": "2026-08-31",
+        "title": "Smoother big battles: unit counters no longer redraw their number on every hit",
+        "pr": 19
+    },
+    {
+        "version": "0.17.6",
+        "date": "2026-08-31",
+        "title": "Give the win its own card, drop the centre notices, scale the HUD by half again",
+        "pr": null
+    },
+    {
+        "version": "0.17.5",
+        "date": "2026-08-31",
+        "title": "Win by holding 90% of the towns, and show the race once it is on",
+        "pr": 18
+    },
+    {
+        "version": "0.17.4",
+        "date": "2026-08-31",
+        "title": "Cut render cost ~30x: baked unit textures, merged tilemap layers, batch-friendly depths",
+        "pr": 17
+    },
+    {
+        "version": "0.17.3",
+        "date": "2026-08-31",
+        "title": "Fix the click that vanished after mustering, and two selection annoyances",
+        "pr": 16
+    },
+    {
+        "version": "0.17.2",
+        "date": "2026-08-30",
+        "title": "Persist game statistics across deploys",
+        "pr": 15
+    },
+    {
+        "version": "0.17.1",
+        "date": "2026-08-30",
+        "title": "Add games-by-IP to the admin stats, hashed and split by day and month",
+        "pr": 14
+    },
+    {
+        "version": "0.17.0",
+        "date": "2026-08-23",
+        "title": "Rebuild the in-game HUD, and modernise the stack",
+        "pr": 13
+    }
+]
