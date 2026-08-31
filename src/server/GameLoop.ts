@@ -62,8 +62,13 @@ export class GameLoop {
                     result: 'No winner, all players disconnected',
                 }
             }
+            // Say which of the two ways the game was won: being the last one standing reads for
+            // itself, holding the map does not unless the numbers come with it.
+            const byDomination = game.getDominantPlayer() === winner
             return {
-                result: `This game has been won by ${winner.name}`,
+                result: byDomination
+                    ? `This game has been won by ${winner.name}, holding ${winner.townCount} of the ${game.getTownCount()} towns`
+                    : `This game has been won by ${winner.name}`,
                 winner: winner,
             }
         }

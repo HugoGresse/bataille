@@ -8,6 +8,8 @@ import { UnitsTiles } from '../../engine/UnitsProcessor'
 export abstract class AbstractPlayer {
     protected _name: string = `${Date.now()}`
     protected unitCount = 0
+    /** Towns currently held. Drives the victory bar, which countries cannot: see engine/domination */
+    public townCount = 0
     public id: string
     public income: number = MONEY_INCOME_START
     public money: number = MONEY_INCOME_START
@@ -41,6 +43,10 @@ export abstract class AbstractPlayer {
         this.unitCount = count
     }
 
+    setTownCount(count: number) {
+        this.townCount = count
+    }
+
     incrementUnitCount(count: number) {
         this.unitCount += count
     }
@@ -55,6 +61,7 @@ export abstract class AbstractPlayer {
             i: this.income,
             c: this.color,
             ctr: this.ownedCountriesIds,
+            tw: this.townCount,
             cnt: this.isConnected,
             d: this.isDead,
             s: false,

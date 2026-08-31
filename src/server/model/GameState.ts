@@ -35,6 +35,7 @@ export interface PublicPlayerState {
     i: number // Income
     c: string // color
     ctr: string[] // countries
+    tw: number // towns held
     cnt: boolean // connected
     d: boolean // dead
     s: boolean // surrender

@@ -13,6 +13,7 @@ const player = (name: string, income: number, extra: Partial<PublicPlayerState> 
     i: income,
     c: '0xFF0000',
     ctr: [],
+    tw: 0,
     cnt: true,
     d: false,
     s: false,

@@ -71,6 +71,7 @@ export class GameUpdateProcessor {
                 for (const player of this.players) {
                     updatePlayerIncome(this.map.getTownsByCountries(), player, this.emitter)
                 }
+                this.refreshTownCounts()
                 this.lastChangedTownsStates.push(...towns)
             }
             this.recordRuntime(this.countriesRuntime, step3)
@@ -78,6 +79,24 @@ export class GameUpdateProcessor {
 
         if (this.incomeDispatcher.update(this.players)) {
             this.checkOwnedCountryToAddBounty(this.players)
+        }
+    }
+
+    /**
+     * Tally who holds what, for the victory bar and the standings. Only called when a town actually
+     * changed hands, plus once at kick-off for the towns handed out before the loop ever ran.
+     */
+    public refreshTownCounts() {
+        if (!this.players) this.players = Object.values(this.playersById)
+        const held = new Map<string, number>()
+        for (const town of this.map.getTowns()) {
+            const ownerId = town.player?.id
+            if (ownerId) {
+                held.set(ownerId, (held.get(ownerId) ?? 0) + 1)
+            }
+        }
+        for (const player of this.players) {
+            player.setTownCount(held.get(player.id) ?? 0)
         }
     }
 
