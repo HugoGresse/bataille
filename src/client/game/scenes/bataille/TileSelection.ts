@@ -21,13 +21,21 @@ export class TileSelection {
 
     start(): void {
         const layersReverse = [...this.map.layers].reverse()
+        // The only layers with a display object are the merged render ones; the source layers are
+        // data-only, and world-to-tile conversion needs a display object, so it happens once here
+        // and the per-layer lookups below stay in tile coordinates.
+        const renderLayer = this.map.getLayer(MERGED_RENDER_LAYERS[0])!.tilemapLayer!
 
         const findTileAt = (pointer: Input.Pointer): Tile | null => {
+            const tilePoint = renderLayer.worldToTileXY(pointer.worldX, pointer.worldY, true)
+            if (!tilePoint) {
+                return null
+            }
             for (const layer of layersReverse) {
                 if (INPUT_LAYERS_SKIP.includes(layer.name) || MERGED_RENDER_LAYERS.includes(layer.name)) {
                     continue
                 }
-                const tile = this.map.getTileAtWorldXY(pointer.worldX, pointer.worldY, false, undefined, layer.name)
+                const tile = this.map.getTileAt(tilePoint.x, tilePoint.y, false, layer.name)
                 if (tile) {
                     return tile
                 }
