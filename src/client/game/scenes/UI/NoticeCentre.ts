@@ -4,13 +4,14 @@ import { Message } from '../../../../server/model/types/Message'
 import { getGameWindowSize } from '../../../utils/getGameWindowSize'
 import { toColorNumber, toCssColor } from '../../utils/colors'
 import { crispText } from './crispText'
+import { hudFont, hudPx } from './hudScale'
 
 const MAX_STACKED = 3
 const LIFETIME_MS = 4000
-const CARD_HEIGHT = 30
-const GAP = 6
-const PAD_X = 12
-const TOP_RATIO = 0.3
+const CARD_HEIGHT = hudPx(30)
+const GAP = hudPx(6)
+const PAD_X = hudPx(12)
+const BOTTOM_MARGIN = hudPx(64)
 const FADE_MS = 180
 
 type Card = {
@@ -19,8 +20,8 @@ type Card = {
 }
 
 /**
- * Your own business, in the middle. Only events that touch you land here, so the centre of the
- * screen stays empty during the early-game land grab.
+ * Your own business, low and centred so it never sits over the board you are reading. Only events
+ * that touch you land here.
  */
 export class NoticeCentre {
     private cards: Card[] = []
@@ -32,22 +33,22 @@ export class NoticeCentre {
         const accent = toColorNumber(message.player?.c, 0xffffff)
         const text = crispText(this.scene, 0, 0, this.format(message), {
             fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-            fontSize: '13px',
+            fontSize: hudFont(13),
             color: '#ffffff',
         })
         text.setOrigin(0, 0.5)
 
-        const cardWidth = text.width + PAD_X * 2 + 6
+        const cardWidth = text.width + PAD_X * 2 + hudPx(6)
         const background = this.scene.add.rectangle(0, 0, cardWidth, CARD_HEIGHT, 0x080d18, 0.88)
         background.setStrokeStyle(1, 0xffffff, 0.16)
-        const edge = this.scene.add.rectangle(-cardWidth / 2 + 1.5, 0, 3, CARD_HEIGHT, accent)
+        const edge = this.scene.add.rectangle(-cardWidth / 2 + 2, 0, 4, CARD_HEIGHT, accent)
 
         text.setX(-cardWidth / 2 + PAD_X)
         if (message.player) {
             text.setColor(toCssColor(message.player.c))
         }
 
-        const container = this.scene.add.container(width / 2, height * TOP_RATIO, [background, edge, text])
+        const container = this.scene.add.container(width / 2, baseY(height), [background, edge, text])
         container.setAlpha(0)
         this.scene.tweens.add({ targets: container, alpha: 1, duration: FADE_MS })
 
@@ -70,13 +71,13 @@ export class NoticeCentre {
     /** Newest at the bottom of the stack, older ones pushed upward */
     private layout() {
         const { width, height } = getGameWindowSize(this.scene)
-        const baseY = height * TOP_RATIO
+        const bottom = baseY(height)
         this.cards.forEach((card, index) => {
             const fromBottom = this.cards.length - 1 - index
             this.scene.tweens.add({
                 targets: card.container,
                 x: width / 2,
-                y: baseY - fromBottom * (CARD_HEIGHT + GAP),
+                y: bottom - fromBottom * (CARD_HEIGHT + GAP),
                 duration: FADE_MS,
                 ease: 'Quad.easeOut',
             })
@@ -101,3 +102,5 @@ export class NoticeCentre {
         return message.content
     }
 }
+
+const baseY = (height: number): number => Math.round(height - BOTTOM_MARGIN - CARD_HEIGHT / 2)

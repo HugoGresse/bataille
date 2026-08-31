@@ -5,13 +5,16 @@ import { getGameWindowSize } from '../../../utils/getGameWindowSize'
 import { feedLine, stamp } from './notices'
 import { toCssColor } from '../../utils/colors'
 import { crispText } from './crispText'
+import { hudFont, hudPx } from './hudScale'
 
-const WIDTH = 224
+const WIDTH = hudPx(224)
 const MARGIN = 10
-const HEADER_HEIGHT = 20
-const LINE_HEIGHT = 15
+const HEADER_HEIGHT = hudPx(20)
+const LINE_HEIGHT = hudPx(15)
 const MAX_LINES = 6
-const PAD = 8
+const PAD = hudPx(8)
+const TIME_COLUMN = hudPx(34)
+const ACTOR_GAP = hudPx(4)
 /** Two captures by the same player inside this window fold into one line */
 const FOLD_MS = 6000
 const MOBILE_MAX_WIDTH = 768
@@ -52,22 +55,22 @@ export class NoticeFeed {
 
         this.title = crispText(scene, 0, 0, 'ELSEWHERE', {
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '9px',
+            fontSize: hudFont(9),
             color: '#ffffff',
         })
         this.title.setAlpha(0.8)
 
         this.badge = crispText(scene, 0, 0, '', {
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '9px',
+            fontSize: hudFont(9),
             color: '#17120a',
             backgroundColor: '#ffd54f',
         })
-        this.badge.setPadding(4, 1, 4, 1)
+        this.badge.setPadding(hudPx(4), 1, hudPx(4), 1)
 
         this.caret = crispText(scene, 0, 0, 'v', {
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '9px',
+            fontSize: hudFont(9),
             color: '#ffffff',
         })
         this.caret.setAlpha(0.6)
@@ -133,7 +136,7 @@ export class NoticeFeed {
     layout() {
         const { width, height } = getGameWindowSize(this.scene)
         const visibleLines = this.open ? this.entries.length : 0
-        const panelHeight = HEADER_HEIGHT + (visibleLines ? visibleLines * LINE_HEIGHT + 6 : 0)
+        const panelHeight = HEADER_HEIGHT + (visibleLines ? visibleLines * LINE_HEIGHT + hudPx(6) : 0)
         const left = width - MARGIN - WIDTH
         const top = height - MARGIN - panelHeight
 
@@ -141,28 +144,28 @@ export class NoticeFeed {
         this.panel.height = panelHeight
         this.headerZone.setPosition(left, top)
 
-        this.title.setPosition(left + PAD, top + 6)
-        this.caret.setPosition(left + WIDTH - PAD - 6, top + 6)
+        this.title.setPosition(left + PAD, top + hudPx(6))
+        this.caret.setPosition(left + WIDTH - PAD - hudPx(6), top + hudPx(6))
         this.caret.setText(this.open ? 'v' : '^')
 
         this.badge.setVisible(this.unread > 0 && !this.open)
         this.badge.setText(`${this.unread}`)
-        this.badge.setPosition(left + WIDTH - PAD - 22 - this.badge.width, top + 5)
+        this.badge.setPosition(left + WIDTH - PAD - hudPx(22) - this.badge.width, top + hudPx(5))
 
         this.entries.forEach((entry, index) => {
             const line = this.lines[index] ?? this.buildLine(index)
-            const y = top + HEADER_HEIGHT + 3 + index * LINE_HEIGHT
+            const y = top + HEADER_HEIGHT + hudPx(3) + index * LINE_HEIGHT
             line.time
                 .setPosition(left + PAD, y)
                 .setText(stamp(entry.at - this.startedAt))
                 .setVisible(this.open)
             line.actor
-                .setPosition(left + PAD + 34, y)
+                .setPosition(left + PAD + TIME_COLUMN, y)
                 .setText(entry.actor)
                 .setColor(entry.color)
                 .setVisible(this.open)
             line.text
-                .setPosition(left + PAD + 38 + line.actor.width, y)
+                .setPosition(left + PAD + TIME_COLUMN + ACTOR_GAP + line.actor.width, y)
                 .setText(entry.text)
                 .setVisible(this.open)
         })
@@ -176,7 +179,7 @@ export class NoticeFeed {
     private buildLine(index: number) {
         const style = {
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '9px',
+            fontSize: hudFont(9),
             color: '#ffffff',
         }
         const time = crispText(this.scene, 0, 0, '', style)

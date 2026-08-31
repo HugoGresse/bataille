@@ -6,6 +6,7 @@ import { CityRing } from './CityRing'
 import { MUSTER_OPTIONS } from '../../utils/muster'
 import { NoticeCentre } from './NoticeCentre'
 import { NoticeFeed } from './NoticeFeed'
+import { VictoryCard } from './VictoryCard'
 import { ChatInput } from './ChatInput'
 import { KeyLegend } from './KeyLegend'
 import { Building } from '../../actors/buildings/Building'
@@ -21,6 +22,7 @@ export class UIScene extends BaseScene {
     cityRing!: CityRing
     noticeCentre!: NoticeCentre
     noticeFeed!: NoticeFeed
+    victoryCard!: VictoryCard
     private chatInput!: ChatInput
     private keyLegend!: KeyLegend
 
@@ -41,11 +43,15 @@ export class UIScene extends BaseScene {
         this.cityRing = new CityRing(this)
         this.noticeCentre = new NoticeCentre(this)
         this.noticeFeed = new NoticeFeed(this)
+        this.victoryCard = new VictoryCard(this)
         this.chatInput = new ChatInput(this)
         this.keyLegend = new KeyLegend(this)
 
         this.bindKeys()
-        this.scale.on('resize', () => this.noticeFeed.layout())
+        this.scale.on('resize', () => {
+            this.noticeFeed.layout()
+            this.victoryCard.layout()
+        })
         this.events.once('shutdown', () => this.teardown())
     }
 
@@ -83,8 +89,11 @@ export class UIScene extends BaseScene {
     }
 
     onMessageReceived(message: Message) {
-        const lane = laneFor(message, this.getState()?.cp.n)
-        if (lane === 'centre') {
+        const currentPlayerName = this.getState()?.cp.n
+        const lane = laneFor(message, currentPlayerName)
+        if (lane === 'victory') {
+            this.victoryCard.show(message, currentPlayerName)
+        } else if (lane === 'centre') {
             this.noticeCentre.show(message)
         } else if (lane === 'feed') {
             this.noticeFeed.add(message)
@@ -148,6 +157,7 @@ export class UIScene extends BaseScene {
     private teardown() {
         this.cityRing.close()
         this.noticeCentre.clear()
+        this.victoryCard.clear()
         this.noticeFeed.destroy()
         this.standings.destroy()
         this.currentUserStats.destroy()

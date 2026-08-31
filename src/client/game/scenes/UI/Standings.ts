@@ -5,13 +5,17 @@ import { toColorNumber, toCssColor } from '../../utils/colors'
 import { isOutOfGame, sortForDisplay } from '../../utils/standingsOrder'
 import { shouldShowVictoryProgress, victoryFraction } from '../../utils/victoryProgress'
 import { crispText, setColorIfChanged } from './crispText'
+import { hudFont, hudPx } from './hudScale'
 
 const LEFT = 12
 const TOP = 46
-const WIDTH = 186
-const ROW_HEIGHT = 19
-const HEADER_HEIGHT = 18
-const PAD = 8
+const WIDTH = hudPx(186)
+const ROW_HEIGHT = hudPx(19)
+const HEADER_HEIGHT = hudPx(18)
+const PAD = hudPx(8)
+const SWATCH_WIDTH = 3
+const NAME_LEFT = hudPx(9)
+const VALUE_RIGHT = hudPx(34)
 
 const PANEL = 0x060a12
 const EDGE = 0xffffff
@@ -57,9 +61,9 @@ export class Standings {
         this.panel.setOrigin(0, 0)
         this.panel.setStrokeStyle(1, EDGE, 0.16)
 
-        this.header = crispText(scene, LEFT + PAD, TOP + 4, 'STANDINGS', {
+        this.header = crispText(scene, LEFT + PAD, TOP + hudPx(4), 'STANDINGS', {
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '9px',
+            fontSize: hudFont(9),
             color: '#ffffff',
         })
         this.header.setAlpha(0.52)
@@ -81,7 +85,7 @@ export class Standings {
         this.refreshBaseline(players, state?.ni ?? 0)
         this.refreshRace(scene, players)
         const ordered = sortForDisplay(players)
-        this.panel.height = HEADER_HEIGHT + ordered.length * ROW_HEIGHT + 4
+        this.panel.height = HEADER_HEIGHT + ordered.length * ROW_HEIGHT + hudPx(4)
 
         ordered.forEach((player, index) => {
             const row = this.rows[index] ?? this.buildRow(index)
@@ -160,32 +164,32 @@ export class Standings {
         offlineWash.setOrigin(0, 0)
         offlineWash.setVisible(false)
 
-        const offlineEdge = scene.add.rectangle(LEFT, y, 3, ROW_HEIGHT, OFFLINE_TINT)
+        const offlineEdge = scene.add.rectangle(LEFT, y, SWATCH_WIDTH, ROW_HEIGHT, OFFLINE_TINT)
         offlineEdge.setOrigin(0, 0)
         offlineEdge.setVisible(false)
 
-        const swatch = scene.add.rectangle(LEFT + PAD, y + 3, 3, ROW_HEIGHT - 6, 0xffffff)
+        const swatch = scene.add.rectangle(LEFT + PAD, y + hudPx(3), SWATCH_WIDTH, ROW_HEIGHT - hudPx(6), 0xffffff)
         swatch.setOrigin(0, 0)
 
-        const name = crispText(scene, LEFT + PAD + 9, y + 3, '', {
+        const name = crispText(scene, LEFT + PAD + NAME_LEFT, y + hudPx(3), '', {
             fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-            fontSize: '11px',
+            fontSize: hudFont(11),
             color: '#ffffff',
         })
-        const value = crispText(scene, LEFT + WIDTH - PAD - 34, y + 3, '', {
+        const value = crispText(scene, LEFT + WIDTH - PAD - VALUE_RIGHT, y + hudPx(3), '', {
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '11px',
+            fontSize: hudFont(11),
             color: '#ffffff',
         })
         value.setOrigin(1, 0)
-        const delta = crispText(scene, LEFT + WIDTH - PAD, y + 4, '', {
+        const delta = crispText(scene, LEFT + WIDTH - PAD, y + hudPx(4), '', {
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '10px',
+            fontSize: hudFont(10),
             color: FLAT,
         })
         delta.setOrigin(1, 0)
 
-        const strike = scene.add.rectangle(LEFT + PAD + 9, y + 9, 0, 1, 0xffffff, 0.75)
+        const strike = scene.add.rectangle(LEFT + PAD + NAME_LEFT, y + hudPx(9), 0, 1, 0xffffff, 0.75)
         strike.setOrigin(0, 0)
         strike.setVisible(false)
 

@@ -1,10 +1,19 @@
 import { Message } from '../../../../server/model/types/Message'
 
-export type NoticeLane = 'centre' | 'feed' | 'none'
+export type NoticeLane = 'victory' | 'centre' | 'feed' | 'none'
 
 const COUNTRY_CAPTURE = / was captured by /
 const PLAYER_DEAD = /^Player is dead: /
 const PLAYER_DISCONNECTED = /Player disconnected/
+const VICTORY = /^This game has been won by (.+?)(?:, (.+))?$/
+const NO_WINNER = /^No winner(?:, )?(.*)$/
+
+export type VictoryAnnouncement = {
+    title: string
+    detail: string
+    /** The winner is the player reading it, which is the whole difference in how it is dressed */
+    mine: boolean
+}
 
 /**
  * One rule decides the lane: it happened to you, or it did not. Everything that did not gets no
@@ -13,6 +22,9 @@ const PLAYER_DISCONNECTED = /Player disconnected/
 export const laneFor = (message: Message, currentPlayerName: string | undefined): NoticeLane => {
     if (message.isUserMessage) {
         return 'centre' // chat
+    }
+    if (VICTORY.test(message.content) || NO_WINNER.test(message.content)) {
+        return 'victory'
     }
     if (PLAYER_DISCONNECTED.test(message.content)) {
         return 'feed'
@@ -24,6 +36,23 @@ export const laneFor = (message: Message, currentPlayerName: string | undefined)
         return involvesMe(message, currentPlayerName) ? 'centre' : 'feed'
     }
     return 'centre'
+}
+
+export const victoryAnnouncement = (
+    content: string,
+    currentPlayerName: string | undefined
+): VictoryAnnouncement | null => {
+    const abandoned = NO_WINNER.exec(content)
+    if (abandoned) {
+        return { title: 'NO WINNER', detail: abandoned[1] ?? '', mine: false }
+    }
+    const won = VICTORY.exec(content)
+    if (!won) {
+        return null
+    }
+    const [, winner, detail] = won
+    const mine = !!currentPlayerName && winner === currentPlayerName
+    return { title: mine ? 'VICTORY' : winner, detail: detail ?? '', mine }
 }
 
 export const involvesMe = (message: Message, currentPlayerName: string | undefined): boolean => {

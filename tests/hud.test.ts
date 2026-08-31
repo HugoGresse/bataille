@@ -4,7 +4,8 @@ import { MUSTER_OPTIONS, musterCount } from '../src/client/game/utils/muster'
 import { sampleWave } from '../src/client/game/utils/waveCurve'
 import { isOutOfGame, sortForDisplay } from '../src/client/game/utils/standingsOrder'
 import { isSameColor, toColorNumber, toCssColor } from '../src/client/game/utils/colors'
-import { feedLine, laneFor, stamp } from '../src/client/game/scenes/UI/notices'
+import { feedLine, laneFor, stamp, victoryAnnouncement } from '../src/client/game/scenes/UI/notices'
+import { hudFont, hudPx } from '../src/client/game/scenes/UI/hudScale'
 import { PublicPlayerState } from '../src/server/model/GameState'
 import { Message } from '../src/server/model/types/Message'
 
@@ -171,5 +172,56 @@ describe('notice lanes', () => {
         expect(stamp(0)).toBe('00:00')
         expect(stamp(65_000)).toBe('01:05')
         expect(stamp(-5)).toBe('00:00')
+    })
+})
+
+describe('victory notices', () => {
+    const won = (content: string) => message(content)
+
+    it('routes the end of the game to its own lane, whoever won', () => {
+        expect(laneFor(won('This game has been won by Gimli, holding 185 of the 205 towns'), 'Frodo')).toBe('victory')
+        expect(laneFor(won('This game has been won by Frodo'), 'Frodo')).toBe('victory')
+        expect(laneFor(won('No winner, all players disconnected'), 'Frodo')).toBe('victory')
+    })
+
+    it('splits the announcement into a headline and its reason', () => {
+        expect(victoryAnnouncement('This game has been won by Gimli, holding 185 of the 205 towns', 'Frodo')).toEqual({
+            title: 'Gimli',
+            detail: 'holding 185 of the 205 towns',
+            mine: false,
+        })
+    })
+
+    it('names the reader rather than repeating their own name back at them', () => {
+        expect(victoryAnnouncement('This game has been won by Frodo, holding 190 of the 205 towns', 'Frodo')).toEqual({
+            title: 'VICTORY',
+            detail: 'holding 190 of the 205 towns',
+            mine: true,
+        })
+    })
+
+    it('handles a win with no reason attached, and an abandoned game', () => {
+        expect(victoryAnnouncement('This game has been won by Gimli', 'Frodo')).toEqual({
+            title: 'Gimli',
+            detail: '',
+            mine: false,
+        })
+        expect(victoryAnnouncement('No winner, all players disconnected', 'Frodo')).toEqual({
+            title: 'NO WINNER',
+            detail: 'all players disconnected',
+            mine: false,
+        })
+    })
+
+    it('leaves anything that is not an ending alone', () => {
+        expect(victoryAnnouncement('France (+5) was captured by Gimli', 'Frodo')).toBeNull()
+    })
+})
+
+describe('hud scale', () => {
+    it('grows the HUD by half again, on whole pixels', () => {
+        expect(hudPx(20)).toBe(30)
+        expect(hudPx(9)).toBe(14)
+        expect(hudFont(13)).toBe('20px')
     })
 })
