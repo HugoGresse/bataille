@@ -9,6 +9,16 @@ const pulse = keyframes`
     100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
 `
 
+/** A short wag with a long rest: moves enough to catch the eye without nagging */
+const wiggle = keyframes`
+    0%, 86%, 100% { transform: rotate(0deg) scale(1); }
+    88% { transform: rotate(-4deg) scale(1.06); }
+    90% { transform: rotate(4deg) scale(1.08); }
+    92% { transform: rotate(-3deg) scale(1.06); }
+    94% { transform: rotate(2deg) scale(1.04); }
+    96% { transform: rotate(0deg) scale(1); }
+`
+
 const seenListeners = new Set<() => void>()
 export const notifySeenChanged = () => seenListeners.forEach((listener) => listener())
 const subscribeSeen = (listener: () => void) => {
@@ -34,7 +44,9 @@ export const VersionBadge = () => {
             variant="outlined"
             color={unseen ? 'secondary' : 'default'}
             onClick={() => navigate('/changelog')}
-            sx={unseen ? { animation: `${pulse} 2s ease-out infinite` } : undefined}
+            sx={
+                unseen ? { animation: `${pulse} 2s ease-out infinite, ${wiggle} 3.5s ease-in-out infinite` } : undefined
+            }
         />
     )
 }
