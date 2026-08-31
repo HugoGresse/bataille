@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.10",
+        "date": "2026-08-31",
+        "title": "Push the release tag by name: --follow-tags skips lightweight tags",
+        "pr": 22
+    },
+    {
         "version": "0.17.9",
         "date": "2026-08-31",
         "title": "Ship a version per merge, with an in-app changelog and an unread glow",
