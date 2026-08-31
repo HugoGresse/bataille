@@ -1,8 +1,12 @@
 import * as Phaser from 'phaser'
 
 export const SHADOW_TEXTURE = 'counter-shadow'
+export const DIGITS_FONT = 'counter-digits'
 export const fillTextureKey = (radius: number) => `counter-fill-${radius}`
 export const trimTextureKey = (radius: number) => `counter-trim-${radius}`
+
+/** Square glyph cell in logical pixels; the digit is drawn centred inside it */
+export const DIGIT_CELL = 16
 
 /** Baked above CSS size so counters stay crisp at maximum camera zoom on HiDPI screens */
 const BAKE_SCALE = 4
@@ -26,6 +30,48 @@ export const ensureCounterTextures = (scene: Phaser.Scene, radii: number[]) => {
         paintFill(scene, radius)
         paintTrim(scene, radius)
     })
+    paintDigitFont(scene)
+}
+
+/**
+ * The stack size labels change on every hit of every fight, and a Text object pays a canvas
+ * rasterisation plus a GPU texture upload per change — in a big battle that alone froze frames.
+ * The ten digits are baked once into a strip and the labels are BitmapText: a text change is
+ * just new quads on the shared texture.
+ */
+const paintDigitFont = (scene: Phaser.Scene) => {
+    const cell = DIGIT_CELL * BAKE_SCALE
+    const chars = '0123456789'
+    const context = createTexture(scene, DIGITS_FONT, cell * chars.length, cell)
+    if (!context) {
+        return
+    }
+    context.fillStyle = '#17120a'
+    context.font = `bold ${DIGIT_CELL * 0.75 * BAKE_SCALE}px ui-sans-serif, system-ui, sans-serif`
+    context.textAlign = 'center'
+    context.textBaseline = 'middle'
+    for (let index = 0; index < chars.length; index++) {
+        context.fillText(chars[index], index * cell + cell / 2, cell / 2)
+    }
+    refresh(scene, DIGITS_FONT)
+
+    const entry = Phaser.GameObjects.RetroFont.Parse(scene, {
+        image: DIGITS_FONT,
+        width: cell,
+        height: cell,
+        chars,
+        charsPerRow: chars.length,
+        'offset.x': 0,
+        'offset.y': 0,
+        'spacing.x': 0,
+        'spacing.y': 0,
+        lineSpacing: 0,
+    }) as unknown as { data: { chars: Record<string, { xAdvance: number }> } }
+    // The cells are square so font size scaling stays sane, but digits advance tighter than that
+    Object.values(entry.data.chars).forEach((glyph) => {
+        glyph.xAdvance = Math.round(cell * 0.62)
+    })
+    scene.cache.bitmapFont.add(DIGITS_FONT, entry)
 }
 
 const paintShadow = (scene: Phaser.Scene) => {

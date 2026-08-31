@@ -1,8 +1,15 @@
 import * as Phaser from 'phaser'
 import { UnitState } from '../../../server/model/GameState'
 import { toColorNumber } from '../utils/colors'
-import { RENDER_SCALE } from '../utils/renderScale'
-import { ensureCounterTextures, fillTextureKey, SHADOW_TEXTURE, TRIM_PAD, trimTextureKey } from './counterTextures'
+import {
+    DIGIT_CELL,
+    DIGITS_FONT,
+    ensureCounterTextures,
+    fillTextureKey,
+    SHADOW_TEXTURE,
+    TRIM_PAD,
+    trimTextureKey,
+} from './counterTextures'
 
 /** Stack size thresholds: a scout, a working force, an army worth fearing */
 const SIZE_STEPS = [
@@ -11,7 +18,6 @@ const SIZE_STEPS = [
     { upTo: Infinity, radius: 20.5, font: 15 },
 ]
 
-const INK = '#17120a'
 const RIM = 0xffffff
 const HURT = 0xff5252
 
@@ -36,7 +42,7 @@ export class Actor extends Phaser.GameObjects.Container {
     private readonly shadow: Phaser.GameObjects.Image
     private readonly fill: Phaser.GameObjects.Image
     private readonly trim: Phaser.GameObjects.Image
-    private readonly label: Phaser.GameObjects.Text
+    private readonly label: Phaser.GameObjects.BitmapText
     private selectionRing: Phaser.GameObjects.Arc | null = null
     private hurtTween: Phaser.Tweens.Tween | null = null
     private moveTween: Phaser.Tweens.Tween | null = null
@@ -69,13 +75,8 @@ export class Actor extends Phaser.GameObjects.Container {
         this.shadow.setAlpha(0.45)
         this.fill = scene.add.image(0, 0, fillTextureKey(this.radius))
         this.trim = scene.add.image(0, 0, trimTextureKey(this.radius))
-        this.label = scene.add.text(0, 0, '', {
-            fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-            fontStyle: 'bold',
-            fontSize: '11px',
-            color: INK,
-            resolution: RENDER_SCALE,
-        })
+        // Ink is baked into the digit strip; the hp label never rasterises or uploads a texture
+        this.label = scene.add.bitmapText(0, 0, DIGITS_FONT, '', DIGIT_CELL)
         this.label.setOrigin(0.5, 0.5)
 
         this.add([this.shadow, this.fill, this.trim, this.label])
