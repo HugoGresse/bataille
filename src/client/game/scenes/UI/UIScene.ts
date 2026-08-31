@@ -2,7 +2,8 @@ import 'phaser'
 import { BaseScene } from '../BaseScene'
 import { CurrentUserStats } from './CurrentUserStats'
 import { Standings } from './Standings'
-import { CityRing, MUSTER_OPTIONS } from './CityRing'
+import { CityRing } from './CityRing'
+import { MUSTER_OPTIONS } from '../../utils/muster'
 import { NoticeCentre } from './NoticeCentre'
 import { NoticeFeed } from './NoticeFeed'
 import { ChatInput } from './ChatInput'
@@ -95,8 +96,8 @@ export class UIScene extends BaseScene {
     }
 
     /** UI widgets call this on pointer down so the map does not treat the same click as a tile */
-    markUIPointer() {
-        markUIPointer()
+    markUIPointer(pointer: Phaser.Input.Pointer) {
+        markUIPointer(pointer)
     }
 
     private openRingFor(town: Town) {
@@ -120,10 +121,13 @@ export class UIScene extends BaseScene {
             key.on('down', () => this.cityRing.pressKey(option.key))
         })
 
+        // Escape peels one layer at a time: the muster ring first, the stack it was opened from
+        // only on the next press. Dropping both at once loses a selection you meant to keep.
         const escape = keyboard.addKey('ESC', true, true)
         escape.on('down', () => {
             if (this.cityRing.isOpen()) {
                 this.cityRing.close()
+                return
             }
             this.getBatailleScene().clearUnitSelection(false)
         })

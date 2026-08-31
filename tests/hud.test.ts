@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { moveAmountFor } from '../src/client/game/utils/moveAmount'
+import { MUSTER_OPTIONS, musterCount } from '../src/client/game/utils/muster'
 import { sampleWave } from '../src/client/game/utils/waveCurve'
 import { isOutOfGame, sortForDisplay } from '../src/client/game/utils/standingsOrder'
 import { isSameColor, toColorNumber, toCssColor } from '../src/client/game/utils/colors'
@@ -39,6 +40,32 @@ describe('moveAmountFor', () => {
     it('sends a single unit on alt, which wins over shift', () => {
         expect(moveAmountFor(11, { altKey: true })).toBe(1)
         expect(moveAmountFor(11, { altKey: true, shiftKey: true })).toBe(1)
+    })
+})
+
+describe('musterCount', () => {
+    const option = (key: string) => MUSTER_OPTIONS.find((o) => o.key === key)!
+
+    it('raises the whole pack when the treasury covers it', () => {
+        expect(musterCount(option('R'), 100)).toBe(1)
+        expect(musterCount(option('T'), 100)).toBe(10)
+        expect(musterCount(option('T'), 10)).toBe(10)
+    })
+
+    it('shrinks a pack to what is left rather than refusing it', () => {
+        expect(musterCount(option('T'), 4)).toBe(4)
+        expect(musterCount(option('T'), 1)).toBe(1)
+    })
+
+    it('spends the whole treasury on +all', () => {
+        expect(musterCount(option('Y'), 137)).toBe(137)
+        expect(musterCount(option('Y'), 0)).toBe(0)
+    })
+
+    it('raises nothing when the treasury is empty', () => {
+        expect(musterCount(option('R'), 0)).toBe(0)
+        expect(musterCount(option('T'), 0)).toBe(0)
+        expect(musterCount(option('T'), -5)).toBe(0)
     })
 })
 

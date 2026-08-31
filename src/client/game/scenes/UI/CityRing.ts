@@ -4,6 +4,7 @@ import { Keycap } from './Keycap'
 import { TILE_WIDTH_HEIGHT, UnitsType } from '../../../../common/UNITS'
 import { getGameWindowSize } from '../../../utils/getGameWindowSize'
 import { ensureRingTextures, PLATE_TEXTURE, SAT_OFF_TEXTURE, SAT_TEXTURE } from './ringTextures'
+import { MUSTER_OPTIONS, MusterOption, musterCount } from '../../utils/muster'
 import { RENDER_SCALE } from '../../utils/renderScale'
 import { crispText } from './crispText'
 
@@ -22,19 +23,6 @@ const PLATE_IN_MS = 200
 const SPREAD_MS = 300
 /** Head start each satellite gives the next one, as a fraction of the spread */
 const SPREAD_STAGGER = 0.12
-
-export type MusterOption = {
-    key: string
-    label: string
-    /** Units to request; `all` spends whatever the treasury holds */
-    amount: number | 'all'
-}
-
-export const MUSTER_OPTIONS: MusterOption[] = [
-    { key: 'R', label: '+1', amount: 1 },
-    { key: 'T', label: '+10', amount: 10 },
-    { key: 'Y', label: '+all', amount: 'all' },
-]
 
 /** Angles are measured from straight up, fanning left to right */
 const ANGLES = [-52, 0, 52]
@@ -234,8 +222,8 @@ export class CityRing {
         }
         container.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => this.setHovered(index, true))
         container.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => this.setHovered(index, false))
-        container.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
-            this.scene.markUIPointer()
+        container.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+            this.scene.markUIPointer(pointer)
             this.setPressed(index, true)
         })
         container.on(Phaser.Input.Events.GAMEOBJECT_POINTER_UP, () => {
@@ -277,7 +265,7 @@ export class CityRing {
             return
         }
         const money = this.scene.getState()?.cp.m ?? 0
-        const count = option.amount === 'all' ? Math.floor(money / UnitsType.Stick) : option.amount
+        const count = musterCount(option, money)
         if (count < 1) {
             return
         }
@@ -362,11 +350,17 @@ export class CityRing {
 
     private paintAffordability(money: number) {
         this.satellites.forEach((sat) => {
-            const cost = sat.option.amount === 'all' ? money : sat.option.amount * UnitsType.Stick
-            const affordable = money >= (sat.option.amount === 'all' ? UnitsType.Stick : cost)
+            const count = musterCount(sat.option, money)
+            const affordable = count >= 1
             const wasAffordable = sat.affordable
             sat.affordable = affordable
-            sat.cost.setText(`${cost}$`)
+            // A pack that the treasury only half covers says so rather than switching off: with 4
+            // in the bank `+10` reads `+4` and raises four. `+all` already names itself.
+            const clamped = sat.option.amount !== 'all' && affordable && count < sat.option.amount
+            sat.label.setText(clamped ? `+${count}` : sat.option.label)
+            // Broke: the price shown is what the pack would cost, not the nothing it buys today
+            const nominal = sat.option.amount === 'all' ? money : sat.option.amount * UnitsType.Stick
+            sat.cost.setText(`${affordable ? count * UnitsType.Stick : nominal}$`)
             sat.face.setTexture(affordable ? SAT_TEXTURE : SAT_OFF_TEXTURE)
             if (!affordable && wasAffordable) {
                 sat.hovered = false

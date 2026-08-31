@@ -75,7 +75,9 @@ export class NoticeFeed {
         this.headerZone = scene.add.rectangle(0, 0, WIDTH, HEADER_HEIGHT, 0xffffff, 0.001)
         this.headerZone.setOrigin(0, 0)
         this.headerZone.setInteractive({ useHandCursor: true })
-        this.headerZone.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => this.scene.markUIPointer())
+        this.headerZone.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (pointer: Phaser.Input.Pointer) =>
+            this.scene.markUIPointer(pointer)
+        )
         this.headerZone.on(Phaser.Input.Events.GAMEOBJECT_POINTER_UP, () => this.toggle())
 
         this.layout()
