@@ -3,50 +3,56 @@
 
 name: Deploy to Firebase Hosting on merge
 'on':
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 jobs:
-  build_and_deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v7
-        with:
-            node-version-file: .nvmrc
-            cache: 'npm'
-      - run: npm ci
-      # Every merge on main ships as a patch version with its changelog entry baked into the app
-      - name: Bump version and append changelog entry
-        run: node scripts/append-changelog.mjs
-      - name: Unit tests
-        run: npm test
-      - run: npm run build
-        env:
-          VITE_SOCKET_URL: '${{ secrets.VITE_SOCKET_URL }}'
-      - name: Push release commit and tag
-        run: |
-          version=$(node -p "require('./package.json').version")
-          if git diff --quiet; then
-            echo "no release changes to push"
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add package.json package-lock.json src/client/changelog/changelog.json
-          git commit -m "release: v${version} [skip ci]"
-          git push
-          # --follow-tags only carries annotated tags, so the tag is pushed by name
-          git tag "v${version}" || true
-          git push origin "refs/tags/v${version}" || true
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_BATAILLE }}'
-          channelId: live
-          projectId: bataille
-        env:
-          FIREBASE_CLI_PREVIEWS: hostingchannels
+    build_and_deploy:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v7
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v7
+              with:
+                  node-version-file: .nvmrc
+                  cache: 'npm'
+            - run: npm ci
+            # Every merge on main ships as a patch version with its changelog entry baked into the app.
+            # With the OPENROUTER_API_KEY secret set, the entry is rewritten into a player-facing line;
+            # without it the merge commit subject is used verbatim.
+            - name: Bump version and append changelog entry
+              env:
+                  GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+                  GITHUB_REPOSITORY: '${{ github.repository }}'
+                  OPENROUTER_API_KEY: '${{ secrets.OPENROUTER_API_KEY }}'
+              run: node scripts/append-changelog.mjs
+            - name: Unit tests
+              run: npm test
+            - run: npm run build
+              env:
+                  VITE_SOCKET_URL: '${{ secrets.VITE_SOCKET_URL }}'
+            - name: Push release commit and tag
+              run: |
+                  version=$(node -p "require('./package.json').version")
+                  if git diff --quiet; then
+                    echo "no release changes to push"
+                    exit 0
+                  fi
+                  git config user.name 'github-actions[bot]'
+                  git config user.email 'github-actions[bot]@users.noreply.github.com'
+                  git add package.json package-lock.json src/client/changelog/changelog.json
+                  git commit -m "release: v${version} [skip ci]"
+                  git push
+                  # --follow-tags only carries annotated tags, so the tag is pushed by name
+                  git tag "v${version}" || true
+                  git push origin "refs/tags/v${version}" || true
+            - uses: FirebaseExtended/action-hosting-deploy@v0
+              with:
+                  repoToken: '${{ secrets.GITHUB_TOKEN }}'
+                  firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_BATAILLE }}'
+                  channelId: live
+                  projectId: bataille
+              env:
+                  FIREBASE_CLI_PREVIEWS: hostingchannels
