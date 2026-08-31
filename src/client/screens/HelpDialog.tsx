@@ -40,8 +40,8 @@ export const HelpDialog = ({ open, setOpen }: HelpDialogProps) => {
                         <li>
                             Units are displayed by a black circle with a colored number inside. They can be created on
                             towns you own. The number represent the amount of units on a given location. You can merge
-                            them. A group of unit cannot be created with more than 100 (but can be merged to achieve more
-                            units on a single location).
+                            them. A group of unit cannot be created with more than 100 (but can be merged to achieve
+                            more units on a single location).
                         </li>
                         <li>
                             Move units with two clicks: click one of your stacks, then click the destination tile. Use
@@ -65,7 +65,7 @@ export const HelpDialog = ({ open, setOpen }: HelpDialogProps) => {
                         <li>T: create 10 units on selected town, (less if not enough money)</li>
                         <li>ENTER: open dialog chat</li>
                         <li>Mouse/Touch: click a unit (origin) then click a tile (destination) to move</li>
-                        <li>ESC or ✕: cancel the current unit selection</li>
+                        <li>ESC: close the town's muster ring, then cancel the current unit selection</li>
                     </ul>
                 </DialogContentText>
                 <DialogContentText id="alert-dialog-description">

@@ -20,14 +20,6 @@ export class TileSelection {
     ) {}
 
     start(): void {
-        let downScreenX = 0
-        let downScreenY = 0
-
-        this.scene.input.on('pointerdown', (pointer: Input.Pointer) => {
-            downScreenX = pointer.x
-            downScreenY = pointer.y
-        })
-
         const layersReverse = [...this.map.layers].reverse()
 
         const findTileAt = (pointer: Input.Pointer): Tile | null => {
@@ -56,11 +48,13 @@ export class TileSelection {
 
         this.scene.input.on('pointerup', (pointer: Input.Pointer) => {
             // Clicks on UI scene widgets (buttons, slider...) must not select tiles or move units
-            if (consumeUIPointer()) {
+            if (consumeUIPointer(pointer)) {
                 return
             }
-            // Camera pan gestures must not select tiles or move units
-            if (Phaser.Math.Distance.Between(downScreenX, downScreenY, pointer.x, pointer.y) > CLICK_MAX_DISTANCE) {
+            // Camera pan gestures must not select tiles or move units. The travel is read off the
+            // pointer rather than tracked here: `globalTopOnly` skips this scene entirely whenever
+            // the press landed on a HUD widget, so a locally recorded press point goes stale.
+            if (pointer.getDistance() > CLICK_MAX_DISTANCE) {
                 return
             }
             const tile = findTileAt(pointer)
@@ -76,7 +70,6 @@ export class TileSelection {
         })
         this.scene.events.on('destroy', () => {
             this.scene.events.off('pointerup')
-            this.scene.events.off('pointerdown')
             this.scene.events.off('pointermove')
         })
     }
