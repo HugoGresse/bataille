@@ -23,6 +23,16 @@ import { toLogicalZoom } from '../../utils/renderScale'
 
 const tileKey = ({ x, y }: TileCoord) => `${x},${y}`
 
+/**
+ * The map ships as ~58 stacked Tiled layers (water, one per country, relief, towns). Rendering
+ * them individually costs a per-frame cull and draw pass each, which dominated the frame budget.
+ * The ground layers hold at most one tile per cell, so they flatten into one display layer; the
+ * decoration layers (relief, towns) draw over ground with transparency, so they get their own.
+ * Input keeps reading the original data layers (they exist without a display object).
+ */
+export const MERGED_RENDER_LAYERS: string[] = ['render-ground', 'render-decor']
+const DECOR_SOURCE_LAYERS = ['g-mountain-forest', 'towns']
+
 /** Upper bound on how much backlog a single frame will chew through */
 const MAX_STATES_PER_FRAME = 60
 
@@ -32,6 +42,10 @@ const PENDING_SELECTION_MS = 3000
 export class BatailleScene extends BaseScene {
     private map!: Tilemaps.Tilemap
     private tileset!: Tilemaps.Tileset
+    private groundLayer!: Tilemaps.TilemapLayer
+    private decorLayer!: Tilemaps.TilemapLayer
+    private groundSources: Tilemaps.LayerData[] = []
+    private decorSources: Tilemaps.LayerData[] = []
     private tileSelectionDetector!: TileSelection
     private tilesColorsUpdater!: TilesColorsUpdater
 
@@ -264,10 +278,7 @@ export class BatailleScene extends BaseScene {
     initSceneWithData(data: ExportTypeWithGameState) {
         this.map = this.make.tilemap({ key: 'map' })
         this.tileset = this.map.addTilesetImage('tile', 'tiles')!
-
-        data.map.layerNames.forEach((layerName) => {
-            this.map.createLayer(layerName, this.tileset)
-        })
+        this.buildMergedRenderLayers(data.map.layerNames)
 
         const xs = Object.keys(data.map.tiles).map(Number)
 
@@ -298,5 +309,50 @@ export class BatailleScene extends BaseScene {
             this.units[unit.id] = this.spawnUnit(unit)
         }
         this.tilesColorsUpdater.update(data.gameState.ps)
+    }
+
+    private buildMergedRenderLayers(layerNames: string[]) {
+        const sources = layerNames
+            .map((layerName) => this.map.getLayer(layerName))
+            .filter((layer): layer is Tilemaps.LayerData => !!layer)
+        this.groundSources = sources.filter((layer) => !DECOR_SOURCE_LAYERS.includes(layer.name))
+        this.decorSources = sources.filter((layer) => DECOR_SOURCE_LAYERS.includes(layer.name))
+
+        this.groundLayer = this.buildMergedLayer(MERGED_RENDER_LAYERS[0], this.groundSources)
+        this.decorLayer = this.buildMergedLayer(MERGED_RENDER_LAYERS[1], this.decorSources)
+    }
+
+    private buildMergedLayer(name: string, sources: Tilemaps.LayerData[]): Tilemaps.TilemapLayer {
+        const merged = this.map.createBlankLayer(name, this.tileset)!
+        sources.forEach((layer) => {
+            layer.data.forEach((row) => {
+                row.forEach((tile) => {
+                    if (tile.index > 0) {
+                        merged.putTileAt(tile.index, tile.x, tile.y, false)
+                    }
+                })
+            })
+        })
+        return merged
+    }
+
+    /**
+     * A data-layer tile changed (eg. town or tile selection): repaint that cell of the merged
+     * layers from the topmost non-empty data layer of each group.
+     */
+    syncTileVisual({ x, y }: TileCoord) {
+        this.syncMergedCell(this.groundLayer, this.groundSources, x, y)
+        this.syncMergedCell(this.decorLayer, this.decorSources, x, y)
+    }
+
+    private syncMergedCell(merged: Tilemaps.TilemapLayer, sources: Tilemaps.LayerData[], x: number, y: number) {
+        for (let index = sources.length - 1; index >= 0; index--) {
+            const tile = sources[index].data[y]?.[x]
+            if (tile && tile.index > 0) {
+                merged.putTileAt(tile.index, x, y, false)
+                return
+            }
+        }
+        merged.removeTileAt(x, y, true, false)
     }
 }

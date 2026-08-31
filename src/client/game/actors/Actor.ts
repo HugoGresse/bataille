@@ -2,6 +2,7 @@ import * as Phaser from 'phaser'
 import { UnitState } from '../../../server/model/GameState'
 import { toColorNumber } from '../utils/colors'
 import { RENDER_SCALE } from '../utils/renderScale'
+import { ensureCounterTextures, fillTextureKey, SHADOW_TEXTURE, TRIM_PAD, trimTextureKey } from './counterTextures'
 
 /** Stack size thresholds: a scout, a working force, an army worth fearing */
 const SIZE_STEPS = [
@@ -12,7 +13,6 @@ const SIZE_STEPS = [
 
 const INK = '#17120a'
 const RIM = 0xffffff
-const SHADOW = 0x000000
 const HURT = 0xff5252
 
 const TWEEN_MS = 90
@@ -24,15 +24,18 @@ const LIFT_Y = -3
  * A stack drawn as an enamel counter sitting on the board rather than a sprite drawn into it:
  * player-colour fill, dark ink number, white rim, and the highlight/shade pair that reads as a
  * bevel. Size carries the stack size before you read the digits.
+ *
+ * All the artwork comes from shared baked textures (see counterTextures) so a board full of
+ * stacks renders as batched quads instead of per-frame vector geometry.
  */
 export class Actor extends Phaser.GameObjects.Container {
     protected hp = 0
     private ownerColor = 0xffffff
     private radius = SIZE_STEPS[0].radius
 
-    private readonly shadow: Phaser.GameObjects.Ellipse
-    private readonly disc: Phaser.GameObjects.Arc
-    private readonly bevel: Phaser.GameObjects.Graphics
+    private readonly shadow: Phaser.GameObjects.Image
+    private readonly fill: Phaser.GameObjects.Image
+    private readonly trim: Phaser.GameObjects.Image
     private readonly label: Phaser.GameObjects.Text
     private selectionRing: Phaser.GameObjects.Arc | null = null
     private hurtTween: Phaser.Tweens.Tween | null = null
@@ -57,10 +60,15 @@ export class Actor extends Phaser.GameObjects.Container {
     ) {
         super(scene, x, y)
 
-        this.shadow = scene.add.ellipse(0, 5, this.radius * 1.9, this.radius * 0.9, SHADOW, 0.45)
-        this.disc = scene.add.circle(0, 0, this.radius, 0xffffff)
-        this.disc.setStrokeStyle(2, RIM, 0.55)
-        this.bevel = scene.add.graphics()
+        ensureCounterTextures(
+            scene,
+            SIZE_STEPS.map((step) => step.radius)
+        )
+
+        this.shadow = scene.add.image(0, 5, SHADOW_TEXTURE)
+        this.shadow.setAlpha(0.45)
+        this.fill = scene.add.image(0, 0, fillTextureKey(this.radius))
+        this.trim = scene.add.image(0, 0, trimTextureKey(this.radius))
         this.label = scene.add.text(0, 0, '', {
             fontFamily: 'ui-sans-serif, system-ui, sans-serif',
             fontStyle: 'bold',
@@ -70,7 +78,7 @@ export class Actor extends Phaser.GameObjects.Container {
         })
         this.label.setOrigin(0.5, 0.5)
 
-        this.add([this.shadow, this.disc, this.bevel, this.label])
+        this.add([this.shadow, this.fill, this.trim, this.label])
         scene.add.existing(this)
         this.applySize(this.radius, SIZE_STEPS[0].font)
     }
@@ -106,8 +114,7 @@ export class Actor extends Phaser.GameObjects.Container {
 
     public setColor(color: string) {
         this.ownerColor = toColorNumber(color)
-        this.disc.setFillStyle(this.ownerColor)
-        this.redrawBevel()
+        this.fill.setTint(this.ownerColor)
     }
 
     public getColorNumber(): number {
@@ -116,6 +123,8 @@ export class Actor extends Phaser.GameObjects.Container {
 
     public destroy(fromScene?: boolean) {
         this.hurtTween?.stop()
+        this.moveTween?.stop()
+        this.liftTween?.stop()
         this.selectionRing?.destroy()
         super.destroy(fromScene)
     }
@@ -129,10 +138,10 @@ export class Actor extends Phaser.GameObjects.Container {
         this.selectionRing.setStrokeStyle(3, RIM, 0.85)
         this.addAt(this.selectionRing, 2)
         this.shadow.setAlpha(0.6)
-        this.shadow.setScale(1.15)
+        this.applyShadowSize(1.15)
         this.tweenLift(LIFT_SCALE, 110, 'Back.easeOut')
-        this.disc.setY(LIFT_Y)
-        this.bevel.setY(LIFT_Y)
+        this.fill.setY(LIFT_Y)
+        this.trim.setY(LIFT_Y)
         this.label.setY(LIFT_Y)
         this.selectionRing.setY(LIFT_Y)
     }
@@ -144,10 +153,10 @@ export class Actor extends Phaser.GameObjects.Container {
         this.selectionRing.destroy()
         this.selectionRing = null
         this.shadow.setAlpha(0.45)
-        this.shadow.setScale(1)
+        this.applyShadowSize(1)
         this.tweenLift(1, 90, 'Linear')
-        this.disc.setY(0)
-        this.bevel.setY(0)
+        this.fill.setY(0)
+        this.trim.setY(0)
         this.label.setY(0)
     }
 
@@ -189,42 +198,34 @@ export class Actor extends Phaser.GameObjects.Container {
 
     private applySize(radius: number, fontSize: number) {
         this.radius = radius
-        this.disc.setRadius(radius)
-        this.shadow.setSize(radius * 1.9, radius * 0.9)
+        this.fill.setTexture(fillTextureKey(radius))
+        this.fill.setDisplaySize(radius * 2, radius * 2)
+        this.trim.setTexture(trimTextureKey(radius))
+        this.trim.setDisplaySize((radius + TRIM_PAD) * 2, (radius + TRIM_PAD) * 2)
+        this.applyShadowSize(this.selectionRing ? 1.15 : 1)
         this.label.setFontSize(fontSize)
         this.selectionRing?.setRadius(radius + 3.5)
         // Deliberately not setSize(): the container size drives the input hit area, which StickUnit
         // owns and keeps at a full tile whatever the stack grows to.
-        this.redrawBevel()
     }
 
-    /** Inset highlight on top, inset shade at the bottom: the pair is what reads as a bevel */
-    private redrawBevel() {
-        const inner = this.radius - 2.4
-        this.bevel.clear()
-        this.bevel.lineStyle(2.4, RIM, 0.4)
-        this.bevel.beginPath()
-        this.bevel.arc(0, 0, inner, Phaser.Math.DEG_TO_RAD * 200, Phaser.Math.DEG_TO_RAD * 340)
-        this.bevel.strokePath()
-        this.bevel.lineStyle(2.4, SHADOW, 0.22)
-        this.bevel.beginPath()
-        this.bevel.arc(0, 0, inner, Phaser.Math.DEG_TO_RAD * 20, Phaser.Math.DEG_TO_RAD * 160)
-        this.bevel.strokePath()
+    private applyShadowSize(grow: number) {
+        this.shadow.setDisplaySize(this.radius * 1.9 * grow, this.radius * 0.9 * grow)
     }
 
-    /** Losses flash the rim red and desaturate, rather than shaking the piece */
+    /** Losses flash the trim red and desaturate, rather than shaking the piece */
     private playHurt() {
         this.hurtTween?.stop()
-        this.disc.setStrokeStyle(2.5, HURT, 0.95)
+        this.trim.setTint(HURT)
         this.hurtTween = this.scene.tweens.add({
-            targets: this.disc,
+            targets: this.fill,
             alpha: { from: 1, to: 0.55 },
             yoyo: true,
             repeat: 1,
             duration: HURT_MS / 4,
             onComplete: () => {
-                this.disc.setAlpha(1)
-                this.disc.setStrokeStyle(2, RIM, 0.55)
+                this.fill.setAlpha(1)
+                this.trim.clearTint()
                 this.hurtTween = null
             },
         })

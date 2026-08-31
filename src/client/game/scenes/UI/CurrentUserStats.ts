@@ -44,15 +44,14 @@ export class CurrentUserStats {
             return
         }
 
-        if (this.lastMoney !== player.m) {
-            this.lastMoney = player.m
-            this.money.setText(`${player.m}$`)
-        }
         const seconds = state?.ni ?? 0
-        if (this.lastNext !== seconds) {
-            this.lastNext = seconds
-            this.next.setText(`+${player.i}$ IN ${seconds}s`)
+        if (this.lastMoney === player.m && this.lastNext === seconds) {
+            return
         }
+        this.lastMoney = player.m
+        this.lastNext = seconds
+        this.money.setText(`${player.m}$`)
+        this.next.setText(`+${player.i}$ IN ${seconds}s`)
 
         // The panel hugs its contents: the treasury grows past four digits in a long game
         this.next.setX(LEFT + PAD_X + this.money.width + 8)

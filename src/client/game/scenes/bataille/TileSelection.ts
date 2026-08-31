@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser'
 import { Tilemaps, Input } from 'phaser'
-import { BatailleScene } from './BatailleScene'
+import { BatailleScene, MERGED_RENDER_LAYERS } from './BatailleScene'
 import { TileType } from '../../../../common/TileType'
 import { INPUT_LAYERS_SKIP } from '../../../../server/model/map/EXPORTED_LAYER_NAMES'
 import { consumeUIPointer } from '../../utils/uiEventGuard'
@@ -24,7 +24,7 @@ export class TileSelection {
 
         const findTileAt = (pointer: Input.Pointer): Tile | null => {
             for (const layer of layersReverse) {
-                if (INPUT_LAYERS_SKIP.includes(layer.name)) {
+                if (INPUT_LAYERS_SKIP.includes(layer.name) || MERGED_RENDER_LAYERS.includes(layer.name)) {
                     continue
                 }
                 const tile = this.map.getTileAtWorldXY(pointer.worldX, pointer.worldY, false, undefined, layer.name)
@@ -77,10 +77,12 @@ export class TileSelection {
     onTilePress(tile: Tile) {
         if (this.selectedTile) {
             this.selectedTile.index -= 1 // Change displayed tile to not selected
+            this.scene.syncTileVisual(this.selectedTile)
         }
 
         this.selectedTile = tile
         this.selectedTile.index += 1 // Update the display tile from the tilemap image
+        this.scene.syncTileVisual(this.selectedTile)
 
         if (tile.index !== TileType.TownSelected) {
             this.scene.getUIScene().onEmptyTileSelected()

@@ -33,6 +33,8 @@ export const getSocketConnectionInstance = () => {
 export class SocketConnection {
     private socket: Socket
     private lastGameState: PrivateGameStateUpdate | null = null
+    private latestStateMemo: PrivateGameState | null = null
+    private latestStateMemoSource: PrivateGameStateUpdate | null = null
     private gameStates: PrivateGameStateUpdate[] = []
     public gameStartData: ExportTypeWithGameState | null = null
     private messageListener: ((message: Message) => void) | null = null
@@ -112,21 +114,29 @@ export class SocketConnection {
         return this.gameStates.shift()
     }
 
+    /**
+     * Read by the HUD several times per rendered frame: the merged view is cached per received
+     * state so frames between two server ticks cost no allocation and return a stable reference.
+     */
     public getLatestState(): PrivateGameState | null {
-        const privatePlayerState: PrivatePlayerState = this.gameStartData!.gameState!.cp
-
-        if (this.lastGameState) {
-            const currentUserIncome = this.lastGameState.ps.find((p) => p.n === privatePlayerState.n)!.i
-            return {
-                ...this.lastGameState,
-                cp: {
-                    ...privatePlayerState,
-                    m: this.lastGameState.cp.m,
-                    i: currentUserIncome,
-                },
-            }
+        if (!this.lastGameState) {
+            return null
         }
-        return null
+        if (this.latestStateMemo && this.latestStateMemoSource === this.lastGameState) {
+            return this.latestStateMemo
+        }
+        const privatePlayerState: PrivatePlayerState = this.gameStartData!.gameState!.cp
+        const currentUserIncome = this.lastGameState.ps.find((p) => p.n === privatePlayerState.n)!.i
+        this.latestStateMemoSource = this.lastGameState
+        this.latestStateMemo = {
+            ...this.lastGameState,
+            cp: {
+                ...privatePlayerState,
+                m: this.lastGameState.cp.m,
+                i: currentUserIncome,
+            },
+        }
+        return this.latestStateMemo
     }
 
     public setConnectionLostListener(listener: (() => void) | null) {
