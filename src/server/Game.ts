@@ -15,6 +15,7 @@ import { GameUpdateProcessor } from './engine/GameUpdateProcessor'
 import { PlayersById } from './model/types/PlayersById'
 import { IncomeDispatcher } from './model/income/IncomeDispatcher'
 import { INCOME_MS } from '../common/GameSettings'
+import { findDominantPlayer, townsToWin } from './engine/domination'
 
 export class Game {
     private playersBySocketIds: PlayersById = {}
@@ -28,6 +29,10 @@ export class Game {
     private actionsProcessor: ActionsProcessor
     private gameUpdateProcessor: GameUpdateProcessor
     protected incomeDispatcher: IncomeDispatcher = new IncomeDispatcher(INCOME_MS)
+    /** Fixed by the map, so it is read once rather than on every tick of the loop */
+    private readonly townCount: number
+    /** Set the moment somebody holds enough of the map, and read back as the winner */
+    private dominantPlayer: AbstractPlayer | null = null
 
     constructor(
         public readonly id: string,
@@ -44,6 +49,21 @@ export class Game {
             this.unitsProcessor,
             this.incomeDispatcher
         )
+        this.townCount = this.map.getTowns().length
+    }
+
+    getTownCount(): number {
+        return this.townCount
+    }
+
+    /** Towns one player has to hold to take the game outright */
+    getTownsToWin(): number {
+        return townsToWin(this.townCount)
+    }
+
+    /** The player the map was called for, once one is that far ahead */
+    getDominantPlayer(): AbstractPlayer | null {
+        return this.dominantPlayer
     }
 
     getGameStartTime(): number {
@@ -58,6 +78,7 @@ export class Game {
         return {
             gameId: this.id,
             map: this.map.export(),
+            townsToWin: this.getTownsToWin(),
         }
     }
 
@@ -133,6 +154,9 @@ export class Game {
 
     start() {
         townAssignation(this.getPlayers(), this.map, this.unitsProcessor)
+        // The starting towns are handed out here, before the loop has ever run: without this the
+        // standings would open on zeroes and only catch up at the first capture.
+        this.gameUpdateProcessor.refreshTownCounts()
         this.emitter.emitInitialGameState(this)
         setTimeout(() => {
             // Let clients be initialized before send this first message
@@ -157,6 +181,12 @@ export class Game {
             player.update(this.map, this.unitsProcessor.getUnits())
         }
 
+        // Holding almost the whole map ends it: the stragglers left over are not a game any more
+        this.dominantPlayer = findDominantPlayer(this.players, this.townCount)
+        if (this.dominantPlayer) {
+            return true
+        }
+
         const connectedHumanPlayers = this.getConnectedHumanPlayers()
         const deadPlayers = this.players.filter((player) => player.isDead || !player.isConnected).length
         const oneOrNoAlivePlayers = deadPlayers >= this.players.length - 1 // one player cannot play alone
@@ -173,6 +203,6 @@ export class Game {
 
     getWinner(): AbstractPlayer | undefined {
         this.gameUpdateProcessor.printRuntimes()
-        return this.players.find((player) => !player.isDead && player.isConnected)
+        return this.dominantPlayer ?? this.players.find((player) => !player.isDead && player.isConnected)
     }
 }

@@ -56,6 +56,10 @@ export const HelpDialog = ({ open, setOpen }: HelpDialogProps) => {
                             your color when captured.
                         </li>
                         <li>To capture a town, move enough units on them by clicking the town as destination.</li>
+                        <li>
+                            You win by holding 90% of the towns, or by being the last player left. There is no need to
+                            hunt down the last few islands.
+                        </li>
                         <li>Water slows down your units, but they can still goes through.</li>
                     </ul>
                     <b>CONTROLS</b>

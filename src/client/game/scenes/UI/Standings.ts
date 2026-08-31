@@ -3,6 +3,7 @@ import { BaseScene } from '../BaseScene'
 import { PrivateGameState, PublicPlayerState } from '../../../../server/model/GameState'
 import { toColorNumber, toCssColor } from '../../utils/colors'
 import { isOutOfGame, sortForDisplay } from '../../utils/standingsOrder'
+import { shouldShowVictoryProgress, victoryFraction } from '../../utils/victoryProgress'
 import { crispText, setColorIfChanged } from './crispText'
 
 const LEFT = 12
@@ -22,6 +23,7 @@ const OFFLINE = '#f0b429'
 const OFFLINE_TINT = 0xf0b429
 
 type Row = {
+    progress: Phaser.GameObjects.Rectangle
     swatch: Phaser.GameObjects.Rectangle
     name: Phaser.GameObjects.Text
     value: Phaser.GameObjects.Text
@@ -43,6 +45,12 @@ export class Standings {
     private baseline = new Map<string, number>()
     private lastCountdown = -1
     private lastPainted: PrivateGameState | null = null
+    /**
+     * Once the race is on it stays on. Letting it switch back off when the leader slips under the
+     * halfway mark would blink the whole panel over a single town changing hands.
+     */
+    private raceIsOn = false
+    private townsToWin = 0
 
     constructor(private scene: BaseScene) {
         this.panel = scene.add.rectangle(LEFT, TOP, WIDTH, HEADER_HEIGHT, PANEL, 0.74)
@@ -71,6 +79,7 @@ export class Standings {
         this.lastPainted = state
 
         this.refreshBaseline(players, state?.ni ?? 0)
+        this.refreshRace(scene, players)
         const ordered = sortForDisplay(players)
         this.panel.height = HEADER_HEIGHT + ordered.length * ROW_HEIGHT + 4
 
@@ -85,6 +94,7 @@ export class Standings {
 
     destroy() {
         this.rows.forEach((row) => {
+            row.progress.destroy()
             row.swatch.destroy()
             row.name.destroy()
             row.value.destroy()
@@ -111,9 +121,34 @@ export class Standings {
         }
     }
 
+    /**
+     * The panel only becomes a scoreboard for the victory once somebody is halfway to it, and says
+     * what the bars are measured against so a half-full one means something.
+     */
+    private refreshRace(scene: BaseScene, players: PublicPlayerState[]) {
+        if (!this.townsToWin) {
+            this.townsToWin = scene.getCurrentGame()?.getSocket()?.gameStartData?.townsToWin ?? 0
+        }
+        if (this.raceIsOn || !this.townsToWin) {
+            return
+        }
+        this.raceIsOn = shouldShowVictoryProgress(
+            players.map((player) => player.tw),
+            this.townsToWin
+        )
+        if (this.raceIsOn) {
+            this.header.setText(`STANDINGS · ${this.townsToWin} TOWNS TO WIN`)
+        }
+    }
+
     private buildRow(index: number): Row {
         const y = TOP + HEADER_HEIGHT + index * ROW_HEIGHT
         const scene = this.scene
+
+        // First, so it sits under the row's text and washes rather than over them
+        const progress = scene.add.rectangle(LEFT, y, 0, ROW_HEIGHT, 0xffffff, 0.24)
+        progress.setOrigin(0, 0)
+        progress.setVisible(false)
 
         const highlight = scene.add.rectangle(LEFT, y, WIDTH, ROW_HEIGHT, EDGE, 0.09)
         highlight.setOrigin(0, 0)
@@ -154,7 +189,7 @@ export class Standings {
         strike.setOrigin(0, 0)
         strike.setVisible(false)
 
-        const row: Row = { swatch, name, value, delta, highlight, strike, offlineWash, offlineEdge }
+        const row: Row = { progress, swatch, name, value, delta, highlight, strike, offlineWash, offlineEdge }
         this.rows[index] = row
         return row
     }
@@ -165,6 +200,13 @@ export class Standings {
         const offline = !out && !player.cnt
         const alpha = out ? 0.42 : 1
         const isMe = player.n === currentPlayerName
+
+        // How much of the map they hold, against how much it takes to win it
+        row.progress.setVisible(this.raceIsOn && !out)
+        if (this.raceIsOn && !out) {
+            row.progress.width = WIDTH * victoryFraction(player.tw, this.townsToWin)
+            row.progress.setFillStyle(toColorNumber(player.c), 0.24)
+        }
 
         row.swatch
             .setVisible(true)
@@ -200,6 +242,7 @@ export class Standings {
     }
 
     private hideRow(row: Row) {
+        row.progress.setVisible(false)
         row.swatch.setVisible(false)
         row.name.setVisible(false)
         row.value.setVisible(false)
