@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.11",
+        "date": "2026-08-31",
+        "title": "Release notes can now be AI-rewritten for clarity",
+        "pr": 23
+    },
+    {
         "version": "0.17.10",
         "date": "2026-08-31",
         "title": "Push the release tag by name: --follow-tags skips lightweight tags",
