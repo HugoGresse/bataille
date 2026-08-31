@@ -4,7 +4,7 @@ import { Message } from '../../../../server/model/types/Message'
 import { getGameWindowSize } from '../../../utils/getGameWindowSize'
 import { feedLine, stamp } from './notices'
 import { toCssColor } from '../../utils/colors'
-import { crispText } from './crispText'
+import { crispText, setColorIfChanged } from './crispText'
 import { hudFont, hudPx } from './hudScale'
 
 const WIDTH = hudPx(224)
@@ -162,8 +162,8 @@ export class NoticeFeed {
             line.actor
                 .setPosition(left + PAD + TIME_COLUMN, y)
                 .setText(entry.actor)
-                .setColor(entry.color)
                 .setVisible(this.open)
+            setColorIfChanged(line.actor, entry.color)
             line.text
                 .setPosition(left + PAD + TIME_COLUMN + ACTOR_GAP + line.actor.width, y)
                 .setText(entry.text)
