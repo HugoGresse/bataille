@@ -20,6 +20,7 @@ export class BatailleGame {
     private readonly game: Phaser.Game
     private readonly socket: SocketConnection
     private readonly stopResizeTracking: () => void
+    private stopMessageListening: (() => void) | null = null
 
     constructor(parent: HTMLElement, gameId: any, onTextRequestListener: TextRequestListener) {
         console.log('New game, id: ', gameId)
@@ -91,7 +92,7 @@ export class BatailleGame {
             batailleScene.initSceneWithData(data)
         })
         uiScene.runOnStart(() => {
-            this.socket.setMessageListener(uiScene.onMessageReceived)
+            this.stopMessageListening = this.socket.addMessageListener(uiScene.onMessageReceived)
         })
         playStartSound()
     }
@@ -102,6 +103,7 @@ export class BatailleGame {
             return
         }
         const canvas = this.game.canvas
+        this.stopMessageListening?.()
         this.stopResizeTracking()
         this.game.destroy(true)
         // Phaser defers teardown to its next step. A game destroyed before it ever steps never gets
