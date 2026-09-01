@@ -4,14 +4,21 @@ import { TILE_WIDTH_HEIGHT } from '../../../../common/UNITS'
 import { getGameWindowSize } from '../../../utils/getGameWindowSize'
 import { RENDER_SCALE } from '../../utils/renderScale'
 import { crispText } from './crispText'
-import { lossLabel, placeMarker, shouldMerge } from './lossMarkerGeometry'
+import { lossLabel, markerOpacity, placeMarker, shouldMerge } from './lossMarkerGeometry'
 
-const LIFETIME_MS = 6000
-const FADE_MS = 900
+const LIFETIME_MS = 9000
+const FADE_MS = 1200
 const MAX_MARKERS = 5
 const EDGE_MARGIN = 34
 const ARROW_SIZE = 9
 const HIT_RADIUS = 26
+
+/** The arrow arrives oversized and settles, the way a thrown thing lands */
+const POP_FROM = 2.1
+const POP_MS = 420
+/** Then it breathes, slowly enough to read as alive rather than as a blinking alert */
+const PULSE_TO = 1.22
+const PULSE_MS = 900
 
 export type TownLoss = {
     tileX: number
@@ -32,6 +39,9 @@ type Marker = {
     bornAt: number
     angle: number
     mergedCount: number
+    tweens: Phaser.Tweens.Tween[]
+    /** 0 while the marker is still arriving: multiplied into the fade so neither owns alpha alone */
+    entryAlpha: number
 }
 
 /**
@@ -61,6 +71,7 @@ export class LossMarkers {
             mergeInto.loss = loss
             mergeInto.bornAt = now
             this.paint(mergeInto)
+            this.playEntry(mergeInto) // another town gone the same way deserves the same jolt
             return
         }
 
@@ -86,7 +97,7 @@ export class LossMarkers {
             }
             const placement = placeMarker(this.toScreen(marker.loss), width, height, EDGE_MARGIN)
             marker.angle = placement.angle
-            const alpha = age > LIFETIME_MS - FADE_MS ? (LIFETIME_MS - age) / FADE_MS : 1
+            const alpha = markerOpacity(age, LIFETIME_MS, FADE_MS) * marker.entryAlpha
 
             marker.arrow.setPosition(placement.position.x, placement.position.y)
             marker.arrow.setRotation(Phaser.Math.DEG_TO_RAD * placement.angle)
@@ -129,9 +140,66 @@ export class LossMarkers {
         )
         zone.on(Phaser.Input.Events.GAMEOBJECT_POINTER_UP, () => this.panTo(loss))
 
-        const marker: Marker = { loss, arrow, label, plate, zone, bornAt, angle, mergedCount: 0 }
+        const marker: Marker = {
+            loss,
+            arrow,
+            label,
+            plate,
+            zone,
+            bornAt,
+            angle,
+            mergedCount: 0,
+            tweens: [],
+            entryAlpha: 0,
+        }
         this.paint(marker)
+        this.playEntry(marker)
         return marker
+    }
+
+    /**
+     * The arrow drops in oversized and settles, then keeps breathing for as long as it is up. The
+     * movement is what catches the eye when it appears at the edge of your attention; the pulse is
+     * what keeps it findable afterwards without flashing.
+     */
+    private playEntry(marker: Marker) {
+        marker.tweens.forEach((tween) => tween.stop())
+        marker.tweens = []
+        marker.arrow.setScale(POP_FROM)
+
+        marker.tweens.push(
+            this.scene.tweens.addCounter({
+                from: marker.entryAlpha,
+                to: 1,
+                duration: POP_MS,
+                onUpdate: (tween) => {
+                    marker.entryAlpha = tween.getValue() ?? 1
+                },
+                onComplete: () => {
+                    marker.entryAlpha = 1
+                },
+            })
+        )
+        marker.tweens.push(
+            this.scene.tweens.add({
+                targets: marker.arrow,
+                scale: 1,
+                duration: POP_MS,
+                ease: 'Back.easeOut',
+                onComplete: () => {
+                    marker.tweens.push(
+                        this.scene.tweens.add({
+                            targets: marker.arrow,
+                            scale: PULSE_TO,
+                            duration: PULSE_MS,
+                            yoyo: true,
+                            repeat: -1,
+                            ease: 'Sine.easeInOut',
+                        })
+                    )
+                },
+            })
+        )
     }
 
     private paint(marker: Marker) {
@@ -165,6 +233,7 @@ export class LossMarkers {
     }
 
     private remove(marker: Marker) {
+        marker.tweens.forEach((tween) => tween.stop())
         marker.arrow.destroy()
         marker.label.destroy()
         marker.plate.destroy()

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { lossLabel, placeMarker, shouldMerge } from '../src/client/game/scenes/UI/lossMarkerGeometry'
+import { lossLabel, markerOpacity, placeMarker, shouldMerge } from '../src/client/game/scenes/UI/lossMarkerGeometry'
 
 describe('placeMarker', () => {
     const width = 1000
@@ -54,6 +54,19 @@ describe('shouldMerge', () => {
 
     it('wraps around the -180/180 seam', () => {
         expect(shouldMerge({ angle: 179, at: 1000 }, { angle: -175, at: 1500 })).toBe(true)
+    })
+})
+
+describe('markerOpacity', () => {
+    it('stays solid until the fade starts, then runs out with it', () => {
+        expect(markerOpacity(0, 9000, 1200)).toBe(1)
+        expect(markerOpacity(7800, 9000, 1200)).toBe(1)
+        expect(markerOpacity(8400, 9000, 1200)).toBeCloseTo(0.5)
+        expect(markerOpacity(9000, 9000, 1200)).toBe(0)
+    })
+
+    it('never goes negative once the marker has outlived itself', () => {
+        expect(markerOpacity(12000, 9000, 1200)).toBe(0)
     })
 })
 

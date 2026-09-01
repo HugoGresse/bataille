@@ -46,6 +46,14 @@ export const shouldMerge = (
     return difference <= maxDegrees && Math.abs(candidate.at - existing.at) <= withinMs
 }
 
+/** Full strength while it matters, then a fade rather than a disappearance */
+export const markerOpacity = (age: number, lifetimeMs: number, fadeMs: number): number => {
+    if (age <= lifetimeMs - fadeMs) {
+        return 1
+    }
+    return Math.max(0, (lifetimeMs - age) / fadeMs)
+}
+
 /**
  * What the marker says: which town, and what the loss actually costs. Income only changes when the
  * town was the last one holding a country together, so it is only shown when it moved.
