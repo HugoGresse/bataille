@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react'
-import { Box, Button, Chip, Link, List, ListItem, Typography } from '@mui/material'
+import { Box, Button, Typography } from '@mui/material'
 import BackIcon from '@mui/icons-material/ArrowBack'
-import { changelogEntries, markLatestSeen, prUrl } from '../changelog/changelog'
+import { markLatestSeen } from '../changelog/changelog'
+import { ChangelogList } from './ChangelogList'
 import { notifySeenChanged } from './VersionBadge'
 
-/**
- * One line per release, newest first: every merge on main ships as a patch version and lands here.
- */
 export const Changelog = () => {
     useEffect(() => {
         markLatestSeen()
@@ -24,30 +22,7 @@ export const Changelog = () => {
             <Typography variant="body2" sx={{ opacity: 0.7, marginTop: 1 }}>
                 Every change shipped to the game, one version per merge.
             </Typography>
-            <List>
-                {changelogEntries.map((entry) => (
-                    <ListItem
-                        key={entry.version}
-                        disableGutters
-                        sx={{ alignItems: 'baseline', gap: 1.5, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                        <Chip label={`v${entry.version}`} size="small" variant="outlined" color="secondary" />
-                        <Typography variant="caption" sx={{ opacity: 0.6, minWidth: 80 }}>
-                            {entry.date}
-                        </Typography>
-                        <Typography variant="body1" sx={{ flex: 1 }}>
-                            {entry.title}
-                            {entry.pr !== null && (
-                                <>
-                                    {' '}
-                                    <Link href={prUrl(entry.pr)} target="_blank" color="secondary" variant="body2">
-                                        #{entry.pr}
-                                    </Link>
-                                </>
-                            )}
-                        </Typography>
-                    </ListItem>
-                ))}
-            </List>
+            <ChangelogList />
         </Box>
     )
 }

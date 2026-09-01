@@ -6,6 +6,7 @@ import { getSocketConnectionInstance, newSocketConnectionInstance } from '../gam
 import { ArrowBack } from '@mui/icons-material'
 import { LobbyState } from '../../server/GameLobby'
 import { HelpDialogButton } from './HelpDialog'
+import { ChangelogPanel } from './ChangelogPanel'
 
 export const Lobby = () => {
     const navigate = useNavigate()
@@ -41,75 +42,77 @@ export const Lobby = () => {
     }, [navigate])
 
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flex: 1,
-                minHeight: '100vh',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexDirection: 'column',
-            }}>
-            <Box>
-                <br />
-                <Button
-                    variant="contained"
-                    size="large"
-                    component={RouterLink}
-                    to="/"
-                    startIcon={<ArrowBack />}
-                    onClick={() => {
-                        const instance = getSocketConnectionInstance()
-                        if (instance) {
-                            instance.disconnect()
-                        }
-                    }}>
-                    Go back
-                </Button>
-                <br />
-                <br />
-                <Typography color="#BBB">{lobbyState.ongoingGame} running game(s)</Typography>
-            </Box>
-
-            <Box>
-                <Typography variant="h3">
-                    Waiting for more players... {lobbyState.playerCount}/{lobbyState.requiredPlayerCount}
-                </Typography>
-                {!lobbyState.waitForHuman && lobbyState.countdown ? (
-                    <Typography>Game starting in {lobbyState.countdown}s</Typography>
-                ) : null}
-                {lobbyState.waitForHuman ? (
-                    <Typography>Waiting another player before starting the game (wait for human ON)</Typography>
-                ) : null}
-                <br />
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                        <Button
-                            variant={forceStart ? 'contained' : 'outlined'}
-                            size="large"
-                            onClick={onForceStartPress}>
-                            Force start ({lobbyState.playerCountForceStart}/
-                            {lobbyState.playerCount > 1 ? lobbyState.playerCount : 2})
-                        </Button>
-                        <br />
-                        <Button
-                            variant={lobbyState.waitForHuman ? 'contained' : 'outlined'}
-                            size="large"
-                            onClick={onWaitForHumanPress}>
-                            Wait for human: {lobbyState.waitForHuman ? 'on' : 'off'}
-                        </Button>
-                    </Box>
-
-                    <HelpDialogButton
-                        style={{
-                            float: 'right',
-                        }}
-                    />
+        <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexDirection: 'column',
+                }}>
+                <Box>
+                    <br />
+                    <Button
+                        variant="contained"
+                        size="large"
+                        component={RouterLink}
+                        to="/"
+                        startIcon={<ArrowBack />}
+                        onClick={() => {
+                            const instance = getSocketConnectionInstance()
+                            if (instance) {
+                                instance.disconnect()
+                            }
+                        }}>
+                        Go back
+                    </Button>
+                    <br />
+                    <br />
+                    <Typography color="#BBB">{lobbyState.ongoingGame} running game(s)</Typography>
                 </Box>
-            </Box>
 
-            <DonatingBanner />
+                <Box>
+                    <Typography variant="h3">
+                        Waiting for more players... {lobbyState.playerCount}/{lobbyState.requiredPlayerCount}
+                    </Typography>
+                    {!lobbyState.waitForHuman && lobbyState.countdown ? (
+                        <Typography>Game starting in {lobbyState.countdown}s</Typography>
+                    ) : null}
+                    {lobbyState.waitForHuman ? (
+                        <Typography>Waiting another player before starting the game (wait for human ON)</Typography>
+                    ) : null}
+                    <br />
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Button
+                                variant={forceStart ? 'contained' : 'outlined'}
+                                size="large"
+                                onClick={onForceStartPress}>
+                                Force start ({lobbyState.playerCountForceStart}/
+                                {lobbyState.playerCount > 1 ? lobbyState.playerCount : 2})
+                            </Button>
+                            <br />
+                            <Button
+                                variant={lobbyState.waitForHuman ? 'contained' : 'outlined'}
+                                size="large"
+                                onClick={onWaitForHumanPress}>
+                                Wait for human: {lobbyState.waitForHuman ? 'on' : 'off'}
+                            </Button>
+                        </Box>
+
+                        <HelpDialogButton
+                            style={{
+                                float: 'right',
+                            }}
+                        />
+                    </Box>
+                </Box>
+
+                <DonatingBanner />
+            </Box>
+            <ChangelogPanel />
         </Box>
     )
 }

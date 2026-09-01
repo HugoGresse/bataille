@@ -10,6 +10,7 @@ import { HelpDialogButton } from '../screens/HelpDialog'
 import { MessageDialog } from '../screens/MessageDialog'
 import { DeferredPromise } from '../utils/Deferred'
 import { getSocketConnectionInstance } from './SocketConnection'
+import { ReceivedMessage } from './chat/chatLog'
 
 type GameParams = {
     gameId: string
@@ -23,6 +24,7 @@ export const Game = () => {
     const [messageDialogOpen, setMessageDialogOpen] = useState<boolean>(false)
     const [connectionLostOpen, setConnectionLostOpen] = useState<boolean>(false)
     const [deferredPromise, setDeferredPromise] = useState<null | DeferredPromise<string | null>>(null)
+    const [messages, setMessages] = useState<ReceivedMessage[]>([])
     const blocker = useBlocker(true)
 
     useEffect(() => {
@@ -37,8 +39,14 @@ export const Game = () => {
     useEffect(() => {
         const socketInstance = getSocketConnectionInstance()
         socketInstance?.setConnectionLostListener(() => setConnectionLostOpen(true))
+        if (!socketInstance) {
+            return
+        }
+        setMessages(socketInstance.getMessageLog())
+        const stopListening = socketInstance.addMessageListener(() => setMessages(socketInstance.getMessageLog()))
         return () => {
-            socketInstance?.setConnectionLostListener(null)
+            socketInstance.setConnectionLostListener(null)
+            stopListening()
         }
     }, [])
 
@@ -92,6 +100,7 @@ export const Game = () => {
             </Box>
             <MessageDialog
                 open={messageDialogOpen}
+                messages={messages}
                 onSubmit={(content) => {
                     setMessageDialogOpen(false)
                     if (deferredPromise) {

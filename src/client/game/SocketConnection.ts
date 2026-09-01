@@ -15,6 +15,7 @@ import { LobbyState } from '../../server/GameLobby'
 import { Message } from '../../server/model/types/Message'
 import { pickRandomPlayerName } from '../../utils/pickRandomPlayerName'
 import { getSavedPlayerName } from '../utils/cookie'
+import { appendMessage, ReceivedMessage } from './chat/chatLog'
 
 let socketConnectionInstance: SocketConnection | null = null
 export const newSocketConnectionInstance = (
@@ -37,7 +38,8 @@ export class SocketConnection {
     private latestStateMemoSource: PrivateGameStateUpdate | null = null
     private gameStates: PrivateGameStateUpdate[] = []
     public gameStartData: ExportTypeWithGameState | null = null
-    private messageListener: ((message: Message) => void) | null = null
+    private messageLog: ReceivedMessage[] = []
+    private messageListeners = new Set<(message: Message) => void>()
     private connectionLostListener: (() => void) | null = null
 
     constructor(
@@ -101,9 +103,8 @@ export class SocketConnection {
     }
 
     private handleGameMessage(message: Message) {
-        if (this.messageListener) {
-            this.messageListener(message)
-        }
+        this.messageLog = appendMessage(this.messageLog, message, Date.now())
+        this.messageListeners.forEach((listener) => listener(message))
     }
 
     public disconnect() {
@@ -147,8 +148,17 @@ export class SocketConnection {
         return this.socket
     }
 
-    public setMessageListener(listener: ((message: Message) => void) | null) {
-        this.messageListener = listener
+    /** Everything received this game, newest last: what the chat window scrolls back through */
+    public getMessageLog(): ReceivedMessage[] {
+        return this.messageLog
+    }
+
+    /** @return the unsubscribe function */
+    public addMessageListener(listener: (message: Message) => void): () => void {
+        this.messageListeners.add(listener)
+        return () => {
+            this.messageListeners.delete(listener)
+        }
     }
 
     private static getPlayerName(): string {
