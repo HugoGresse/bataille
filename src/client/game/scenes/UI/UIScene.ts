@@ -6,6 +6,7 @@ import { CityRing } from './CityRing'
 import { MUSTER_OPTIONS } from '../../utils/muster'
 import { NoticeCentre } from './NoticeCentre'
 import { NoticeFeed } from './NoticeFeed'
+import { LossMarkers, TownLoss } from './LossMarkers'
 import { VictoryCard } from './VictoryCard'
 import { ChatInput } from './ChatInput'
 import { KeyLegend } from './KeyLegend'
@@ -23,6 +24,7 @@ export class UIScene extends BaseScene {
     noticeCentre!: NoticeCentre
     noticeFeed!: NoticeFeed
     victoryCard!: VictoryCard
+    lossMarkers!: LossMarkers
     private chatInput!: ChatInput
     private keyLegend!: KeyLegend
 
@@ -44,6 +46,7 @@ export class UIScene extends BaseScene {
         this.noticeCentre = new NoticeCentre(this)
         this.noticeFeed = new NoticeFeed(this)
         this.victoryCard = new VictoryCard(this)
+        this.lossMarkers = new LossMarkers(this)
         this.chatInput = new ChatInput(this)
         this.keyLegend = new KeyLegend(this)
 
@@ -61,6 +64,12 @@ export class UIScene extends BaseScene {
         this.standings.update(this)
         this.cityRing.update()
         this.noticeCentre.update()
+        this.lossMarkers.update()
+    }
+
+    /** One of our towns changed hands: point at it from wherever the camera happens to be */
+    onTownLost(loss: TownLoss) {
+        this.lossMarkers.add(loss)
     }
 
     /** A stack was selected: if it sits on one of our towns, the muster ring opens with it */
@@ -158,6 +167,7 @@ export class UIScene extends BaseScene {
         this.cityRing.close()
         this.noticeCentre.clear()
         this.victoryCard.clear()
+        this.lossMarkers.destroy()
         this.noticeFeed.destroy()
         this.standings.destroy()
         this.currentUserStats.destroy()

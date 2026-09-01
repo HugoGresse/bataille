@@ -62,6 +62,8 @@ export class BatailleScene extends BaseScene {
     private captureWave!: CaptureWave
     /** A muster was ordered on this tile: whatever stack turns up there becomes the selection */
     private pendingSelection: { tile: TileCoord; expiresAt: number } | null = null
+    /** Previous tick's income, to price a town loss the moment it breaks a country */
+    private lastKnownIncome = 0
 
     constructor() {
         super(SCENE_BATAILLE_KEY)
@@ -125,6 +127,12 @@ export class BatailleScene extends BaseScene {
             return
         }
         const currentPlayerName = initialState.cp.n
+        // A broken country only costs income at the moment it breaks, so the drop is read from the
+        // same state that reports the town changing hands
+        const income = newState.ps.find((player) => player.n === currentPlayerName)?.i ?? this.lastKnownIncome
+        const incomeLost = Math.max(0, this.lastKnownIncome - income)
+        this.lastKnownIncome = income
+
         for (const town of newState.t) {
             const townObject = this.towns[town.id]
             if (!townObject) {
@@ -135,6 +143,15 @@ export class BatailleScene extends BaseScene {
             if (previousOwner !== null) {
                 const tile = townObject.getTile()
                 this.captureWave.play(tile.x, tile.y, toColorNumber(town.p?.c, 0xffffff))
+                if (previousOwner === currentPlayerName && town.p?.n !== currentPlayerName) {
+                    this.getUIScene().onTownLost({
+                        tileX: tile.x,
+                        tileY: tile.y,
+                        townName: townObject.tileData.n ?? 'A town',
+                        incomeLost,
+                        color: toColorNumber(town.p?.c, 0xffffff),
+                    })
+                }
             }
         }
         this.tilesColorsUpdater.update(initialState.ps)
