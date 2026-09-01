@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.12",
+        "date": "2026-09-01",
+        "title": "Chat now has history, changelog shown beside lobby",
+        "pr": 24
+    },
+    {
         "version": "0.17.11",
         "date": "2026-08-31",
         "title": "Release notes can now be AI-rewritten for clarity",
