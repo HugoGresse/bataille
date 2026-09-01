@@ -57,7 +57,7 @@ export const ChangelogPanel = () => {
                     <CloseIcon fontSize="small" />
                 </IconButton>
             </Box>
-            <ChangelogList limit={PANEL_ENTRIES} />
+            <ChangelogList limit={PANEL_ENTRIES} compact />
             <Link component={RouterLink} to="/changelog" color="secondary" variant="body2">
                 See all versions
             </Link>
