@@ -6,6 +6,7 @@ import { isOutOfGame, sortForDisplay } from '../src/client/game/utils/standingsO
 import { isSameColor, toColorNumber, toCssColor } from '../src/client/game/utils/colors'
 import { feedLine, laneFor, stamp, victoryAnnouncement } from '../src/client/game/scenes/UI/notices'
 import { hudFont, hudPx } from '../src/client/game/scenes/UI/hudScale'
+import { MAX_UNIT_LIFE } from '../src/common/UNITS'
 import { PublicPlayerState } from '../src/server/model/GameState'
 import { Message } from '../src/server/model/types/Message'
 
@@ -59,8 +60,9 @@ describe('musterCount', () => {
         expect(musterCount(option('T'), 1)).toBe(1)
     })
 
-    it('spends the whole treasury on +all', () => {
-        expect(musterCount(option('Y'), 137)).toBe(137)
+    it('spends the treasury on +all, up to what one stack can hold', () => {
+        expect(musterCount(option('Y'), 37)).toBe(37)
+        expect(musterCount(option('Y'), 137)).toBe(MAX_UNIT_LIFE)
         expect(musterCount(option('Y'), 0)).toBe(0)
     })
 
@@ -68,6 +70,20 @@ describe('musterCount', () => {
         expect(musterCount(option('R'), 0)).toBe(0)
         expect(musterCount(option('T'), 0)).toBe(0)
         expect(musterCount(option('T'), -5)).toBe(0)
+    })
+
+    it('shrinks a pack to the room left in the stack standing there', () => {
+        expect(musterCount(option('T'), 100, MAX_UNIT_LIFE - 4)).toBe(4)
+        expect(musterCount(option('Y'), 100, MAX_UNIT_LIFE - 4)).toBe(4)
+        expect(musterCount(option('R'), 100, MAX_UNIT_LIFE - 1)).toBe(1)
+    })
+
+    it('raises nothing into a full stack, whatever the treasury holds', () => {
+        expect(musterCount(option('R'), 999, MAX_UNIT_LIFE)).toBe(0)
+        expect(musterCount(option('T'), 999, MAX_UNIT_LIFE)).toBe(0)
+        expect(musterCount(option('Y'), 999, MAX_UNIT_LIFE)).toBe(0)
+        // A stack that somehow sits over the cap still refuses rather than going negative
+        expect(musterCount(option('T'), 999, MAX_UNIT_LIFE + 20)).toBe(0)
     })
 })
 

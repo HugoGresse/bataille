@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser'
 import { UIScene } from './UIScene'
 import { Keycap } from './Keycap'
-import { TILE_WIDTH_HEIGHT, UnitsType } from '../../../../common/UNITS'
+import { MAX_UNIT_LIFE, roomInStack, TILE_WIDTH_HEIGHT, UnitsType } from '../../../../common/UNITS'
 import { getGameWindowSize } from '../../../utils/getGameWindowSize'
 import { ensureRingTextures, PLATE_TEXTURE, SAT_OFF_TEXTURE, SAT_TEXTURE } from './ringTextures'
 import { MUSTER_OPTIONS, MusterOption, musterCount } from '../../utils/muster'
@@ -52,6 +52,7 @@ export class CityRing {
     /** Layout only changes when the ring flips or the treasury moves, the anchor moves every frame */
     private direction = 0
     private lastMoney = -1
+    private lastStackHP = -1
     /** 0 while the satellites are still stacked on the city, 1 once they have reached the arc */
     private spread = 1
     private spreadTween: Phaser.Tweens.Tween | null = null
@@ -260,16 +261,24 @@ export class CityRing {
         sat.cap.setPressed(pressed)
     }
 
+    /** The stack standing on this town, which is what the muster has to fit into */
+    private stackHP(): number {
+        if (!this.town) {
+            return 0
+        }
+        return this.scene.getBatailleScene()?.getStackHPAt({ x: this.town.tileX, y: this.town.tileY }) ?? 0
+    }
+
     private buy(option: MusterOption) {
         if (!this.town) {
             return
         }
         const money = this.scene.getState()?.cp.m ?? 0
-        const count = musterCount(option, money)
+        const count = musterCount(option, money, this.stackHP())
         if (count < 1) {
             return
         }
-        // The server clamps to what the treasury actually covers
+        // The server clamps to what the treasury and the stack actually cover
         this.scene.actions.newUnit(this.town.tileX * TILE_WIDTH_HEIGHT, this.town.tileY * TILE_WIDTH_HEIGHT, count)
         // Whatever is standing on the town once the order lands becomes the selection, so the new
         // troops can be sent straight on without hunting for them
@@ -310,9 +319,11 @@ export class CityRing {
         }
 
         const money = this.scene.getState()?.cp.m ?? 0
-        if (money !== this.lastMoney) {
+        const stackHP = this.stackHP()
+        if (money !== this.lastMoney || stackHP !== this.lastStackHP) {
             this.lastMoney = money
-            this.paintAffordability(money)
+            this.lastStackHP = stackHP
+            this.paintAffordability(money, stackHP)
         }
     }
 
@@ -348,19 +359,19 @@ export class CityRing {
         })
     }
 
-    private paintAffordability(money: number) {
+    private paintAffordability(money: number, stackHP: number) {
+        const full = roomInStack(stackHP, 1) < 1
         this.satellites.forEach((sat) => {
-            const count = musterCount(sat.option, money)
+            const count = musterCount(sat.option, money, stackHP)
             const affordable = count >= 1
             const wasAffordable = sat.affordable
             sat.affordable = affordable
-            // A pack that the treasury only half covers says so rather than switching off: with 4
-            // in the bank `+10` reads `+4` and raises four. `+all` already names itself.
-            const clamped = sat.option.amount !== 'all' && affordable && count < sat.option.amount
-            sat.label.setText(clamped ? `+${count}` : sat.option.label)
+            // The face says what pressing it actually raises: with 4 in the bank, or 4 places left
+            // in the stack, `+10` reads `+4`. A stack with no room left says so instead of a price.
+            sat.label.setText(full ? 'FULL' : affordable ? `+${count}` : sat.option.label)
             // Broke: the price shown is what the pack would cost, not the nothing it buys today
             const nominal = sat.option.amount === 'all' ? money : sat.option.amount * UnitsType.Stick
-            sat.cost.setText(`${affordable ? count * UnitsType.Stick : nominal}$`)
+            sat.cost.setText(full ? `${MAX_UNIT_LIFE} MAX` : `${affordable ? count * UnitsType.Stick : nominal}$`)
             sat.face.setTexture(affordable ? SAT_TEXTURE : SAT_OFF_TEXTURE)
             if (!affordable && wasAffordable) {
                 sat.hovered = false

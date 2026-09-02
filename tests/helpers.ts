@@ -34,7 +34,7 @@ export const spawnUnit = (
     if (!created) {
         throw new Error(`failed to spawn unit at ${tileX},${tileY}`)
     }
-    return created as StickUnit
+    return created.unit as StickUnit
 }
 
 export const orderMove = (

@@ -1,6 +1,6 @@
 import { AbstractPlayer } from '../model/player/AbstractPlayer'
 import { BaseUnit } from '../model/actors/units/BaseUnit'
-import { MAX_UNIT_LIFE } from '../../common/UNITS'
+import { roomInStack } from '../../common/UNITS'
 import { UnitAction } from '../../common/UnitAction'
 import { GameMap } from '../model/map/GameMap'
 import { PlayersById } from '../model/types/PlayersById'
@@ -162,7 +162,16 @@ export class UnitsProcessor {
 
     // Actions
 
-    public addUnit(unit: BaseUnit, player: AbstractPlayer, x: number, y: number): BaseUnit | null {
+    /**
+     * @return the stack the units joined and how many actually landed in it, or null when none
+     * could: a stack is capped at MAX_UNIT_LIFE, and the caller only charges for what fits.
+     */
+    public addUnit(
+        unit: BaseUnit,
+        player: AbstractPlayer,
+        x: number,
+        y: number
+    ): { unit: BaseUnit; added: number } | null {
         let tempX = this.units.get(x)
         if (!tempX) {
             tempX = new Map()
@@ -170,21 +179,25 @@ export class UnitsProcessor {
         }
         const existingUnit = tempX.get(y)
         if (existingUnit) {
-            if (existingUnit.owner.id === player.id) {
-                if (existingUnit.life.getHP() >= MAX_UNIT_LIFE) {
-                    return null
-                }
-                existingUnit.life.heal(unit.life.getHP())
-                existingUnit.forceUpdate = true
-                return existingUnit
-            } else {
+            if (existingUnit.owner.id !== player.id) {
                 console.warn('This town does not belong to the user')
                 return null
             }
-        } else {
-            tempX.set(y, unit)
+            const added = roomInStack(existingUnit.life.getHP(), unit.life.getHP())
+            if (added <= 0) {
+                return null
+            }
+            existingUnit.life.heal(added)
+            existingUnit.forceUpdate = true
+            return { unit: existingUnit, added }
         }
-        return unit
+        const added = roomInStack(0, unit.life.getHP())
+        if (added <= 0) {
+            return null
+        }
+        unit.life.setHP(added)
+        tempX.set(y, unit)
+        return { unit, added }
     }
 
     public unitAction(player: AbstractPlayer, action: UnitAction) {

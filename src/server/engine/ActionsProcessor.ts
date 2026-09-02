@@ -32,10 +32,11 @@ export class ActionsProcessor {
             const unitLife = spendableMoney / unitTypeToCreate
             unit.life.setHP(unitLife)
 
-            const createdUnit = this.unitsProcessor.addUnit(unit, player, gridPosition.x, gridPosition.y)
-            if (createdUnit) {
-                player.spendMoney(spendableMoney)
-                return createdUnit
+            // Only what actually joined the stack is paid for: a full stack costs nothing
+            const created = this.unitsProcessor.addUnit(unit, player, gridPosition.x, gridPosition.y)
+            if (created) {
+                player.spendMoney(created.added * unitTypeToCreate)
+                return created.unit
             }
         }
         return null

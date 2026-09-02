@@ -60,6 +60,31 @@ describe('ActionsProcessor.addUnit', () => {
         expect(p1.money).toBe(20)
     })
 
+    it('charges only for the units that fit, when the pack would overflow the stack', () => {
+        const p1 = makePlayer('P1')
+        const unitsProcessor = new UnitsProcessor()
+        const processor = new ActionsProcessor(ownedTownMap(p1), unitsProcessor)
+        p1.money = 50
+        const garrison = spawnUnit(unitsProcessor, p1, 3, 4, MAX_UNIT_LIFE - 4)
+
+        const unit = processor.addUnit(p1, { x: 3 * 32, y: 4 * 32, unitCount: 10 })
+
+        expect(unit).toBe(garrison)
+        expect(garrison.life.getHP()).toBe(MAX_UNIT_LIFE) // not MAX + 6
+        expect(p1.money).toBe(46) // the six that could not land were never paid for
+    })
+
+    it('caps a stack raised in one go on an empty town', () => {
+        const p1 = makePlayer('P1')
+        const processor = new ActionsProcessor(ownedTownMap(p1), new UnitsProcessor())
+        p1.money = 250
+
+        const unit = processor.addUnit(p1, { x: 3 * 32, y: 4 * 32, unitCount: 250 })
+
+        expect(unit?.life.getHP()).toBe(MAX_UNIT_LIFE)
+        expect(p1.money).toBe(150)
+    })
+
     it('refuses to create a unit on a town owned by someone else', () => {
         const p1 = makePlayer('P1')
         const p2 = makePlayer('P2', '0x00FF00')
