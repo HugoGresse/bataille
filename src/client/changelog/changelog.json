@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.14",
+        "date": "2026-09-02",
+        "title": "Muster now caps at remaining stack space; max stack size increased to 300",
+        "pr": 26
+    },
+    {
         "version": "0.17.13",
         "date": "2026-09-01",
         "title": "When you lose a town, an arrow points to it from your view, showing its name, who took it, and income lost",
