@@ -282,6 +282,12 @@ export class BatailleScene extends BaseScene {
         this.getUIScene().onUnitSelected(town)
     }
 
+    /** Size of the stack standing on a tile, 0 when it is empty: the muster ring caps against it */
+    getStackHPAt(tile: TileCoord): number {
+        const unit = Object.values(this.units).find((candidate) => isSameTile(this.getUnitTile(candidate), tile))
+        return unit?.getHPValue() ?? 0
+    }
+
     /** Tile the server considers the stack on (same rounding as the server side) */
     private getUnitTile(unit: StickUnit): TileCoord {
         const { x, y } = unit.getServerPosition()

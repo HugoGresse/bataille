@@ -48,10 +48,33 @@ describe('UnitsProcessor', () => {
             expect(first.life.getHP()).toBe(15)
         })
 
-        it('refuses to grow an allied stack beyond MAX_UNIT_LIFE', () => {
+        it('refuses to grow a stack that is already at MAX_UNIT_LIFE', () => {
             spawnUnit(processor, p1, 2, 2, MAX_UNIT_LIFE)
             const rejected = new StickUnit(p1, new Position(2 * TILE + TILE / 2, 2 * TILE + TILE / 2), 5)
             expect(processor.addUnit(rejected, p1, 2, 2)).toBeNull()
+            expect(gridUnitAt(processor, 2, 2)?.life.getHP()).toBe(MAX_UNIT_LIFE)
+        })
+
+        it('trims a merge to the room left rather than overshooting the cap', () => {
+            spawnUnit(processor, p1, 2, 2, MAX_UNIT_LIFE - 4)
+            const joining = new StickUnit(p1, new Position(2 * TILE + TILE / 2, 2 * TILE + TILE / 2), 10)
+
+            const created = processor.addUnit(joining, p1, 2, 2)
+
+            expect(created?.added).toBe(4)
+            expect(gridUnitAt(processor, 2, 2)?.life.getHP()).toBe(MAX_UNIT_LIFE)
+        })
+
+        it('caps a stack raised on an empty tile too', () => {
+            const oversized = new StickUnit(
+                p1,
+                new Position(2 * TILE + TILE / 2, 2 * TILE + TILE / 2),
+                MAX_UNIT_LIFE + 150
+            )
+
+            const created = processor.addUnit(oversized, p1, 2, 2)
+
+            expect(created?.added).toBe(MAX_UNIT_LIFE)
             expect(gridUnitAt(processor, 2, 2)?.life.getHP()).toBe(MAX_UNIT_LIFE)
         })
     })
