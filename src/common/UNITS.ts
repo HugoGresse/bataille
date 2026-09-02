@@ -12,7 +12,8 @@ export enum UnitsType {
     Wheelie = 4,
 }
 
-export const MAX_UNIT_LIFE = 100
+/** Biggest stack a single tile can hold: musters and merges trim to fit it */
+export const MAX_UNIT_LIFE = 300
 
 /**
  * How many units can still join a stack: stacks are capped, so a muster that would overflow one

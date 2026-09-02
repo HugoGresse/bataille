@@ -66,7 +66,11 @@ describe('UnitsProcessor', () => {
         })
 
         it('caps a stack raised on an empty tile too', () => {
-            const oversized = new StickUnit(p1, new Position(2 * TILE + TILE / 2, 2 * TILE + TILE / 2), 250)
+            const oversized = new StickUnit(
+                p1,
+                new Position(2 * TILE + TILE / 2, 2 * TILE + TILE / 2),
+                MAX_UNIT_LIFE + 150
+            )
 
             const created = processor.addUnit(oversized, p1, 2, 2)
 

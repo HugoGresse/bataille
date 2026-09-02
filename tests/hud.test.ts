@@ -62,7 +62,7 @@ describe('musterCount', () => {
 
     it('spends the treasury on +all, up to what one stack can hold', () => {
         expect(musterCount(option('Y'), 37)).toBe(37)
-        expect(musterCount(option('Y'), 137)).toBe(MAX_UNIT_LIFE)
+        expect(musterCount(option('Y'), MAX_UNIT_LIFE + 37)).toBe(MAX_UNIT_LIFE)
         expect(musterCount(option('Y'), 0)).toBe(0)
     })
 
