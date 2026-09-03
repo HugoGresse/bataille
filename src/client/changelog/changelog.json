@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.15",
+        "date": "2026-09-03",
+        "title": "Stacks swapping towns now take the same path and meet",
+        "pr": 27
+    },
+    {
         "version": "0.17.14",
         "date": "2026-09-02",
         "title": "Muster now caps at remaining stack space; max stack size increased to 300",
