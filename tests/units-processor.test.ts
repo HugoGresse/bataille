@@ -79,6 +79,32 @@ describe('UnitsProcessor', () => {
         })
     })
 
+    describe('two stacks sent at each other', () => {
+        /**
+         * The reported bug lived here: the two directions of the same diagonal produced lines a
+         * tile apart, so enemy stacks swapping towns slid past each other and both arrived intact.
+         */
+        it('meet and fight instead of passing each other on a diagonal', () => {
+            const mine = spawnUnit(processor, p1, 4, 4, 10)
+            const theirs = spawnUnit(processor, p2, 11, 8, 6)
+
+            orderMove(processor, p1, mine, 11, 8)
+            orderMove(processor, p2, theirs, 4, 4)
+
+            let fought = false
+            for (let step = 0; step < 60 && !fought; step++) {
+                const { deletedUnits } = tick(processor, map, players)
+                fought = deletedUnits.length > 0
+            }
+
+            // They met somewhere in the middle rather than both arriving untouched
+            expect(fought).toBe(true)
+            expect(theirs.life.getHP()).toBe(0)
+            expect(mine.life.getHP()).toBe(4)
+            expect(mine.position.getRounded()).not.toEqual({ x: 11, y: 8 })
+        })
+    })
+
     describe('stack splitting (unitAction amount)', () => {
         it('splits the stack when the requested amount is lower than its size', () => {
             const mover = spawnUnit(processor, p1, 5, 5, 10)

@@ -86,6 +86,97 @@ describe('findTilePath', () => {
     })
 })
 
+/** Every step lands on a walkable neighbour, and a diagonal never cuts a blocked corner */
+const assertLegalPath = (grid: Grid, path: number[][]) => {
+    for (const [x, y] of path) {
+        expect(grid.isWalkableAt(x, y)).toBe(true)
+    }
+    for (let index = 1; index < path.length; index++) {
+        const [previousX, previousY] = path[index - 1]
+        const [x, y] = path[index]
+        const stepX = x - previousX
+        const stepY = y - previousY
+        expect(Math.max(Math.abs(stepX), Math.abs(stepY))).toBe(1)
+        if (stepX !== 0 && stepY !== 0) {
+            expect(grid.isWalkableAt(previousX + stepX, previousY)).toBe(true)
+            expect(grid.isWalkableAt(previousX, previousY + stepY)).toBe(true)
+        }
+    }
+}
+
+describe('findTilePath is the same line both ways', () => {
+    /** Two stacks swapping towns have to meet: the way back must retrace the way there */
+    const expectSymmetric = (grid: Grid, from: { x: number; y: number }, to: { x: number; y: number }) => {
+        const there = findTilePath(grid, from, to)
+        const back = findTilePath(grid, to, from)
+
+        expect(there.length).toBeGreaterThan(1)
+        expect(there[0]).toEqual([from.x, from.y])
+        expect(there.at(-1)).toEqual([to.x, to.y])
+        expect(back[0]).toEqual([to.x, to.y])
+        expect(back.at(-1)).toEqual([from.x, from.y])
+        expect([...back].reverse()).toEqual(there)
+        assertLegalPath(grid, there)
+        assertLegalPath(grid, back)
+    }
+
+    it('retraces diagonal crossings on open ground, whichever corner starts', () => {
+        const grid = new Grid(20, 20)
+        // The reported case: a diagonal run between two towns, where A* used to answer with two
+        // staircases a tile apart depending on the direction asked for
+        expectSymmetric(grid, { x: 2, y: 2 }, { x: 9, y: 6 })
+        expectSymmetric(grid, { x: 3, y: 10 }, { x: 12, y: 4 })
+        expectSymmetric(grid, { x: 1, y: 8 }, { x: 14, y: 3 })
+        expectSymmetric(grid, { x: 14, y: 3 }, { x: 1, y: 8 })
+    })
+
+    it('retraces the way back around obstacles too', () => {
+        const { grid } = makeWalledGrid()
+        expectSymmetric(grid, { x: 0, y: 0 }, { x: 5, y: 0 })
+        expectSymmetric(grid, { x: 1, y: 7 }, { x: 4, y: 1 })
+    })
+
+    it('holds for every pair on a grid scattered with blocks', () => {
+        const grid = new Grid(14, 14)
+        for (const [x, y] of [
+            [4, 4],
+            [4, 5],
+            [4, 6],
+            [7, 2],
+            [7, 3],
+            [9, 8],
+            [10, 8],
+            [11, 8],
+            [2, 11],
+        ]) {
+            grid.setWalkableAt(x, y, false)
+        }
+        const corners = [
+            { x: 0, y: 0 },
+            { x: 13, y: 0 },
+            { x: 0, y: 13 },
+            { x: 13, y: 13 },
+            { x: 6, y: 9 },
+            { x: 10, y: 5 },
+        ]
+        for (const from of corners) {
+            for (const to of corners) {
+                if (!(from.x === to.x && from.y === to.y)) {
+                    expectSymmetric(grid, from, to)
+                }
+            }
+        }
+    })
+
+    it('still finds a way out for a stack standing on a blocked tile', () => {
+        const { grid } = makeWalledGrid()
+        // x=2 is walled except at y=5: a stack sitting in the wall can still walk out
+        const path = findTilePath(grid, { x: 2, y: 0 }, { x: 0, y: 0 })
+        expect(path[0]).toEqual([2, 0])
+        expect(path.at(-1)).toEqual([0, 0])
+    })
+})
+
 describe('real map: client preview vs server movement', () => {
     const map = new GameMap()
     const snapshot = map.export().pathfinding
@@ -115,6 +206,25 @@ describe('real map: client preview vs server movement', () => {
 
         expect(clientPath.length).toBeGreaterThan(1)
         expect(action.path).toEqual(clientWorldPath)
+    })
+
+    it('walks the same line between two towns whichever one the stack starts from', () => {
+        const towns = map.getTowns()
+        // Pairs far enough apart to need a long diagonal run, which is where the two directions
+        // used to disagree
+        const pairs: [(typeof towns)[number], (typeof towns)[number]][] = [
+            [towns[0], towns[towns.length - 1]],
+            [towns[3], towns[Math.floor(towns.length / 2)]],
+            [towns[Math.floor(towns.length / 3)], towns[Math.floor((2 * towns.length) / 3)]],
+        ]
+
+        for (const [a, b] of pairs) {
+            const there = findTilePath(clientGrid, { x: a.x, y: a.y }, { x: b.x, y: b.y })
+            const back = findTilePath(clientGrid, { x: b.x, y: b.y }, { x: a.x, y: a.y })
+
+            expect(there.length).toBeGreaterThan(1)
+            expect([...back].reverse()).toEqual(there)
+        }
     })
 
     it('ignores a destination outside the map instead of crashing the loop', () => {
