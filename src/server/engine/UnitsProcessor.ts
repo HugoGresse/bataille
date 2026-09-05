@@ -200,6 +200,23 @@ export class UnitsProcessor {
         return { unit, added }
     }
 
+    /** Take every stack of one player off the board, remnants included: the army of a player who left */
+    public removeUnitsOf(playerId: string): BaseUnit[] {
+        const removed: BaseUnit[] = []
+        for (const [x, column] of this.units) {
+            for (const [y, unit] of column) {
+                if (unit.owner.id === playerId) {
+                    column.delete(y)
+                    removed.push(unit)
+                }
+            }
+            if (column.size === 0) {
+                this.units.delete(x)
+            }
+        }
+        return removed
+    }
+
     public unitAction(player: AbstractPlayer, action: UnitAction) {
         // TODO : rather than getting the unit ID, get the unit position from the frontend, faster and safer
 

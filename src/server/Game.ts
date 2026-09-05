@@ -16,6 +16,7 @@ import { PlayersById } from './model/types/PlayersById'
 import { IncomeDispatcher } from './model/income/IncomeDispatcher'
 import { INCOME_MS } from '../common/GameSettings'
 import { findDominantPlayer, townsToWin } from './engine/domination'
+import { surrenderPlayer } from './engine/surrender'
 
 export class Game {
     private playersBySocketIds: PlayersById = {}
@@ -132,17 +133,32 @@ export class Game {
     }
 
     addUnit(socketId: string, event: NewUnitDataEvent) {
-        if (!this.playersBySocketIds[socketId] || !this.gameLoop.isRunning) {
+        if (!this.playersBySocketIds[socketId] || this.playersBySocketIds[socketId].isOut || !this.gameLoop.isRunning) {
             return
         }
         this.actionsProcessor.addUnit(this.playersBySocketIds[socketId], event)
     }
 
     unitEvent(playerId: string, event: UnitAction) {
-        if (!this.playersBySocketIds[playerId] || !this.gameLoop.isRunning) {
+        if (!this.playersBySocketIds[playerId] || this.playersBySocketIds[playerId].isOut || !this.gameLoop.isRunning) {
             return
         }
         this.actionsProcessor.unitEvent(this.playersBySocketIds[playerId], event)
+    }
+
+    /** The player gives up: they stay connected to watch, but nothing of theirs is left in play */
+    surrender(socketId: string) {
+        const player = this.playersBySocketIds[socketId]
+        if (!player || !this.gameLoop.isRunning) {
+            return
+        }
+        const outcome = surrenderPlayer(player, this.map, this.unitsProcessor, this.players, this.emitter)
+        if (!outcome) {
+            return
+        }
+        this.gameUpdateProcessor.enqueue(outcome)
+        this.gameUpdateProcessor.refreshTownCounts()
+        this.emitter.emitMessage(`${player.name} surrendered`, player)
     }
 
     playerMessage(playerId: string, message: string) {
@@ -188,7 +204,7 @@ export class Game {
         }
 
         const connectedHumanPlayers = this.getConnectedHumanPlayers()
-        const deadPlayers = this.players.filter((player) => player.isDead || !player.isConnected).length
+        const deadPlayers = this.players.filter((player) => player.isOut || !player.isConnected).length
         const oneOrNoAlivePlayers = deadPlayers >= this.players.length - 1 // one player cannot play alone
         return connectedHumanPlayers.length === 0 || (oneOrNoAlivePlayers && this.players.length > 1) // also check if we are playing alone (in dev)
     }
@@ -203,6 +219,6 @@ export class Game {
 
     getWinner(): AbstractPlayer | undefined {
         this.gameUpdateProcessor.printRuntimes()
-        return this.dominantPlayer ?? this.players.find((player) => !player.isDead && player.isConnected)
+        return this.dominantPlayer ?? this.players.find((player) => !player.isOut && player.isConnected)
     }
 }

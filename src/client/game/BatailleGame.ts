@@ -19,6 +19,7 @@ export class BatailleGame {
     private onTextRequestListener: TextRequestListener | null = null
     private readonly game: Phaser.Game
     private readonly socket: SocketConnection
+    private readonly actions: GameActions
     private readonly stopResizeTracking: () => void
     private stopMessageListening: (() => void) | null = null
 
@@ -67,8 +68,8 @@ export class BatailleGame {
             throw Error('Pas content')
         }
         this.socket = socketInstance
-        const gameActions = new GameActions(this.socket.getSocketIO())
-        this.game.registry.set('actions', gameActions)
+        this.actions = new GameActions(this.socket.getSocketIO())
+        this.game.registry.set('actions', this.actions)
         this.onGameStart(socketInstance.gameStartData)
     }
 
@@ -123,6 +124,11 @@ export class BatailleGame {
 
     getSocket(): SocketConnection {
         return this.socket
+    }
+
+    /** Give up the game but stay to watch it end */
+    surrender() {
+        this.actions.surrender()
     }
 
     public static setCurrentGame(game: BatailleGame) {

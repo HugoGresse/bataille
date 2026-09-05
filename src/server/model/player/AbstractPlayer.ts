@@ -14,7 +14,10 @@ export abstract class AbstractPlayer {
     public income: number = MONEY_INCOME_START
     public money: number = MONEY_INCOME_START
     public isConnected: boolean = true
+    /** Eliminated: no towns, no units, no income left */
     public isDead: boolean = false
+    /** Left the game on purpose. Their army is gone and their towns are neutral, but they may still watch */
+    public hasSurrendered: boolean = false
     /** AI players death notices are not broadcast to humans (they only clutter the UI) */
     public readonly isAI: boolean = false
     public ownedCountriesIds: string[] = []
@@ -55,6 +58,15 @@ export abstract class AbstractPlayer {
         this.isConnected = isConnected
     }
 
+    /** Out of the running, whichever way it happened: the end-of-game rules only care about this */
+    get isOut(): boolean {
+        return this.isDead || this.hasSurrendered
+    }
+
+    surrender() {
+        this.hasSurrendered = true
+    }
+
     getPublicPlayerState(): PublicPlayerState {
         return {
             n: this.name,
@@ -64,7 +76,7 @@ export abstract class AbstractPlayer {
             tw: this.townCount,
             cnt: this.isConnected,
             d: this.isDead,
-            s: false,
+            s: this.hasSurrendered,
         }
     }
 
@@ -89,6 +101,13 @@ export abstract class AbstractPlayer {
 
     updateIncome(ownedCountriesIds: string[], emitter: SocketEmitter) {
         if (this.isDead) {
+            return
+        }
+        // Nothing left to count, and no death notice for a player who chose to leave
+        if (this.hasSurrendered) {
+            this.ownedCountriesIds = []
+            this.ownedCountriesFrom.clear()
+            this.income = 0
             return
         }
         for (const previouslyOwnerCountry of this.ownedCountriesIds) {

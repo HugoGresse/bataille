@@ -4,6 +4,7 @@ export type NoticeLane = 'victory' | 'centre' | 'feed' | 'none'
 
 const COUNTRY_CAPTURE = / was captured by /
 const PLAYER_DEAD = /^Player is dead: /
+const PLAYER_SURRENDERED = / surrendered$/
 const PLAYER_DISCONNECTED = /Player disconnected/
 const VICTORY = /^This game has been won by (.+?)(?:, (.+))?$/
 const NO_WINNER = /^No winner(?:, )?(.*)$/
@@ -29,8 +30,8 @@ export const laneFor = (message: Message, currentPlayerName: string | undefined)
     if (PLAYER_DISCONNECTED.test(message.content)) {
         return 'feed'
     }
-    if (PLAYER_DEAD.test(message.content)) {
-        return 'centre' // an elimination changes the game, whoever it is
+    if (PLAYER_DEAD.test(message.content) || PLAYER_SURRENDERED.test(message.content)) {
+        return 'centre' // one player fewer changes the game, whoever it is and however they went
     }
     if (COUNTRY_CAPTURE.test(message.content)) {
         return involvesMe(message, currentPlayerName) ? 'centre' : 'feed'
