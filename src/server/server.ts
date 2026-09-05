@@ -9,6 +9,7 @@ import {
     PLAYER_UNIT,
     PLAYER_MESSAGE_POST,
     PLAYER_LOBBY_WAIT_FOR_HUMAN,
+    PLAYER_SURRENDER,
 } from '../common/SOCKET_EMIT'
 import { UnitAction } from '../common/UnitAction'
 import { pickUnusedColor } from './utils/pickUnusedColor'
@@ -39,6 +40,7 @@ socketIOServer.on('connection', (socket: Socket) => {
     socket.on(PLAYER_NEW_UNIT, handlePlayerNewUnit(socket))
     socket.on(PLAYER_UNIT, handlePlayerUnit(socket))
     socket.on(PLAYER_MESSAGE_POST, handlePlayerPostMessage(socket))
+    socket.on(PLAYER_SURRENDER, handlePlayerSurrender(socket))
 })
 
 const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
@@ -93,6 +95,14 @@ const handlePlayerPostMessage = (socket: Socket) => (gameId: string, message: st
         return
     }
     game.playerMessage(socket.id, message)
+}
+
+const handlePlayerSurrender = (socket: Socket) => (gameId: string) => {
+    const game = games[gameId]
+    if (!game) {
+        return
+    }
+    game.surrender(socket.id)
 }
 
 const startGame = (

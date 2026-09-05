@@ -19,6 +19,9 @@ export class GameUpdateProcessor {
     private lastDeletedUnits: UnitState[] = []
     private lastChangedTownsStates: TilePublic[] = []
     private wasFirstUnitSent = false
+    /** Changes made between ticks (a surrender), carried into the next broadcast */
+    private pendingDeletedUnits: UnitState[] = []
+    private pendingChangedTowns: TilePublic[] = []
 
     // Running averages instead of per-tick sample arrays: the arrays grew unbounded on long games
     private unitsRuntime = { sum: 0, samples: 0 }
@@ -51,8 +54,10 @@ export class GameUpdateProcessor {
         const { updatedUnits, deletedUnits } = this.unitsProcessor.updateUnits(this.map, this.playersById)
 
         this.lastUpdatedUnits = updatedUnits
-        this.lastDeletedUnits = deletedUnits
-        this.lastChangedTownsStates = []
+        this.lastDeletedUnits = [...this.pendingDeletedUnits, ...deletedUnits]
+        this.lastChangedTownsStates = [...this.pendingChangedTowns]
+        this.pendingDeletedUnits = []
+        this.pendingChangedTowns = []
 
         this.recordRuntime(this.unitsRuntime, step1)
 
@@ -80,6 +85,12 @@ export class GameUpdateProcessor {
         if (this.incomeDispatcher.update(this.players)) {
             this.checkOwnedCountryToAddBounty(this.players)
         }
+    }
+
+    /** Something changed outside the tick: make sure the next state update carries it */
+    public enqueue({ deletedUnits, changedTowns }: { deletedUnits: UnitState[]; changedTowns: TilePublic[] }) {
+        this.pendingDeletedUnits.push(...deletedUnits)
+        this.pendingChangedTowns.push(...changedTowns)
     }
 
     /**

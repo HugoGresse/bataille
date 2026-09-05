@@ -177,6 +177,10 @@ describe('notice lanes', () => {
         expect(laneFor(message('Player disconnected: AI-2', 'AI-2'), me)).toBe('feed')
     })
 
+    it('puts a surrender in the middle like an elimination', () => {
+        expect(laneFor(message('Kili surrendered', 'Kili'), me)).toBe('centre')
+    })
+
     it('rewrites a capture for the narrow feed', () => {
         expect(feedLine(message('France (+5) was captured by AI-2', 'AI-2'))).toEqual({
             actor: 'AI-2',

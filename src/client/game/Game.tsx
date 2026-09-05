@@ -6,6 +6,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, D
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
 import BackIcon from '@mui/icons-material/ArrowBack'
 import FeedbackIcon from '@mui/icons-material/Feedback'
+import FlagIcon from '@mui/icons-material/Flag'
 import { HelpDialogButton } from '../screens/HelpDialog'
 import { MessageDialog } from '../screens/MessageDialog'
 import { DeferredPromise } from '../utils/Deferred'
@@ -25,6 +26,10 @@ export const Game = () => {
     const [connectionLostOpen, setConnectionLostOpen] = useState<boolean>(false)
     const [deferredPromise, setDeferredPromise] = useState<null | DeferredPromise<string | null>>(null)
     const [messages, setMessages] = useState<ReceivedMessage[]>([])
+    const [surrenderDialogOpen, setSurrenderDialogOpen] = useState<boolean>(false)
+    const [surrendered, setSurrendered] = useState<boolean>(
+        () => getSocketConnectionInstance()?.getLatestState()?.cp.s ?? false
+    )
     const blocker = useBlocker(true)
 
     useEffect(() => {
@@ -86,6 +91,14 @@ export const Game = () => {
                     <Button
                         color="secondary"
                         variant="outlined"
+                        disabled={surrendered}
+                        onClick={() => setSurrenderDialogOpen(true)}
+                        startIcon={<FlagIcon />}>
+                        {surrendered ? 'Surrendered' : 'Surrender'}
+                    </Button>{' '}
+                    <Button
+                        color="secondary"
+                        variant="outlined"
                         onClick={() => {
                             gameTopContainer.current?.requestFullscreen()
                             game?.setFullscreen()
@@ -109,6 +122,33 @@ export const Game = () => {
                     }
                 }}
             />
+            <Dialog
+                open={surrenderDialogOpen}
+                onClose={() => setSurrenderDialogOpen(false)}
+                container={() => document.getElementById('gameTopContainer')}
+                aria-labelledby="surrender-title"
+                aria-describedby="surrender-description">
+                <DialogTitle id="surrender-title">Surrender?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="surrender-description">
+                        Your army disbands and your towns go back to neutral. You stay to watch the game end, and can
+                        still chat. There is no coming back from this.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setSurrenderDialogOpen(false)}>Keep fighting</Button>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={() => {
+                            game?.surrender()
+                            setSurrendered(true)
+                            setSurrenderDialogOpen(false)
+                        }}>
+                        Surrender
+                    </Button>
+                </DialogActions>
+            </Dialog>
             <Dialog
                 open={connectionLostOpen}
                 aria-labelledby="connection-lost-title"
