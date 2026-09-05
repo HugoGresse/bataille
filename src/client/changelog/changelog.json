@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.16",
+        "date": "2026-09-05",
+        "title": "Let a player surrender: army disbands, towns go neutral, they stay to watch",
+        "pr": 28
+    },
+    {
         "version": "0.17.15",
         "date": "2026-09-03",
         "title": "Stacks swapping towns now take the same path and meet",
