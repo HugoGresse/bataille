@@ -50,7 +50,7 @@ export const Game = () => {
             newSocketConnectionInstance(
                 () => {},
                 () => {},
-                { rejoinOnly: true }
+                { rejoinGameId: gameId }
             )
         }
         const socketInstance = getSocketConnectionInstance()
@@ -69,7 +69,7 @@ export const Game = () => {
             socketInstance.setConnectionListener(null)
             stopListening()
         }
-    }, [])
+    }, [gameId])
 
     useEffect(() => {
         if (gameContainer.current && getSocketConnectionInstance()?.gameStartData) {
@@ -92,7 +92,16 @@ export const Game = () => {
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', margin: 1 }}>
-                <Button color="secondary" href="/" startIcon={<BackIcon />}>
+                <Button
+                    color="secondary"
+                    href="/"
+                    startIcon={<BackIcon />}
+                    onClick={(event) => {
+                        // Leaving on purpose gives the seat up now, instead of leaving a ghost for a minute
+                        event.preventDefault()
+                        getSocketConnectionInstance()?.disconnect()
+                        window.location.assign('/')
+                    }}>
                     Exit game
                 </Button>
                 <div>

@@ -1,5 +1,4 @@
 import { Socket } from 'socket.io'
-import { SocketEmitter } from '../../SocketEmitter'
 import { AbstractPlayer } from './AbstractPlayer'
 
 export class HumanPlayer extends AbstractPlayer {
@@ -19,17 +18,17 @@ export class HumanPlayer extends AbstractPlayer {
         this.setConnected(true)
     }
 
-    public listenForDisconnect(socketEmitter: SocketEmitter, onPlayerDisconnect: () => void) {
+    /** @param onPlayerDisconnect receives socket.io's reason: an explicit leave reads differently from a drop */
+    public listenForDisconnect(onPlayerDisconnect: (reason: string) => void) {
         const socket = this.socket
-        socket.on('disconnect', () => {
+        socket.on('disconnect', (reason: string) => {
             // A network drop is often noticed by the server long after the client has already come
             // back on a new socket: the old one falling silent then is not news
             if (this.socket !== socket) {
                 return
             }
-            socketEmitter.emitMessage(`ℹ️️ Player disconnected: ${this.name}`, this)
             this.setConnected(false)
-            onPlayerDisconnect()
+            onPlayerDisconnect(reason)
         })
     }
 

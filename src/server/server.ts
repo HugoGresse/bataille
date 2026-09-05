@@ -27,6 +27,7 @@ import { AdminServer } from './admin/AdminServer'
 import { gameStats, hashIp } from './stats/GameStats'
 import { getClientIp } from './utils/clientIp'
 import { lookupCountry } from './utils/geoLookup'
+import { findLiveSeat, findSeat } from './seats'
 
 const games: {
     [gameId: string]: Game
@@ -49,6 +50,12 @@ socketIOServer.on('connection', (socket: Socket) => {
 const handlePlayerJoin =
     (socket: Socket) =>
     (playerName: string, sessionToken: string | null = null) => {
+        // A token that still holds a seat in a running game gets that seat back, not a lobby slot
+        const seat = findLiveSeat(games, sessionToken)
+        if (seat) {
+            seat.game.reattach(seat.player, socket)
+            return
+        }
         if (!lobby) {
             const futureGameId = newId()
             const socketEmitter = new SocketEmitter(socketIOServer.to(futureGameId))
@@ -65,12 +72,12 @@ const handlePlayerJoin =
         lobby.onPlayerJoin(socket, playerName, Object.keys(games).length, sessionToken)
     }
 
-/** A client back from a drop or a reload: hand it its seat if any game still holds one for it */
-const handlePlayerRejoin = (socket: Socket) => (sessionToken: string) => {
-    for (const game of Object.values(games)) {
-        if (game.reattach(sessionToken, socket)) {
-            return
-        }
+/** A client back from a drop or a reload, naming the game it was on: hand it that seat, or say no */
+const handlePlayerRejoin = (socket: Socket) => (sessionToken: string, gameId?: string) => {
+    const seat = findSeat(games, gameId, sessionToken)
+    if (seat) {
+        seat.game.reattach(seat.player, socket)
+        return
     }
     socket.emit(GAME_REJOIN_FAILED)
 }

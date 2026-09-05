@@ -29,24 +29,34 @@ export class SocketEmitter {
     }
 
     async emitInitialGameState(game: Game) {
+        const snapshot = this.snapshotOf(game)
         const socketIds = await this.sockets.allSockets()
-        socketIds.forEach((socketId) => this.emitInitialGameStateTo(socketId, game))
-        this.lastGameState = game.getState()
+        socketIds.forEach((socketId) => this.emitInitialGameStateTo(socketId, game, snapshot))
+        this.lastGameState = snapshot.gameState
     }
 
-    /** The whole game as it stands, for one socket: what a player who just came back rebuilds from */
-    emitInitialGameStateTo(socketId: string, game: Game) {
+    /**
+     * The whole board as it stands, for one socket: what a client builds from, at kick-off and on
+     * every return. The full state, not the last tick's delta - a returning player must see the
+     * stacks that have not moved in a while too.
+     */
+    emitInitialGameStateTo(socketId: string, game: Game, snapshot = this.snapshotOf(game)) {
         if (!game.hasSocket(socketId)) {
             return // in the room but not (yet) a player of this game
         }
         const data: ExportTypeWithGameState = {
-            ...game.export(),
+            ...snapshot.gameExport,
             gameState: {
-                ...game.getState(),
+                ...snapshot.gameState,
                 cp: game.getPlayerPrivateState(socketId),
             },
         }
         socketIOServer.to(socketId).emit(GAME_STATE_INIT, data)
+    }
+
+    /** Taken once per broadcast: the map export alone walks every tile */
+    private snapshotOf(game: Game) {
+        return { gameExport: game.export(), gameState: game.getFullState() }
     }
 
     async emitGameUpdate(game: Game) {

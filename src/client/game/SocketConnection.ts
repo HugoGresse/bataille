@@ -19,13 +19,19 @@ import { pickRandomPlayerName } from '../../utils/pickRandomPlayerName'
 import { getSavedPlayerName } from '../utils/cookie'
 import { appendMessage, ReceivedMessage } from './chat/chatLog'
 import { readSessionToken } from './session'
+import { RECONNECT_GRACE_MS } from '../../common/GameSettings'
+
+/** A reload asking for its seat back waits this long for the server before calling the game gone */
+const REJOIN_TIMEOUT_MS = 8000
+/** Past the server's grace the seat is forfeited anyway: stop promising it is kept */
+const GIVE_UP_MARGIN_MS = 10_000
 
 /** lost: the socket dropped mid-game. rejoined: the seat is ours again. gone: nothing to come back to */
 export type ConnectionPhase = 'lost' | 'rejoined' | 'gone'
 
 type SocketConnectionOptions = {
-    /** Never enter the lobby: the page reloaded mid-game and only wants its seat back */
-    rejoinOnly?: boolean
+    /** Never enter the lobby: the page reloaded on this game and only wants its seat there back */
+    rejoinGameId?: string
 }
 
 let socketConnectionInstance: SocketConnection | null = null
@@ -54,24 +60,29 @@ export class SocketConnection {
     private messageListeners = new Set<(message: Message) => void>()
     private connectionListener: ((phase: ConnectionPhase) => void) | null = null
     private readonly sessionToken = readSessionToken()
-    private readonly rejoinOnly: boolean
+    private readonly rejoinGameId: string | null
+    /** Armed whenever a seat is being waited for; a server that never answers is not waited on forever */
+    private giveUpTimer: ReturnType<typeof setTimeout> | null = null
 
     constructor(
         protected socketUrl: string,
         protected onLobbyState: (state: LobbyState) => void,
         protected onGameStart: (gameId: string) => void,
-        { rejoinOnly = false }: SocketConnectionOptions = {}
+        { rejoinGameId }: SocketConnectionOptions = {}
     ) {
-        this.rejoinOnly = rejoinOnly
+        this.rejoinGameId = rejoinGameId ?? null
         this.socket = io(socketUrl, {
             transports: ['websocket'],
             autoConnect: true,
         })
         this.socket.on('connect', () => {
-            // Every connection, the first one included, says who it is. Mid-game it asks for its
-            // seat back rather than a new lobby slot: the server holds the seat for a grace period.
-            if (this.gameStartData || this.rejoinOnly) {
-                this.socket.emit(PLAYER_REJOIN, this.sessionToken)
+            // Every connection, the first one included, says who it is. On a game it asks for its
+            // seat in that game back rather than a new lobby slot; the server keeps the seat for a
+            // grace period. The lobby handshake on the server side also hands a live seat back, so
+            // a client that never received its game still lands in it.
+            const gameId = this.gameStartData?.gameId ?? this.rejoinGameId
+            if (gameId) {
+                this.socket.emit(PLAYER_REJOIN, this.sessionToken, gameId)
             } else {
                 this.socket.emit(PLAYER_JOIN_LOBBY, SocketConnection.getPlayerName(), this.sessionToken)
             }
@@ -81,8 +92,12 @@ export class SocketConnection {
             // drop the socket reconnects by itself and the connect handler asks for the seat back.
             if (reason !== 'io client disconnect' && this.gameStartData) {
                 this.connectionListener?.('lost')
+                this.armGiveUp(RECONNECT_GRACE_MS + GIVE_UP_MARGIN_MS)
             }
         })
+        if (this.rejoinGameId) {
+            this.armGiveUp(REJOIN_TIMEOUT_MS)
+        }
 
         this.handleLobbyState = this.handleLobbyState.bind(this)
         this.handleGameState = this.handleGameState.bind(this)
@@ -93,7 +108,24 @@ export class SocketConnection {
         this.socket.on(GAME_STATE_INIT, this.handleGameInit)
         this.socket.on(GAME_STATE_UPDATE, this.handleGameState)
         this.socket.on(GAME_MESSAGE, this.handleGameMessage)
-        this.socket.on(GAME_REJOIN_FAILED, () => this.connectionListener?.('gone'))
+        this.socket.on(GAME_REJOIN_FAILED, () => this.giveUp())
+    }
+
+    private armGiveUp(delayMs: number) {
+        this.clearGiveUp()
+        this.giveUpTimer = setTimeout(() => this.giveUp(), delayMs)
+    }
+
+    private clearGiveUp() {
+        if (this.giveUpTimer) {
+            clearTimeout(this.giveUpTimer)
+            this.giveUpTimer = null
+        }
+    }
+
+    private giveUp() {
+        this.clearGiveUp()
+        this.connectionListener?.('gone')
     }
 
     public sendForceStart(shouldForceStart: boolean) {
@@ -111,7 +143,8 @@ export class SocketConnection {
     private handleGameInit(data: ExportTypeWithGameState) {
         // A second init is the whole game handed back after a drop: whatever deltas were missed
         // no longer matter, the full state replaces them
-        const rejoined = this.gameStartData !== null || this.rejoinOnly
+        this.clearGiveUp()
+        const rejoined = this.gameStartData !== null || this.rejoinGameId !== null
         this.gameStartData = data
         this.gameStates = [data.gameState]
         this.lastGameState = data.gameState
@@ -133,6 +166,7 @@ export class SocketConnection {
     }
 
     public disconnect() {
+        this.clearGiveUp()
         this.socket.disconnect()
     }
 
