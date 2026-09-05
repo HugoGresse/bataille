@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.18",
+        "date": "2026-09-05",
+        "title": "Read the environment only where there is one: the client crashed at import",
+        "pr": 31
+    },
+    {
         "version": "0.17.17",
         "date": "2026-09-05",
         "title": "Pinch-to-zoom on map (phone), with the same zoom limits as the scroll wheel",
