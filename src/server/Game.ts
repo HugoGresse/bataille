@@ -351,16 +351,17 @@ export class Game {
 
         // Holding almost the whole map ends it: the stragglers left over are not a game any more
         this.dominantPlayer = findDominantPlayer(this.players, this.townCount)
-        if (this.dominantPlayer) {
-            return true
-        }
 
         // A dropped player is still in the game until their grace runs out and turns into a forfeit,
         // so only being out counts here: an empty room keeps playing for a minute, then ends itself
         const outPlayers = this.players.filter((player) => player.isOut).length
         const oneOrNoAlivePlayers = outPlayers >= this.players.length - 1 // one player cannot play alone
         const everyHumanOut = this.humanPlayers.every((player) => player.isOut)
-        const over = everyHumanOut || (oneOrNoAlivePlayers && this.players.length > 1) // also check if we are playing alone (in dev)
+        const lastOneStanding = oneOrNoAlivePlayers && this.players.length > 1 // also check if we are playing alone (in dev)
+
+        // Every way of ending goes through this flag: the announcement reads it, so a tick that
+        // returns true without setting it is a win found and never called
+        const over = this.dominantPlayer !== null || everyHumanOut || lastOneStanding
         if (over) {
             this.ended = true
         }
