@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.19",
+        "date": "2026-09-05",
+        "title": "Domination win now fires immediately when 90% of towns are held",
+        "pr": 33
+    },
+    {
         "version": "0.17.18",
         "date": "2026-09-05",
         "title": "Read the environment only where there is one: the client crashed at import",
