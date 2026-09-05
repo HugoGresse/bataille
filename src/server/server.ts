@@ -10,6 +10,8 @@ import {
     PLAYER_MESSAGE_POST,
     PLAYER_LOBBY_WAIT_FOR_HUMAN,
     PLAYER_SURRENDER,
+    PLAYER_REJOIN,
+    GAME_REJOIN_FAILED,
 } from '../common/SOCKET_EMIT'
 import { UnitAction } from '../common/UnitAction'
 import { pickUnusedColor } from './utils/pickUnusedColor'
@@ -41,23 +43,36 @@ socketIOServer.on('connection', (socket: Socket) => {
     socket.on(PLAYER_UNIT, handlePlayerUnit(socket))
     socket.on(PLAYER_MESSAGE_POST, handlePlayerPostMessage(socket))
     socket.on(PLAYER_SURRENDER, handlePlayerSurrender(socket))
+    socket.on(PLAYER_REJOIN, handlePlayerRejoin(socket))
 })
 
-const handlePlayerJoin = (socket: Socket) => (playerName: string) => {
-    if (!lobby) {
-        const futureGameId = newId()
-        const socketEmitter = new SocketEmitter(socketIOServer.to(futureGameId))
-        lobby = new GameLobby(socketEmitter, futureGameId, (waitingPlayers, sockets) => {
-            console.log(`> Lobby ready, starting game with ${waitingPlayers.length} players.`)
-            if (lobby) {
-                lobby.close()
-                lobby = null
-            }
-            startGame(futureGameId, socketEmitter, waitingPlayers, sockets)
-        })
-        console.log(`Number of games: ${Object.keys(games).length}`)
+const handlePlayerJoin =
+    (socket: Socket) =>
+    (playerName: string, sessionToken: string | null = null) => {
+        if (!lobby) {
+            const futureGameId = newId()
+            const socketEmitter = new SocketEmitter(socketIOServer.to(futureGameId))
+            lobby = new GameLobby(socketEmitter, futureGameId, (waitingPlayers, sockets) => {
+                console.log(`> Lobby ready, starting game with ${waitingPlayers.length} players.`)
+                if (lobby) {
+                    lobby.close()
+                    lobby = null
+                }
+                startGame(futureGameId, socketEmitter, waitingPlayers, sockets)
+            })
+            console.log(`Number of games: ${Object.keys(games).length}`)
+        }
+        lobby.onPlayerJoin(socket, playerName, Object.keys(games).length, sessionToken)
     }
-    lobby.onPlayerJoin(socket, playerName, Object.keys(games).length)
+
+/** A client back from a drop or a reload: hand it its seat if any game still holds one for it */
+const handlePlayerRejoin = (socket: Socket) => (sessionToken: string) => {
+    for (const game of Object.values(games)) {
+        if (game.reattach(sessionToken, socket)) {
+            return
+        }
+    }
+    socket.emit(GAME_REJOIN_FAILED)
 }
 
 const handlePlayerForceStart = (socket: Socket) => (shouldForceStart: boolean) => {
@@ -116,20 +131,19 @@ const startGame = (
     const game = new Game(futureGameId, socketEmitter)
     games[game.id] = game
 
+    game.setAbandonedListener(() => {
+        console.log(`> Game end (all players gone)`)
+        delete games[futureGameId]
+    })
     for (const waitingPlayer of waitingPlayers) {
         const player = new HumanPlayer(
             sockets[waitingPlayer.socketId],
             pickUnusedColor(game.getPlayers()),
-            waitingPlayer.name
+            waitingPlayer.name,
+            waitingPlayer.sessionToken
         )
-        player.listenForDisconnect(socketEmitter, () => {
-            const connectedPlayers = game.getConnectedHumanPlayers().length
-            if (!connectedPlayers) {
-                console.log(`> Game end (all player disconnected)`)
-                delete games[futureGameId]
-            }
-        })
         game.addPlayer(player, waitingPlayer.socketId)
+        game.watchDisconnect(player)
     }
 
     const numberOfIA = Math.min(IA_PLAYER_PER_GAME - waitingPlayers.length, IA_PLAYER_PER_GAME)

@@ -179,6 +179,12 @@ describe('notice lanes', () => {
 
     it('puts a surrender in the middle like an elimination', () => {
         expect(laneFor(message('Kili surrendered', 'Kili'), me)).toBe('centre')
+        expect(laneFor(message('Kili gave up: connection lost', 'Kili'), me)).toBe('centre')
+    })
+
+    it('puts a return in the feed, as one line', () => {
+        expect(laneFor(message('Kili is back', 'Kili'), me)).toBe('feed')
+        expect(feedLine(message('Kili is back', 'Kili'))).toEqual({ actor: 'Kili', text: 'is back' })
     })
 
     it('rewrites a capture for the narrow feed', () => {

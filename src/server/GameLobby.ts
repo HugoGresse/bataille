@@ -25,7 +25,7 @@ export class GameLobby {
         private requiredPlayerToStart: number = MINIMUM_PLAYER_PER_GAME
     ) {}
 
-    onPlayerJoin(socket: Socket, name: string, ongoingGames: number) {
+    onPlayerJoin(socket: Socket, name: string, ongoingGames: number, sessionToken: string | null = null) {
         const socketId = socket.id
         this.ongoingGame = ongoingGames
         this.sockets[socketId] = socket
@@ -34,6 +34,7 @@ export class GameLobby {
         this.waitingPlayers.push({
             socketId,
             name,
+            sessionToken,
         })
         console.log(`Player join lobby, ${this.waitingPlayers.length}/${this.requiredPlayerToStart}`)
 
@@ -128,6 +129,7 @@ export class GameLobby {
 export type PlayerWaiting = {
     socketId: string
     name: string
+    sessionToken: string | null
 }
 
 export type LobbyState = {

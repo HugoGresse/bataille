@@ -14,9 +14,10 @@ import { UnitsProcessor } from './engine/UnitsProcessor'
 import { GameUpdateProcessor } from './engine/GameUpdateProcessor'
 import { PlayersById } from './model/types/PlayersById'
 import { IncomeDispatcher } from './model/income/IncomeDispatcher'
-import { INCOME_MS } from '../common/GameSettings'
+import { INCOME_MS, RECONNECT_GRACE_MS } from '../common/GameSettings'
 import { findDominantPlayer, townsToWin } from './engine/domination'
 import { surrenderPlayer } from './engine/surrender'
+import { Socket } from 'socket.io'
 
 export class Game {
     private playersBySocketIds: PlayersById = {}
@@ -34,6 +35,11 @@ export class Game {
     private readonly townCount: number
     /** Set the moment somebody holds enough of the map, and read back as the winner */
     private dominantPlayer: AbstractPlayer | null = null
+    /** One clock per dropped human: when it runs out, the game moves on without them */
+    private graceTimers = new Map<string, NodeJS.Timeout>()
+    private abandonedListener: (() => void) | null = null
+    /** Several grace clocks can run out in the same instant; the room is only declared empty once */
+    private abandoned = false
 
     constructor(
         public readonly id: string,
@@ -105,6 +111,11 @@ export class Game {
         }
     }
 
+    /** Whether this socket is one of the game's players: the emitters skip any other room member */
+    hasSocket(socketId: string): boolean {
+        return !!this.playersBySocketIds[socketId]
+    }
+
     getPlayerPrivateState(socketId: string): PrivatePlayerState {
         return this.playersBySocketIds[socketId].getPrivatePlayerState()
     }
@@ -132,6 +143,66 @@ export class Game {
         return this.players
     }
 
+    /** Called once nobody human is left, grace period included: the server drops the game then */
+    setAbandonedListener(listener: () => void) {
+        this.abandonedListener = listener
+    }
+
+    /** A drop starts the grace clock rather than ending anything: the seat is kept for a while */
+    watchDisconnect(player: HumanPlayer) {
+        player.listenForDisconnect(this.emitter, () => this.startGrace(player))
+    }
+
+    /**
+     * A player comes back on a new socket. Works whether or not the old socket was already noticed
+     * as gone: a client reconnects in seconds, the server can take much longer to notice the drop.
+     *
+     * @return false when the token is not a live seat in this game
+     */
+    reattach(sessionToken: string, socket: Socket): boolean {
+        const player = this.humanPlayers.find((human) => human.sessionToken === sessionToken)
+        if (!sessionToken || !player || player.isOut || !this.gameLoop.isRunning) {
+            return false
+        }
+        this.clearGrace(player)
+        const wasAway = !player.isConnected
+        // Re-keyed before joining the room: a tick landing in between must never meet a socket
+        // it cannot resolve to a player
+        delete this.playersBySocketIds[player.getSocketId()]
+        this.playersBySocketIds[socket.id] = player
+        player.attachSocket(socket)
+        this.watchDisconnect(player)
+        socket.join(this.id)
+        if (wasAway) {
+            this.emitter.emitMessage(`${player.name} is back`, player)
+        }
+        this.emitter.emitInitialGameStateTo(socket.id, this)
+        return true
+    }
+
+    private startGrace(player: HumanPlayer) {
+        this.clearGrace(player)
+        const timer = setTimeout(() => {
+            this.graceTimers.delete(player.id)
+            if (!player.isConnected && !player.isOut && this.gameLoop.isRunning) {
+                this.leave(player, `${player.name} gave up: connection lost`)
+            }
+            if (!this.abandoned && this.getConnectedHumanPlayers().length === 0) {
+                this.abandoned = true
+                this.abandonedListener?.()
+            }
+        }, RECONNECT_GRACE_MS)
+        this.graceTimers.set(player.id, timer)
+    }
+
+    private clearGrace(player: HumanPlayer) {
+        const timer = this.graceTimers.get(player.id)
+        if (timer) {
+            clearTimeout(timer)
+            this.graceTimers.delete(player.id)
+        }
+    }
+
     addUnit(socketId: string, event: NewUnitDataEvent) {
         if (!this.playersBySocketIds[socketId] || this.playersBySocketIds[socketId].isOut || !this.gameLoop.isRunning) {
             return
@@ -152,13 +223,18 @@ export class Game {
         if (!player || !this.gameLoop.isRunning) {
             return
         }
+        this.leave(player, `${player.name} surrendered`)
+    }
+
+    /** Out of the game, by choice or by absence: the board forgets them and everyone is told why */
+    private leave(player: AbstractPlayer, announcement: string) {
         const outcome = surrenderPlayer(player, this.map, this.unitsProcessor, this.players, this.emitter)
         if (!outcome) {
             return
         }
         this.gameUpdateProcessor.enqueue(outcome)
         this.gameUpdateProcessor.refreshTownCounts()
-        this.emitter.emitMessage(`${player.name} surrendered`, player)
+        this.emitter.emitMessage(announcement, player)
     }
 
     playerMessage(playerId: string, message: string) {
@@ -203,10 +279,12 @@ export class Game {
             return true
         }
 
-        const connectedHumanPlayers = this.getConnectedHumanPlayers()
-        const deadPlayers = this.players.filter((player) => player.isOut || !player.isConnected).length
-        const oneOrNoAlivePlayers = deadPlayers >= this.players.length - 1 // one player cannot play alone
-        return connectedHumanPlayers.length === 0 || (oneOrNoAlivePlayers && this.players.length > 1) // also check if we are playing alone (in dev)
+        // A dropped player is still in the game until their grace runs out and turns into a forfeit,
+        // so only being out counts here: an empty room keeps playing for a minute, then ends itself
+        const outPlayers = this.players.filter((player) => player.isOut).length
+        const oneOrNoAlivePlayers = outPlayers >= this.players.length - 1 // one player cannot play alone
+        const everyHumanOut = this.humanPlayers.every((player) => player.isOut)
+        return everyHumanOut || (oneOrNoAlivePlayers && this.players.length > 1) // also check if we are playing alone (in dev)
     }
 
     getHumanPlayers(): HumanPlayer[] {
@@ -219,6 +297,6 @@ export class Game {
 
     getWinner(): AbstractPlayer | undefined {
         this.gameUpdateProcessor.printRuntimes()
-        return this.dominantPlayer ?? this.players.find((player) => !player.isOut && player.isConnected)
+        return this.dominantPlayer ?? this.players.find((player) => !player.isOut)
     }
 }

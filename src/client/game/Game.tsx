@@ -10,7 +10,7 @@ import FlagIcon from '@mui/icons-material/Flag'
 import { HelpDialogButton } from '../screens/HelpDialog'
 import { MessageDialog } from '../screens/MessageDialog'
 import { DeferredPromise } from '../utils/Deferred'
-import { getSocketConnectionInstance } from './SocketConnection'
+import { ConnectionPhase, getSocketConnectionInstance, newSocketConnectionInstance } from './SocketConnection'
 import { ReceivedMessage } from './chat/chatLog'
 
 type GameParams = {
@@ -23,7 +23,9 @@ export const Game = () => {
     const gameContainer = useRef<HTMLDivElement>(null)
     const [game, setGame] = useState<BatailleGame>()
     const [messageDialogOpen, setMessageDialogOpen] = useState<boolean>(false)
-    const [connectionLostOpen, setConnectionLostOpen] = useState<boolean>(false)
+    const [connectionPhase, setConnectionPhase] = useState<ConnectionPhase | null>(null)
+    /** Bumped when the seat comes back with a fresh full state: the board is rebuilt from it */
+    const [generation, setGeneration] = useState(0)
     const [deferredPromise, setDeferredPromise] = useState<null | DeferredPromise<string | null>>(null)
     const [messages, setMessages] = useState<ReceivedMessage[]>([])
     const [surrenderDialogOpen, setSurrenderDialogOpen] = useState<boolean>(false)
@@ -42,21 +44,35 @@ export const Game = () => {
     }, [blocker])
 
     useEffect(() => {
+        // Landing here without a socket means the page was reloaded mid-game: ask for the seat back
+        // instead of the lobby, and only build the board once the server has handed the game over
+        if (!getSocketConnectionInstance()) {
+            newSocketConnectionInstance(
+                () => {},
+                () => {},
+                { rejoinOnly: true }
+            )
+        }
         const socketInstance = getSocketConnectionInstance()
-        socketInstance?.setConnectionLostListener(() => setConnectionLostOpen(true))
         if (!socketInstance) {
             return
         }
+        socketInstance.setConnectionListener((phase) => {
+            setConnectionPhase(phase === 'rejoined' ? null : phase)
+            if (phase === 'rejoined') {
+                setGeneration((current) => current + 1)
+            }
+        })
         setMessages(socketInstance.getMessageLog())
         const stopListening = socketInstance.addMessageListener(() => setMessages(socketInstance.getMessageLog()))
         return () => {
-            socketInstance.setConnectionLostListener(null)
+            socketInstance.setConnectionListener(null)
             stopListening()
         }
     }, [])
 
     useEffect(() => {
-        if (gameContainer.current) {
+        if (gameContainer.current && getSocketConnectionInstance()?.gameStartData) {
             const game = new BatailleGame(gameContainer.current, gameId, () => {
                 const deferredPromise = new DeferredPromise<string | null>()
                 setMessageDialogOpen(true)
@@ -71,7 +87,7 @@ export const Game = () => {
                 BatailleGame.clearCurrentGame()
             }
         }
-    }, [gameId, gameContainer])
+    }, [gameId, gameContainer, generation])
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -150,18 +166,23 @@ export const Game = () => {
                 </DialogActions>
             </Dialog>
             <Dialog
-                open={connectionLostOpen}
+                open={connectionPhase !== null}
                 aria-labelledby="connection-lost-title"
                 aria-describedby="connection-lost-description">
-                <DialogTitle id="connection-lost-title">Connection lost</DialogTitle>
+                <DialogTitle id="connection-lost-title">
+                    {connectionPhase === 'gone' ? 'Connection lost' : 'Reconnecting…'}
+                </DialogTitle>
                 <DialogContent>
                     <DialogContentText id="connection-lost-description">
-                        The connection to the game server was interrupted (network issue or server restart). The game
-                        has ended, you will not receive any further updates.
+                        {connectionPhase === 'gone'
+                            ? 'Your seat is gone: either the game ended, or you were away for more than a minute and the others carried on without you.'
+                            : 'The connection to the game server dropped. Your seat is kept for a minute while it comes back; the game goes on meanwhile.'}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button variant="contained" onClick={() => window.location.assign('/')}>
+                    <Button
+                        variant={connectionPhase === 'gone' ? 'contained' : 'text'}
+                        onClick={() => window.location.assign('/')}>
                         Back to menu
                     </Button>
                 </DialogActions>

@@ -2,12 +2,14 @@ import { io, Socket } from 'socket.io-client'
 import { PrivateGameState, PrivateGameStateUpdate, PrivatePlayerState } from '../../server/model/GameState'
 import {
     GAME_MESSAGE,
+    GAME_REJOIN_FAILED,
     GAME_STATE_INIT,
     GAME_STATE_UPDATE,
     LOBBY_STATE,
     PLAYER_FORCE_START,
     PLAYER_JOIN_LOBBY,
     PLAYER_LOBBY_WAIT_FOR_HUMAN,
+    PLAYER_REJOIN,
 } from '../../common/SOCKET_EMIT'
 import { ExportTypeWithGameState } from '../../server/model/types/ExportType'
 import { SOCKET_URL } from './utils/clientEnv'
@@ -16,16 +18,26 @@ import { Message } from '../../server/model/types/Message'
 import { pickRandomPlayerName } from '../../utils/pickRandomPlayerName'
 import { getSavedPlayerName } from '../utils/cookie'
 import { appendMessage, ReceivedMessage } from './chat/chatLog'
+import { readSessionToken } from './session'
+
+/** lost: the socket dropped mid-game. rejoined: the seat is ours again. gone: nothing to come back to */
+export type ConnectionPhase = 'lost' | 'rejoined' | 'gone'
+
+type SocketConnectionOptions = {
+    /** Never enter the lobby: the page reloaded mid-game and only wants its seat back */
+    rejoinOnly?: boolean
+}
 
 let socketConnectionInstance: SocketConnection | null = null
 export const newSocketConnectionInstance = (
     onLobbyState: (state: LobbyState) => void,
-    onGameStart: (gameId: string) => void
+    onGameStart: (gameId: string) => void,
+    options: SocketConnectionOptions = {}
 ) => {
     if (socketConnectionInstance) {
         socketConnectionInstance.disconnect()
     }
-    socketConnectionInstance = new SocketConnection(SOCKET_URL, onLobbyState, onGameStart)
+    socketConnectionInstance = new SocketConnection(SOCKET_URL, onLobbyState, onGameStart, options)
 }
 export const getSocketConnectionInstance = () => {
     return socketConnectionInstance
@@ -40,31 +52,36 @@ export class SocketConnection {
     public gameStartData: ExportTypeWithGameState | null = null
     private messageLog: ReceivedMessage[] = []
     private messageListeners = new Set<(message: Message) => void>()
-    private connectionLostListener: (() => void) | null = null
+    private connectionListener: ((phase: ConnectionPhase) => void) | null = null
+    private readonly sessionToken = readSessionToken()
+    private readonly rejoinOnly: boolean
 
     constructor(
         protected socketUrl: string,
         protected onLobbyState: (state: LobbyState) => void,
-        protected onGameStart: (gameId: string) => void
+        protected onGameStart: (gameId: string) => void,
+        { rejoinOnly = false }: SocketConnectionOptions = {}
     ) {
+        this.rejoinOnly = rejoinOnly
         this.socket = io(socketUrl, {
             transports: ['websocket'],
             autoConnect: true,
         })
         this.socket.on('connect', () => {
-            console.log('connected')
-        })
-        this.socket.on('disconnect', (reason: string) => {
-            console.log('disconnect', reason)
-            // Intentional disconnects (exit game, lobby re-creation) are ignored.
-            // An unexpected drop means the server ended (or lost) the current game:
-            // the socket will silently reconnect but never rejoin the game, leaving a frozen UI.
-            if (reason !== 'io client disconnect' && this.gameStartData) {
-                this.connectionLostListener?.()
+            // Every connection, the first one included, says who it is. Mid-game it asks for its
+            // seat back rather than a new lobby slot: the server holds the seat for a grace period.
+            if (this.gameStartData || this.rejoinOnly) {
+                this.socket.emit(PLAYER_REJOIN, this.sessionToken)
+            } else {
+                this.socket.emit(PLAYER_JOIN_LOBBY, SocketConnection.getPlayerName(), this.sessionToken)
             }
         })
-        this.socket.on('reconnect', () => {
-            console.log('reconnect')
+        this.socket.on('disconnect', (reason: string) => {
+            // Intentional disconnects (exit game, lobby re-creation) are ignored. On an unexpected
+            // drop the socket reconnects by itself and the connect handler asks for the seat back.
+            if (reason !== 'io client disconnect' && this.gameStartData) {
+                this.connectionListener?.('lost')
+            }
         })
 
         this.handleLobbyState = this.handleLobbyState.bind(this)
@@ -76,7 +93,7 @@ export class SocketConnection {
         this.socket.on(GAME_STATE_INIT, this.handleGameInit)
         this.socket.on(GAME_STATE_UPDATE, this.handleGameState)
         this.socket.on(GAME_MESSAGE, this.handleGameMessage)
-        this.socket.emit(PLAYER_JOIN_LOBBY, SocketConnection.getPlayerName())
+        this.socket.on(GAME_REJOIN_FAILED, () => this.connectionListener?.('gone'))
     }
 
     public sendForceStart(shouldForceStart: boolean) {
@@ -92,9 +109,17 @@ export class SocketConnection {
     }
 
     private handleGameInit(data: ExportTypeWithGameState) {
-        this.onGameStart(data.gameId)
+        // A second init is the whole game handed back after a drop: whatever deltas were missed
+        // no longer matter, the full state replaces them
+        const rejoined = this.gameStartData !== null || this.rejoinOnly
         this.gameStartData = data
-        this.gameStates.push(data.gameState)
+        this.gameStates = [data.gameState]
+        this.lastGameState = data.gameState
+        if (rejoined) {
+            this.connectionListener?.('rejoined')
+        } else {
+            this.onGameStart(data.gameId)
+        }
     }
 
     private handleGameState(gameState: PrivateGameStateUpdate) {
@@ -140,8 +165,8 @@ export class SocketConnection {
         return this.latestStateMemo
     }
 
-    public setConnectionLostListener(listener: (() => void) | null) {
-        this.connectionLostListener = listener
+    public setConnectionListener(listener: ((phase: ConnectionPhase) => void) | null) {
+        this.connectionListener = listener
     }
 
     public getSocketIO() {

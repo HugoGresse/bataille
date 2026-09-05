@@ -5,6 +5,8 @@ export type NoticeLane = 'victory' | 'centre' | 'feed' | 'none'
 const COUNTRY_CAPTURE = / was captured by /
 const PLAYER_DEAD = /^Player is dead: /
 const PLAYER_SURRENDERED = / surrendered$/
+const PLAYER_FORFEITED = / gave up: connection lost$/
+const PLAYER_BACK = / is back$/
 const PLAYER_DISCONNECTED = /Player disconnected/
 const VICTORY = /^This game has been won by (.+?)(?:, (.+))?$/
 const NO_WINNER = /^No winner(?:, )?(.*)$/
@@ -27,10 +29,14 @@ export const laneFor = (message: Message, currentPlayerName: string | undefined)
     if (VICTORY.test(message.content) || NO_WINNER.test(message.content)) {
         return 'victory'
     }
-    if (PLAYER_DISCONNECTED.test(message.content)) {
+    if (PLAYER_DISCONNECTED.test(message.content) || PLAYER_BACK.test(message.content)) {
         return 'feed'
     }
-    if (PLAYER_DEAD.test(message.content) || PLAYER_SURRENDERED.test(message.content)) {
+    if (
+        PLAYER_DEAD.test(message.content) ||
+        PLAYER_SURRENDERED.test(message.content) ||
+        PLAYER_FORFEITED.test(message.content)
+    ) {
         return 'centre' // one player fewer changes the game, whoever it is and however they went
     }
     if (COUNTRY_CAPTURE.test(message.content)) {
@@ -71,6 +77,9 @@ export const feedLine = (message: Message): { actor: string; text: string } => {
     }
     if (PLAYER_DISCONNECTED.test(message.content)) {
         return { actor: message.player?.n ?? '', text: 'left' }
+    }
+    if (PLAYER_BACK.test(message.content)) {
+        return { actor: message.player?.n ?? '', text: 'is back' }
     }
     return { actor: message.player?.n ?? '', text: message.content }
 }

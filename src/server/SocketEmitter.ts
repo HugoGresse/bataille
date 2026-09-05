@@ -29,22 +29,24 @@ export class SocketEmitter {
     }
 
     async emitInitialGameState(game: Game) {
-        const gameExport = game.export()
-        const gameState = game.getState()
-
         const socketIds = await this.sockets.allSockets()
+        socketIds.forEach((socketId) => this.emitInitialGameStateTo(socketId, game))
+        this.lastGameState = game.getState()
+    }
 
-        socketIds.forEach((socketId) => {
-            const data: ExportTypeWithGameState = {
-                ...gameExport,
-                gameState: {
-                    ...gameState,
-                    cp: game.getPlayerPrivateState(socketId),
-                },
-            }
-            socketIOServer.to(socketId).emit(GAME_STATE_INIT, data)
-        })
-        this.lastGameState = gameState
+    /** The whole game as it stands, for one socket: what a player who just came back rebuilds from */
+    emitInitialGameStateTo(socketId: string, game: Game) {
+        if (!game.hasSocket(socketId)) {
+            return // in the room but not (yet) a player of this game
+        }
+        const data: ExportTypeWithGameState = {
+            ...game.export(),
+            gameState: {
+                ...game.getState(),
+                cp: game.getPlayerPrivateState(socketId),
+            },
+        }
+        socketIOServer.to(socketId).emit(GAME_STATE_INIT, data)
     }
 
     async emitGameUpdate(game: Game) {
@@ -52,6 +54,9 @@ export class SocketEmitter {
 
         const socketIds = await this.sockets.allSockets()
         socketIds.forEach((socketId) => {
+            if (!game.hasSocket(socketId)) {
+                return
+            }
             const data: PrivateGameStateUpdate = {
                 ...gameState,
                 cp: game.getPlayerPrivateStateUpdate(socketId),
