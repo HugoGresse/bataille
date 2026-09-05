@@ -3,7 +3,7 @@
  * environment must go through here rather than crash the whole client at import time.
  */
 const fromEnv = (name: string, fallback: number): number => {
-    const raw = typeof process !== 'undefined' ? process.env[name] : undefined
+    const raw = typeof process !== 'undefined' ? process.env?.[name] : undefined
     return raw ? Number(raw) : fallback
 }
 

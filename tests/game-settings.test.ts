@@ -10,8 +10,10 @@ describe('GameSettings in a browser', () => {
         vi.resetModules()
     })
 
-    it('loads without a process global and falls back to the defaults', async () => {
-        vi.stubGlobal('process', undefined)
+    it('loads without an environment and falls back to the defaults', async () => {
+        // The test runner needs `process` itself, so the browser is stood in for by a process
+        // with no environment rather than by no process at all
+        vi.stubGlobal('process', Object.create(process, { env: { value: undefined } }))
         vi.resetModules()
 
         const settings = await import('../src/common/GameSettings')
