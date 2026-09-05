@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.17",
+        "date": "2026-09-05",
+        "title": "Pinch-to-zoom on map (phone), with the same zoom limits as the scroll wheel",
+        "pr": 30
+    },
+    {
         "version": "0.17.16",
         "date": "2026-09-05",
         "title": "Let a player surrender: army disbands, towns go neutral, they stay to watch",
