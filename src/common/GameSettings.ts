@@ -9,6 +9,12 @@ export const IA_PLAYER_PER_GAME = process.env.IA_PLAYER_PER_GAME ? Number(proces
  */
 export const DOMINATION_RATIO = 0.9
 
+/**
+ * How long a dropped player keeps their seat. Long enough to survive a Wi-Fi blip or a page reload,
+ * short enough that the others are not left fighting a ghost.
+ */
+export const RECONNECT_GRACE_MS = 60_000
+
 export const IASettings = {
     updateInterval: 2000,
     randomMin: 500,

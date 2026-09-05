@@ -18,7 +18,6 @@ export class GameUpdateProcessor {
     private lastUpdatedUnits: UnitState[] = []
     private lastDeletedUnits: UnitState[] = []
     private lastChangedTownsStates: TilePublic[] = []
-    private wasFirstUnitSent = false
     /** Changes made between ticks (a surrender), carried into the next broadcast */
     private pendingDeletedUnits: UnitState[] = []
     private pendingChangedTowns: TilePublic[] = []
@@ -129,17 +128,18 @@ export class GameUpdateProcessor {
         }
     }
 
-    public getLastUpdatedUnitsStates(): UnitState[] {
-        if (!this.wasFirstUnitSent) {
-            this.wasFirstUnitSent = true
-            const unitsArrays: UnitState[] = []
-            for (const xValues of this.unitsProcessor.getUnits().values()) {
-                for (const yValue of xValues.values()) {
-                    unitsArrays.push(yValue.getPublicState())
-                }
+    /** Every stack on the board: what a client building it from nothing is sent, at start or on return */
+    public getAllUnitsStates(): UnitState[] {
+        const states: UnitState[] = []
+        for (const column of this.unitsProcessor.getUnits().values()) {
+            for (const unit of column.values()) {
+                states.push(unit.getPublicState())
             }
-            return unitsArrays
         }
+        return states
+    }
+
+    public getLastUpdatedUnitsStates(): UnitState[] {
         return this.lastUpdatedUnits
     }
     public getLastDeletedUnitsStates(): UnitState[] {

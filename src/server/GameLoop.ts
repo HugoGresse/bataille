@@ -15,7 +15,8 @@ export class GameLoop {
 
     constructor(
         protected emitter: SocketEmitter,
-        private readonly gameId: string
+        private readonly gameId: string,
+        private readonly onStop: () => void = () => {}
     ) {}
 
     start(game: Game) {
@@ -49,31 +50,12 @@ export class GameLoop {
             this.isRunning = false
             trackGameEnd(this.gameDuration)
             gameStats.recordGameEnd(this.gameId, this.gameDuration)
+            this.onStop()
         }
     }
 
     run(game: Game): { result: string; winner?: AbstractPlayer } | null {
-        const endedGame = game.update()
-
-        if (endedGame) {
-            const winner = game.getWinner()
-            if (!winner) {
-                return {
-                    result: 'No winner, all players disconnected',
-                }
-            }
-            // Say which of the two ways the game was won: being the last one standing reads for
-            // itself, holding the map does not unless the numbers come with it.
-            const byDomination = game.getDominantPlayer() === winner
-            return {
-                result: byDomination
-                    ? `This game has been won by ${winner.name}, holding ${winner.townCount} of the ${game.getTownCount()} towns`
-                    : `This game has been won by ${winner.name}`,
-                winner: winner,
-            }
-        }
-
-        return null
+        return game.update() ? game.getEndAnnouncement() : null
     }
 
     emitGameState(game: Game) {

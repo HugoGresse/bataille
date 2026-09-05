@@ -6,12 +6,14 @@ export const PLAYER_NEW_UNIT = 'c-player/newUnit'
 export const PLAYER_UNIT = 'c-player/unit'
 export const PLAYER_MESSAGE_POST = 'c-player/msg/post'
 export const PLAYER_SURRENDER = 'c-player/surrender'
+export const PLAYER_REJOIN = 'c-player/rejoin'
 
 // From server to client
 export const LOBBY_STATE = 's/lobby/state'
 export const GAME_STATE_INIT = 's/game/init'
 export const GAME_STATE_UPDATE = 's/gameState'
 export const GAME_MESSAGE = 's/gameMessage'
+export const GAME_REJOIN_FAILED = 's/game/rejoinFailed'
 
 // ADMINS
 export const ADMIN_NAMESPACE = 'stats'

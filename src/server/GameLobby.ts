@@ -25,22 +25,30 @@ export class GameLobby {
         private requiredPlayerToStart: number = MINIMUM_PLAYER_PER_GAME
     ) {}
 
-    onPlayerJoin(socket: Socket, name: string, ongoingGames: number) {
+    onPlayerJoin(socket: Socket, name: string, ongoingGames: number, sessionToken: string | null = null) {
         const socketId = socket.id
         this.ongoingGame = ongoingGames
+        // The same tab back on a new socket takes over its slot rather than doubling it: the old
+        // socket may not be seen as gone for a long while, and two slots would start a game alone
+        const stale = sessionToken ? this.waitingPlayers.find((p) => p.sessionToken === sessionToken) : undefined
+        if (stale) {
+            this.removeWaiting(stale.socketId)
+        }
         this.sockets[socketId] = socket
         socket.join(this.futureGameId)
 
         this.waitingPlayers.push({
             socketId,
             name,
+            sessionToken,
         })
         console.log(`Player join lobby, ${this.waitingPlayers.length}/${this.requiredPlayerToStart}`)
 
         socket.on('disconnect', () => {
-            delete this.sockets[socketId]
-            this.waitingPlayers = this.waitingPlayers.filter((p) => p.socketId !== socketId)
-            this.forceStartSocketIds = this.forceStartSocketIds.filter((id) => socketId !== id)
+            if (!this.waitingPlayers.some((p) => p.socketId === socketId)) {
+                return // already replaced by a newer socket of the same tab
+            }
+            this.removeWaiting(socketId)
             if (this.waitingPlayers.length === 0) {
                 this.waitForHumanPlayer = DEFAULT_SETTINGS.waitForHuman
             }
@@ -56,6 +64,12 @@ export class GameLobby {
             this.socketEmitter.emitLobbyState(this)
             this.startCountdown()
         }
+    }
+
+    private removeWaiting(socketId: string) {
+        delete this.sockets[socketId]
+        this.waitingPlayers = this.waitingPlayers.filter((p) => p.socketId !== socketId)
+        this.forceStartSocketIds = this.forceStartSocketIds.filter((id) => socketId !== id)
     }
 
     lobbyReady() {
@@ -128,6 +142,7 @@ export class GameLobby {
 export type PlayerWaiting = {
     socketId: string
     name: string
+    sessionToken: string | null
 }
 
 export type LobbyState = {
