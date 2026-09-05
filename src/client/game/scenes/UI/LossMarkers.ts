@@ -51,7 +51,8 @@ type Marker = {
  * Each loss puts an arrow at the true bearing of the town: on the town while it is in view, on the
  * viewport edge along that same line once it is not, so the direction stays readable rather than
  * being snapped to the nearest side. The label carries the name and what the loss costs per turn.
- * Clicking a marker takes the camera there.
+ * Clicking an edge marker takes the camera there. On the town itself the marker takes no clicks:
+ * the town is right there, and the click is the order sending a stack to retake it.
  */
 export class LossMarkers {
     private markers: Marker[] = []
@@ -104,6 +105,7 @@ export class LossMarkers {
             marker.arrow.setAlpha(alpha)
             marker.arrow.setVisible(!placement.onScreen)
             marker.zone.setPosition(placement.position.x, placement.position.y)
+            this.setClickable(marker, !placement.onScreen)
 
             // Keep the label inside the view: past the middle of the screen it flips to the other side
             const labelOffset = placement.position.x > width / 2 ? -1 : 1
@@ -152,9 +154,21 @@ export class LossMarkers {
             tweens: [],
             entryAlpha: 0,
         }
+        this.setClickable(marker, false) // placed, and made clickable if it belongs on the edge, by the next update
         this.paint(marker)
         this.playEntry(marker)
         return marker
+    }
+
+    /**
+     * The hit zone follows the marker, but only the edge arrow is a button. While the town is in
+     * view the zone sits right on it, and a zone that ate the pointer there would eat the move
+     * order onto the town too, which is the first thing to do about losing it.
+     */
+    private setClickable(marker: Marker, clickable: boolean) {
+        if (marker.zone.input) {
+            marker.zone.input.enabled = clickable
+        }
     }
 
     /**
