@@ -3,7 +3,7 @@ import { Game } from '../src/server/Game'
 import { HumanPlayer } from '../src/server/model/player/HumanPlayer'
 import { SocketEmitter } from '../src/server/SocketEmitter'
 import { RECONNECT_GRACE_MS } from '../src/common/GameSettings'
-import { findLiveSeat, findSeat } from '../src/server/seats'
+import { findLiveSeat, findSeat, offerFor } from '../src/server/seats'
 import { FakeSocket, fakeSocket, messages, privateMessages, threeHumanGame } from './helpers/gameFixture'
 
 describe('a dropped player keeps their seat for the grace period', () => {
@@ -161,6 +161,16 @@ describe('a dropped player keeps their seat for the grace period', () => {
         expect(messages(emitter)).not.toContain('ℹ️️ Player disconnected: alice')
     })
 
+    it('gives the seat up for a new game the way an Exit would, once asked in the lobby', () => {
+        socketA.drop() // the tab went to the menu: the drop is noticed first
+        game.giveUpSeat(alice)
+
+        expect(alice.isOut).toBe(true)
+        expect(messages(emitter)).toContain('alice left the game')
+        vi.advanceTimersByTime(RECONNECT_GRACE_MS * 2)
+        expect(messages(emitter).some((line) => line.startsWith('alice gave up'))).toBe(false)
+    })
+
     it('does not stack listeners when the same socket asks for its seat twice', () => {
         game.reattach(alice, socketA)
         game.reattach(alice, socketA)
@@ -224,6 +234,7 @@ describe('finding a seat across games', () => {
         const games = { g1: first.game }
 
         expect(findLiveSeat(games, 'token-alice')?.player).toBe(first.seats[0].player)
+        expect(offerFor(findLiveSeat(games, 'token-alice')!)).toEqual({ gameId: 'g1', playerName: 'alice' })
         expect(findLiveSeat(games, 'token-nobody')).toBeNull()
         expect(findLiveSeat(games, null)).toBeNull()
 

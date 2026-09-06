@@ -298,6 +298,14 @@ export class Game {
         this.actionsProcessor.unitEvent(this.playersBySocketIds[playerId], event)
     }
 
+    /** Asked in the lobby and chose a new game over this one: the seat goes the way an Exit sends it */
+    giveUpSeat(player: HumanPlayer) {
+        this.clearGrace(player)
+        if (this.gameLoop.isRunning && !player.isOut) {
+            this.leave(player, `${player.name} left the game`)
+        }
+    }
+
     /** The player gives up: they stay connected to watch, but nothing of theirs is left in play */
     surrender(socketId: string) {
         const player = this.playersBySocketIds[socketId]

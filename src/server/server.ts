@@ -12,6 +12,7 @@ import {
     PLAYER_SURRENDER,
     PLAYER_REJOIN,
     GAME_REJOIN_FAILED,
+    GAME_SEAT_OFFERED,
 } from '../common/SOCKET_EMIT'
 import { UnitAction } from '../common/UnitAction'
 import { pickUnusedColor } from './utils/pickUnusedColor'
@@ -27,7 +28,7 @@ import { AdminServer } from './admin/AdminServer'
 import { gameStats, hashIp } from './stats/GameStats'
 import { getClientIp } from './utils/clientIp'
 import { lookupCountry } from './utils/geoLookup'
-import { findLiveSeat, findSeat } from './seats'
+import { findLiveSeat, findSeat, offerFor } from './seats'
 
 const games: {
     [gameId: string]: Game
@@ -49,12 +50,16 @@ socketIOServer.on('connection', (socket: Socket) => {
 
 const handlePlayerJoin =
     (socket: Socket) =>
-    (playerName: string, sessionToken: string | null = null) => {
-        // A token that still holds a seat in a running game gets that seat back, not a lobby slot
+    (playerName: string, sessionToken: string | null = null, giveUpSeat = false) => {
+        // A token that still holds a seat in a running game is asked, not seated: the seat is theirs
+        // to take back (a rejoin naming the game), or to give up for a fresh lobby slot
         const seat = findLiveSeat(games, sessionToken)
-        if (seat) {
-            seat.game.reattach(seat.player, socket)
+        if (seat && !giveUpSeat) {
+            socket.emit(GAME_SEAT_OFFERED, offerFor(seat))
             return
+        }
+        if (seat) {
+            seat.game.giveUpSeat(seat.player)
         }
         if (!lobby) {
             const futureGameId = newId()

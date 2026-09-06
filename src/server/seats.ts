@@ -4,6 +4,11 @@ import { HumanPlayer } from './model/player/HumanPlayer'
 export type Seat = { game: Game; player: HumanPlayer }
 export type Games = { [gameId: string]: Game }
 
+/** What a client is told about the seat it still holds, so it can choose to take it back or not */
+export type SeatOffer = { gameId: string; playerName: string }
+
+export const offerFor = ({ game, player }: Seat): SeatOffer => ({ gameId: game.id, playerName: player.name })
+
 /**
  * A seat still in play somewhere. A client that asks for the lobby while it holds one is owed the
  * seat instead: it may never have received the game (dropped as it started) or be back from a crash.
