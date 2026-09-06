@@ -204,6 +204,20 @@ describe('finding a seat across games', () => {
         expect(findSeat(games, 'g1', 'token-alice')?.player).toBe(alice1) // out, but still a seat to watch from
     })
 
+    it('holds no live seat in a finished game: the winner asking for the lobby gets the lobby', () => {
+        vi.useFakeTimers()
+        const first = threeHumanGame()
+        const games = { g1: first.game }
+        first.game.surrender('sock-bob')
+        first.game.surrender('sock-carol')
+        vi.advanceTimersByTime(200) // the tick that calls the game for alice
+
+        expect(first.game.hasEnded()).toBe(true)
+        expect(findLiveSeat(games, 'token-alice')).toBeNull()
+        // The game's own page still shows her how it ended
+        expect(findSeat(games, 'g1', 'token-alice')?.player).toBe(first.seats[0].player)
+    })
+
     it('answers a lobby join with a live seat only, whichever game holds it', () => {
         vi.useFakeTimers()
         const first = threeHumanGame()

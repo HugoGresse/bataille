@@ -75,6 +75,11 @@ export class Game {
         return this.dominantPlayer
     }
 
+    /** Called and over: the room only lingers for late-comers to be told the result */
+    hasEnded(): boolean {
+        return this.ended
+    }
+
     getGameStartTime(): number {
         return this.gameLoop.gameStartTS
     }
