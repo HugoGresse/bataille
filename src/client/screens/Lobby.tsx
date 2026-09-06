@@ -32,6 +32,12 @@ export const Lobby = () => {
         getSocketConnectionInstance()?.giveUpSeat()
     }
 
+    // The offered seat expired before "Resume" landed: drop the dialog and take a normal lobby slot
+    const onResumeFailed = () => {
+        setSeatOffer(null)
+        getSocketConnectionInstance()?.giveUpSeat()
+    }
+
     const onForceStartPress = () => {
         const forceStartValue = !forceStart
         setForceStart(forceStartValue)
@@ -50,7 +56,7 @@ export const Lobby = () => {
             (gameId: string) => {
                 navigate(`/g/${gameId}/`)
             },
-            { onSeatOffered: setSeatOffer }
+            { onSeatOffered: setSeatOffer, onResumeFailed }
         )
     }, [navigate])
 

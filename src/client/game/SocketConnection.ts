@@ -36,6 +36,8 @@ type SocketConnectionOptions = {
     rejoinGameId?: string
     /** The lobby was asked for while a seat is still held elsewhere: the seat is offered, not forced */
     onSeatOffered?: (offer: SeatOffer) => void
+    /** A "resume" answer found the seat already gone (forfeited under the dialog, or the game ended) */
+    onResumeFailed?: () => void
 }
 
 let socketConnectionInstance: SocketConnection | null = null
@@ -72,7 +74,7 @@ export class SocketConnection {
         protected socketUrl: string,
         protected onLobbyState: (state: LobbyState) => void,
         protected onGameStart: (gameId: string) => void,
-        { rejoinGameId, onSeatOffered }: SocketConnectionOptions = {}
+        { rejoinGameId, onSeatOffered, onResumeFailed }: SocketConnectionOptions = {}
     ) {
         this.rejoinGameId = rejoinGameId ?? null
         this.socket = io(socketUrl, {
@@ -112,13 +114,22 @@ export class SocketConnection {
         this.socket.on(GAME_STATE_INIT, this.handleGameInit)
         this.socket.on(GAME_STATE_UPDATE, this.handleGameState)
         this.socket.on(GAME_MESSAGE, this.handleGameMessage)
-        this.socket.on(GAME_REJOIN_FAILED, () => this.giveUp())
+        this.socket.on(GAME_REJOIN_FAILED, () => {
+            // On the game page a failed rejoin means the seat is truly gone; in the lobby it means
+            // the offer we tried to take back expired, so recover to a fresh slot instead of hanging.
+            if (this.gameStartData || this.rejoinGameId) {
+                this.giveUp()
+            } else {
+                onResumeFailed?.()
+            }
+        })
         this.socket.on(GAME_SEAT_OFFERED, (offer: SeatOffer) => onSeatOffered?.(offer))
     }
 
-    /** Take the offered seat back: the game hands itself over, and the page moves there */
+    /** Take the offered seat back, but only while it is still live: a seat forfeited under the dialog
+     *  is refused (GAME_REJOIN_FAILED) rather than rejoined as an armyless spectator */
     public resumeSeat(gameId: string) {
-        this.socket.emit(PLAYER_REJOIN, this.sessionToken, gameId)
+        this.socket.emit(PLAYER_REJOIN, this.sessionToken, gameId, true)
     }
 
     /** Decline the offered seat: it is given up in that game, and this tab queues afresh */

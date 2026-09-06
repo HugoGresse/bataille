@@ -28,7 +28,7 @@ import { AdminServer } from './admin/AdminServer'
 import { gameStats, hashIp } from './stats/GameStats'
 import { getClientIp } from './utils/clientIp'
 import { lookupCountry } from './utils/geoLookup'
-import { findLiveSeat, findSeat, offerFor } from './seats'
+import { findRecoverableSeat, findSeat, offerFor } from './seats'
 
 const games: {
     [gameId: string]: Game
@@ -51,9 +51,10 @@ socketIOServer.on('connection', (socket: Socket) => {
 const handlePlayerJoin =
     (socket: Socket) =>
     (playerName: string, sessionToken: string | null = null, giveUpSeat = false) => {
-        // A token that still holds a seat in a running game is asked, not seated: the seat is theirs
-        // to take back (a rejoin naming the game), or to give up for a fresh lobby slot
-        const seat = findLiveSeat(games, sessionToken)
+        // A dropped seat still in play is offered back, not forced: the client takes it (a rejoin
+        // naming the game) or gives it up for a fresh slot. A seat still held on a live socket - a
+        // duplicated tab carries the same token - is left alone, not this join's to reclaim.
+        const seat = findRecoverableSeat(games, sessionToken)
         if (seat && !giveUpSeat) {
             socket.emit(GAME_SEAT_OFFERED, offerFor(seat))
             return
@@ -77,15 +78,31 @@ const handlePlayerJoin =
         lobby.onPlayerJoin(socket, playerName, Object.keys(games).length, sessionToken)
     }
 
-/** A client back from a drop or a reload, naming the game it was on: hand it that seat, or say no */
-const handlePlayerRejoin = (socket: Socket) => (sessionToken: string, gameId?: string) => {
-    const seat = findSeat(games, gameId, sessionToken)
-    if (seat) {
-        seat.game.reattach(seat.player, socket)
-        return
+/**
+ * A client naming the game it was on. A reload wants its seat back in whatever state it is, a
+ * spectator's included; a lobby "resume" (liveOnly) wants it only while it is still live, so a seat
+ * forfeited under the offer dialog is refused rather than handed back as an armyless spectator.
+ */
+const handlePlayerRejoin =
+    (socket: Socket) =>
+    (sessionToken: string, gameId?: string, liveOnly = false) => {
+        if (liveOnly) {
+            const game = gameId ? games[gameId] : undefined
+            const player = game?.findLiveSeat(sessionToken)
+            if (game && player) {
+                game.reattach(player, socket)
+                return
+            }
+            socket.emit(GAME_REJOIN_FAILED)
+            return
+        }
+        const seat = findSeat(games, gameId, sessionToken)
+        if (seat) {
+            seat.game.reattach(seat.player, socket)
+            return
+        }
+        socket.emit(GAME_REJOIN_FAILED)
     }
-    socket.emit(GAME_REJOIN_FAILED)
-}
 
 const handlePlayerForceStart = (socket: Socket) => (shouldForceStart: boolean) => {
     if (lobby) {

@@ -3,7 +3,7 @@ import { Game } from '../src/server/Game'
 import { HumanPlayer } from '../src/server/model/player/HumanPlayer'
 import { SocketEmitter } from '../src/server/SocketEmitter'
 import { RECONNECT_GRACE_MS } from '../src/common/GameSettings'
-import { findLiveSeat, findSeat, offerFor } from '../src/server/seats'
+import { findLiveSeat, findRecoverableSeat, findSeat, offerFor } from '../src/server/seats'
 import { FakeSocket, fakeSocket, messages, privateMessages, threeHumanGame } from './helpers/gameFixture'
 
 describe('a dropped player keeps their seat for the grace period', () => {
@@ -222,10 +222,28 @@ describe('finding a seat across games', () => {
         first.game.surrender('sock-carol')
         vi.advanceTimersByTime(200) // the tick that calls the game for alice
 
-        expect(first.game.hasEnded()).toBe(true)
+        expect(first.game.getEndAnnouncement()).not.toBeNull()
         expect(findLiveSeat(games, 'token-alice')).toBeNull()
+        expect(first.game.findLiveSeat('token-alice')).toBeUndefined()
         // The game's own page still shows her how it ended
         expect(findSeat(games, 'g1', 'token-alice')?.player).toBe(first.seats[0].player)
+    })
+
+    it('offers a dropped seat back, but never one still held on a live socket (a duplicated tab)', () => {
+        vi.useFakeTimers()
+        const first = threeHumanGame()
+        const games = { g1: first.game }
+        const alice = first.seats[0].player
+
+        // Still connected and playing: the same token from another tab must not be able to reclaim
+        // or forfeit it
+        expect(findRecoverableSeat(games, 'token-alice')).toBeNull()
+
+        first.seats[0].socket.drop() // her socket drops: now the seat is hers to take back
+        expect(findRecoverableSeat(games, 'token-alice')?.player).toBe(alice)
+
+        first.game.giveUpSeat(alice) // "New game": the dropped seat is forfeited
+        expect(findRecoverableSeat(games, 'token-alice')).toBeNull()
     })
 
     it('answers a lobby join with a live seat only, whichever game holds it', () => {

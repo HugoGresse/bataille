@@ -18,15 +18,3 @@ export const readSessionToken = (): string => {
         return crypto.randomUUID()
     }
 }
-
-/**
- * Leaving on purpose - the Exit button, back to the menu - is not a crash to recover from: the next
- * page starts as a stranger, so no lobby handshake hands the old seat back.
- */
-export const forgetSessionToken = (): void => {
-    try {
-        window.sessionStorage.removeItem(STORAGE_KEY)
-    } catch {
-        // storage blocked: there was nothing kept to forget
-    }
-}

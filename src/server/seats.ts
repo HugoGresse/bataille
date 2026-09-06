@@ -17,15 +17,22 @@ export const offerFor = ({ game, player }: Seat): SeatOffer => ({ gameId: game.i
  */
 export const findLiveSeat = (games: Games, sessionToken: string | null): Seat | null => {
     for (const game of Object.values(games)) {
-        if (game.hasEnded()) {
-            continue
-        }
-        const player = game.findSeat(sessionToken)
-        if (player && !player.isOut) {
+        const player = game.findLiveSeat(sessionToken)
+        if (player) {
             return { game, player }
         }
     }
     return null
+}
+
+/**
+ * A live seat whose player has dropped: the one the lobby offers back. A seat still held on a live
+ * socket - a duplicated tab carries the same token - is not recoverable: offering it would let one
+ * click forfeit a game somebody is actively playing.
+ */
+export const findRecoverableSeat = (games: Games, sessionToken: string | null): Seat | null => {
+    const seat = findLiveSeat(games, sessionToken)
+    return seat && !seat.player.isConnected ? seat : null
 }
 
 /**
