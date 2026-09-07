@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.21",
+        "date": "2026-09-07",
+        "title": "Players are now asked to resume or give up seat when joining lobby from an active game",
+        "pr": 35
+    },
+    {
         "version": "0.17.20",
         "date": "2026-09-07",
         "title": "Left games no longer keep you seated after winning",
