@@ -21,11 +21,14 @@ export class Spectators {
 }
 
 /**
- * The "current player" a spectator is handed: no colour matches any unit and no name matches any
- * town, so nothing is selectable or musterable, and the surrender flag marks the HUD as a watcher.
+ * The "current player" a spectator is handed: it owns nothing, so the client renders read-only. The
+ * name and colour are empty on purpose - no unit carries an empty colour and no player name is empty
+ * (names are 2-20 chars), and the client's town-ownership check bails on an empty name - so neither
+ * can collide with a real player the way a display string like "Spectator" could. The surrender flag
+ * marks the HUD as a watcher.
  */
 export const spectatorPrivateState = (): PrivatePlayerState => ({
-    n: 'Spectator',
+    n: '',
     i: 0,
     c: '',
     ctr: [],

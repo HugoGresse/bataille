@@ -33,7 +33,8 @@ describe('an admin watching a game without a seat', () => {
 
     it('is handed a current player that owns nothing, so the client stays read-only', () => {
         const cp = game.getViewerPrivateState('watch-1')
-        expect(cp).toMatchObject({ n: 'Spectator', c: '', s: true, m: 0 })
+        // Empty name + colour so nothing the client keys ownership on can match a real player
+        expect(cp).toMatchObject({ n: '', c: '', s: true, m: 0 })
         expect(game.getViewerPrivateStateUpdate('watch-1')).toEqual({ m: 0 })
     })
 
