@@ -16,6 +16,7 @@ import { PlayersById } from './model/types/PlayersById'
 import { IncomeDispatcher } from './model/income/IncomeDispatcher'
 import { INCOME_MS, RECONNECT_GRACE_MS } from '../common/GameSettings'
 import { findDominantPlayer, townsToWin } from './engine/domination'
+import { Spectators, viewerPrivateState, viewerPrivateStateUpdate } from './Spectators'
 import { surrenderPlayer } from './engine/surrender'
 import { Socket } from 'socket.io'
 
@@ -37,6 +38,7 @@ export class Game {
     private dominantPlayer: AbstractPlayer | null = null
     /** One clock per dropped human: when it runs out, the game moves on without them */
     private graceTimers = new Map<string, NodeJS.Timeout>()
+    private readonly spectators = new Spectators()
     private abandonedListener: (() => void) | null = null
     /** Several grace clocks can run out in the same instant; the room is only declared empty once */
     private abandoned = false
@@ -138,11 +140,24 @@ export class Game {
         return !!this.playersBySocketIds[socketId]
     }
 
-    getPlayerPrivateState(socketId: string): PrivatePlayerState {
-        return this.playersBySocketIds[socketId].getPrivatePlayerState()
+    /** Add an admin watching without a seat: joined to the room and sent the board, owning nothing */
+    addSpectator(socket: Socket) {
+        socket.join(this.id)
+        this.spectators.add(socket)
+        this.emitter.emitInitialGameStateTo(socket.id, this)
     }
-    getPlayerPrivateStateUpdate(socketId: string): PrivatePlayerStateUpdate {
-        return this.playersBySocketIds[socketId].getPrivatePlayerStateUpdate()
+
+    /** A player or a spectator: everyone the state emitters send the board to */
+    hasViewer(socketId: string): boolean {
+        return this.hasSocket(socketId) || this.spectators.has(socketId)
+    }
+
+    getViewerPrivateState(socketId: string): PrivatePlayerState {
+        return viewerPrivateState(this.playersBySocketIds[socketId])
+    }
+
+    getViewerPrivateStateUpdate(socketId: string): PrivatePlayerStateUpdate {
+        return viewerPrivateStateUpdate(this.playersBySocketIds[socketId])
     }
 
     addPlayer(player: AbstractPlayer, socketId: string) {

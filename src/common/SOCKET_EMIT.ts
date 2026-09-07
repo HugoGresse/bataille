@@ -7,6 +7,8 @@ export const PLAYER_UNIT = 'c-player/unit'
 export const PLAYER_MESSAGE_POST = 'c-player/msg/post'
 export const PLAYER_SURRENDER = 'c-player/surrender'
 export const PLAYER_REJOIN = 'c-player/rejoin'
+/** An admin watching a game without a seat: view-only, gated by the admin key */
+export const PLAYER_SPECTATE = 'c-player/spectate'
 
 // From server to client
 export const LOBBY_STATE = 's/lobby/state'
