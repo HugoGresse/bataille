@@ -7,9 +7,14 @@ export type Games = { [gameId: string]: Game }
 /**
  * A seat still in play somewhere. A client that asks for the lobby while it holds one is owed the
  * seat instead: it may never have received the game (dropped as it started) or be back from a crash.
+ * A finished game holds no such seat: its winner asking for the lobby wants the next game, not the
+ * last one replayed at them for the minute the room lingers.
  */
 export const findLiveSeat = (games: Games, sessionToken: string | null): Seat | null => {
     for (const game of Object.values(games)) {
+        if (game.hasEnded()) {
+            continue
+        }
         const player = game.findSeat(sessionToken)
         if (player && !player.isOut) {
             return { game, player }

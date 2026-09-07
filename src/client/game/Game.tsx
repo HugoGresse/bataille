@@ -11,10 +11,17 @@ import { HelpDialogButton } from '../screens/HelpDialog'
 import { MessageDialog } from '../screens/MessageDialog'
 import { DeferredPromise } from '../utils/Deferred'
 import { ConnectionPhase, getSocketConnectionInstance, newSocketConnectionInstance } from './SocketConnection'
+import { forgetSessionToken } from './session'
 import { ReceivedMessage } from './chat/chatLog'
 
 type GameParams = {
     gameId: string
+}
+
+/** The menu is a fresh start: whatever seat this tab held is not asked for again */
+const leaveForMenu = () => {
+    forgetSessionToken()
+    window.location.assign('/')
 }
 
 export const Game = () => {
@@ -100,7 +107,7 @@ export const Game = () => {
                         // Leaving on purpose gives the seat up now, instead of leaving a ghost for a minute
                         event.preventDefault()
                         getSocketConnectionInstance()?.disconnect()
-                        window.location.assign('/')
+                        leaveForMenu()
                     }}>
                     Exit game
                 </Button>
@@ -189,9 +196,7 @@ export const Game = () => {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button
-                        variant={connectionPhase === 'gone' ? 'contained' : 'text'}
-                        onClick={() => window.location.assign('/')}>
+                    <Button variant={connectionPhase === 'gone' ? 'contained' : 'text'} onClick={leaveForMenu}>
                         Back to menu
                     </Button>
                 </DialogActions>
