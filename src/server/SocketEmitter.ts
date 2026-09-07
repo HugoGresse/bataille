@@ -41,14 +41,14 @@ export class SocketEmitter {
      * stacks that have not moved in a while too.
      */
     emitInitialGameStateTo(socketId: string, game: Game, snapshot = this.snapshotOf(game)) {
-        if (!game.hasSocket(socketId)) {
-            return // in the room but not (yet) a player of this game
+        if (!game.hasViewer(socketId)) {
+            return // in the room but neither a player nor a spectator of this game
         }
         const data: ExportTypeWithGameState = {
             ...snapshot.gameExport,
             gameState: {
                 ...snapshot.gameState,
-                cp: game.getPlayerPrivateState(socketId),
+                cp: game.getViewerPrivateState(socketId),
             },
         }
         socketIOServer.to(socketId).emit(GAME_STATE_INIT, data)
@@ -64,12 +64,12 @@ export class SocketEmitter {
 
         const socketIds = await this.sockets.allSockets()
         socketIds.forEach((socketId) => {
-            if (!game.hasSocket(socketId)) {
+            if (!game.hasViewer(socketId)) {
                 return
             }
             const data: PrivateGameStateUpdate = {
                 ...gameState,
-                cp: game.getPlayerPrivateStateUpdate(socketId),
+                cp: game.getViewerPrivateStateUpdate(socketId),
             }
             socketIOServer.to(socketId).emit(GAME_STATE_UPDATE, data)
         })

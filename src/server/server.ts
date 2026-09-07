@@ -11,6 +11,7 @@ import {
     PLAYER_LOBBY_WAIT_FOR_HUMAN,
     PLAYER_SURRENDER,
     PLAYER_REJOIN,
+    PLAYER_SPECTATE,
     GAME_REJOIN_FAILED,
     GAME_SEAT_OFFERED,
 } from '../common/SOCKET_EMIT'
@@ -18,7 +19,7 @@ import { UnitAction } from '../common/UnitAction'
 import { pickUnusedColor } from './utils/pickUnusedColor'
 import { NewUnitDataEvent } from '../common/NewUnitDataEvent'
 import { socketIOServer } from './utils/io'
-import { PORT } from './utils/serverEnv'
+import { ADMIN_KEY, PORT } from './utils/serverEnv'
 import { GameLobby, PlayerWaiting } from './GameLobby'
 import { SocketEmitter } from './SocketEmitter'
 import { trackGameStart } from './utils/trackings'
@@ -46,6 +47,7 @@ socketIOServer.on('connection', (socket: Socket) => {
     socket.on(PLAYER_MESSAGE_POST, handlePlayerPostMessage(socket))
     socket.on(PLAYER_SURRENDER, handlePlayerSurrender(socket))
     socket.on(PLAYER_REJOIN, handlePlayerRejoin(socket))
+    socket.on(PLAYER_SPECTATE, handlePlayerSpectate(socket))
 })
 
 const handlePlayerJoin =
@@ -103,6 +105,23 @@ const handlePlayerRejoin =
         }
         socket.emit(GAME_REJOIN_FAILED)
     }
+
+/**
+ * An admin watching a game without playing. Gated by the admin key (the same secret the /stats
+ * dashboard uses); a wrong or missing key is refused rather than seated.
+ */
+const handlePlayerSpectate = (socket: Socket) => (gameId: string, token: string) => {
+    if (!ADMIN_KEY || token !== ADMIN_KEY) {
+        socket.emit(GAME_REJOIN_FAILED)
+        return
+    }
+    const game = games[gameId]
+    if (!game) {
+        socket.emit(GAME_REJOIN_FAILED)
+        return
+    }
+    game.addSpectator(socket)
+}
 
 const handlePlayerForceStart = (socket: Socket) => (shouldForceStart: boolean) => {
     if (lobby) {

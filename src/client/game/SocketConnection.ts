@@ -11,6 +11,7 @@ import {
     PLAYER_JOIN_LOBBY,
     PLAYER_LOBBY_WAIT_FOR_HUMAN,
     PLAYER_REJOIN,
+    PLAYER_SPECTATE,
 } from '../../common/SOCKET_EMIT'
 import { ExportTypeWithGameState } from '../../server/model/types/ExportType'
 import { SOCKET_URL } from './utils/clientEnv'
@@ -38,6 +39,8 @@ type SocketConnectionOptions = {
     onSeatOffered?: (offer: SeatOffer) => void
     /** A "resume" answer found the seat already gone (forfeited under the dialog, or the game ended) */
     onResumeFailed?: () => void
+    /** Watch a game without a seat: view-only, gated by the admin key */
+    spectate?: { gameId: string; token: string }
 }
 
 let socketConnectionInstance: SocketConnection | null = null
@@ -67,6 +70,7 @@ export class SocketConnection {
     private connectionListener: ((phase: ConnectionPhase) => void) | null = null
     private readonly sessionToken = readSessionToken()
     private readonly rejoinGameId: string | null
+    private readonly spectate: { gameId: string; token: string } | null
     /** Armed whenever a seat is being waited for; a server that never answers is not waited on forever */
     private giveUpTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -74,9 +78,10 @@ export class SocketConnection {
         protected socketUrl: string,
         protected onLobbyState: (state: LobbyState) => void,
         protected onGameStart: (gameId: string) => void,
-        { rejoinGameId, onSeatOffered, onResumeFailed }: SocketConnectionOptions = {}
+        { rejoinGameId, onSeatOffered, onResumeFailed, spectate }: SocketConnectionOptions = {}
     ) {
         this.rejoinGameId = rejoinGameId ?? null
+        this.spectate = spectate ?? null
         this.socket = io(socketUrl, {
             transports: ['websocket'],
             autoConnect: true,
@@ -87,7 +92,9 @@ export class SocketConnection {
             // grace period. The lobby handshake on the server side also hands a live seat back, so
             // a client that never received its game still lands in it.
             const gameId = this.gameStartData?.gameId ?? this.rejoinGameId
-            if (gameId) {
+            if (this.spectate) {
+                this.socket.emit(PLAYER_SPECTATE, this.spectate.gameId, this.spectate.token)
+            } else if (gameId) {
                 this.socket.emit(PLAYER_REJOIN, this.sessionToken, gameId)
             } else {
                 this.socket.emit(PLAYER_JOIN_LOBBY, SocketConnection.getPlayerName(), this.sessionToken)
@@ -101,7 +108,7 @@ export class SocketConnection {
                 this.armGiveUp(RECONNECT_GRACE_MS + GIVE_UP_MARGIN_MS)
             }
         })
-        if (this.rejoinGameId) {
+        if (this.rejoinGameId || this.spectate) {
             this.armGiveUp(REJOIN_TIMEOUT_MS)
         }
 
@@ -117,7 +124,7 @@ export class SocketConnection {
         this.socket.on(GAME_REJOIN_FAILED, () => {
             // On the game page a failed rejoin means the seat is truly gone; in the lobby it means
             // the offer we tried to take back expired, so recover to a fresh slot instead of hanging.
-            if (this.gameStartData || this.rejoinGameId) {
+            if (this.gameStartData || this.rejoinGameId || this.spectate) {
                 this.giveUp()
             } else {
                 onResumeFailed?.()
@@ -170,7 +177,7 @@ export class SocketConnection {
         // A second init is the whole game handed back after a drop: whatever deltas were missed
         // no longer matter, the full state replaces them
         this.clearGiveUp()
-        const rejoined = this.gameStartData !== null || this.rejoinGameId !== null
+        const rejoined = this.gameStartData !== null || this.rejoinGameId !== null || this.spectate !== null
         this.gameStartData = data
         this.gameStates = [data.gameState]
         this.lastGameState = data.gameState
@@ -212,7 +219,9 @@ export class SocketConnection {
             return this.latestStateMemo
         }
         const privatePlayerState: PrivatePlayerState = this.gameStartData!.gameState!.cp
-        const currentUserIncome = this.lastGameState.ps.find((p) => p.n === privatePlayerState.n)!.i
+        // A spectator has no row in `ps`, so fall back to its own (zero) income rather than deref undefined
+        const currentUserIncome =
+            this.lastGameState.ps.find((p) => p.n === privatePlayerState.n)?.i ?? privatePlayerState.i
         this.latestStateMemoSource = this.lastGameState
         this.latestStateMemo = {
             ...this.lastGameState,

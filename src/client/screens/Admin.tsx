@@ -4,6 +4,7 @@ import { SOCKET_URL } from '../game/utils/clientEnv'
 import { ADMIN_ACTION, ADMIN_STATS, ADMIN_UPDATE, AdminActionsTypes } from '../../common/SOCKET_EMIT'
 import { useQuery } from '../utils/hooks/useQuery'
 import {
+    Button,
     Card,
     CardContent,
     Container,
@@ -228,6 +229,15 @@ export const Admin = () => {
                                         <Typography>
                                             <b>Duration:</b> <b>{game.duration}</b> minutes
                                         </Typography>
+                                        <Button
+                                            size="small"
+                                            variant="outlined"
+                                            sx={{ mt: 1 }}
+                                            href={`/g/${game.id}?spectate=${encodeURIComponent(queryToken ?? '')}`}
+                                            target="_blank"
+                                            rel="noreferrer">
+                                            Watch
+                                        </Button>
                                     </Grid>
                                     <Grid size={{ xs: 6 }}>
                                         <Typography>

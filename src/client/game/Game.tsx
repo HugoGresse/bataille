@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { BatailleGame } from './BatailleGame'
 import '../screens/game.css'
-import { useBlocker, useParams } from 'react-router-dom'
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
+import { useBlocker, useParams, useSearchParams } from 'react-router-dom'
+import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
 import BackIcon from '@mui/icons-material/ArrowBack'
 import FeedbackIcon from '@mui/icons-material/Feedback'
@@ -27,6 +27,9 @@ const leaveForMenu = () => {
 
 export const Game = () => {
     const { gameId } = useParams<GameParams>()
+    const [searchParams] = useSearchParams()
+    const spectateToken = searchParams.get('spectate')
+    const isSpectator = !!spectateToken
     const gameTopContainer = useRef<HTMLDivElement>(null)
     const gameContainer = useRef<HTMLDivElement>(null)
     const [game, setGame] = useState<BatailleGame>()
@@ -58,7 +61,7 @@ export const Game = () => {
             newSocketConnectionInstance(
                 () => {},
                 () => {},
-                { rejoinGameId: gameId }
+                spectateToken && gameId ? { spectate: { gameId, token: spectateToken } } : { rejoinGameId: gameId }
             )
         }
         const socketInstance = getSocketConnectionInstance()
@@ -77,7 +80,7 @@ export const Game = () => {
             socketInstance.setConnectionListener(null)
             stopListening()
         }
-    }, [gameId])
+    }, [gameId, spectateToken])
 
     useEffect(() => {
         if (gameContainer.current && getSocketConnectionInstance()?.gameStartData) {
@@ -102,13 +105,18 @@ export const Game = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', margin: 1 }}>
                 <Button
                     color="secondary"
-                    href="/"
+                    href={isSpectator ? `/admin?token=${encodeURIComponent(spectateToken!)}` : '/'}
                     startIcon={<BackIcon />}
                     onClick={(event) => {
                         event.preventDefault()
-                        leaveForMenu()
+                        if (isSpectator) {
+                            getSocketConnectionInstance()?.disconnect()
+                            window.location.assign(`/admin?token=${encodeURIComponent(spectateToken!)}`)
+                        } else {
+                            leaveForMenu()
+                        }
                     }}>
-                    Exit game
+                    {isSpectator ? 'Back to admin' : 'Exit game'}
                 </Button>
                 <div>
                     <Button
@@ -119,14 +127,18 @@ export const Game = () => {
                         Discord (feedbacks/news)
                     </Button>{' '}
                     <HelpDialogButton color="secondary" buttonText={'HELP'} />{' '}
-                    <Button
-                        color="secondary"
-                        variant="outlined"
-                        disabled={surrendered}
-                        onClick={() => setSurrenderDialogOpen(true)}
-                        startIcon={<FlagIcon />}>
-                        {surrendered ? 'Surrendered' : 'Surrender'}
-                    </Button>{' '}
+                    {isSpectator ? (
+                        <Chip color="secondary" variant="outlined" label="Spectating (admin)" sx={{ mx: 0.5 }} />
+                    ) : (
+                        <Button
+                            color="secondary"
+                            variant="outlined"
+                            disabled={surrendered}
+                            onClick={() => setSurrenderDialogOpen(true)}
+                            startIcon={<FlagIcon />}>
+                            {surrendered ? 'Surrendered' : 'Surrender'}
+                        </Button>
+                    )}{' '}
                     <Button
                         color="secondary"
                         variant="outlined"
