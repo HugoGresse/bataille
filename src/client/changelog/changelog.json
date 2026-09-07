@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.20",
+        "date": "2026-09-07",
+        "title": "Left games no longer keep you seated after winning",
+        "pr": 34
+    },
+    {
         "version": "0.17.19",
         "date": "2026-09-05",
         "title": "Domination win now fires immediately when 90% of towns are held",
