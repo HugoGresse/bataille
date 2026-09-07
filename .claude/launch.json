@@ -16,6 +16,12 @@
         {
             "name": "web-attach",
             "url": "http://localhost:3000"
+        },
+        {
+            "name": "web-alt",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "start", "--", "--port", "3033", "--strictPort"],
+            "port": 3033
         }
     ]
 }
