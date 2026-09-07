@@ -75,9 +75,13 @@ export class Game {
         return this.dominantPlayer
     }
 
-    /** Called and over: the room only lingers for late-comers to be told the result */
-    hasEnded(): boolean {
-        return this.ended
+    /** The seat this token holds while the game is still being played and not yet forfeited */
+    findLiveSeat(sessionToken: string | null): HumanPlayer | undefined {
+        if (!this.gameLoop.isRunning) {
+            return undefined
+        }
+        const player = this.findSeat(sessionToken)
+        return player && !player.isOut ? player : undefined
     }
 
     getGameStartTime(): number {
@@ -234,9 +238,9 @@ export class Game {
      */
     private onHumanDropped(player: HumanPlayer, reason: string) {
         const intentional = reason === 'client namespace disconnect'
-        if (intentional && this.gameLoop.isRunning && !player.isOut) {
-            this.leave(player, `${player.name} left the game`)
-        } else if (!intentional) {
+        if (intentional) {
+            this.giveUpSeat(player)
+        } else {
             this.emitter.emitMessage(`ℹ️️ Player disconnected: ${player.name}`, player)
         }
         this.startGrace(player)
@@ -296,6 +300,14 @@ export class Game {
             return
         }
         this.actionsProcessor.unitEvent(this.playersBySocketIds[playerId], event)
+    }
+
+    /** Asked in the lobby and chose a new game over this one: the seat goes the way an Exit sends it */
+    giveUpSeat(player: HumanPlayer) {
+        this.clearGrace(player)
+        if (this.gameLoop.isRunning && !player.isOut) {
+            this.leave(player, `${player.name} left the game`)
+        }
     }
 
     /** The player gives up: they stay connected to watch, but nothing of theirs is left in play */

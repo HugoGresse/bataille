@@ -11,16 +11,17 @@ import { HelpDialogButton } from '../screens/HelpDialog'
 import { MessageDialog } from '../screens/MessageDialog'
 import { DeferredPromise } from '../utils/Deferred'
 import { ConnectionPhase, getSocketConnectionInstance, newSocketConnectionInstance } from './SocketConnection'
-import { forgetSessionToken } from './session'
 import { ReceivedMessage } from './chat/chatLog'
 
 type GameParams = {
     gameId: string
 }
 
-/** The menu is a fresh start: whatever seat this tab held is not asked for again */
+/** Leaving on purpose closes the socket first, so the seat is given up at once rather than left a
+ *  ghost for a minute; if the socket is already down the server still holds the seat, and the next
+ *  visit is offered it back rather than silently reseated. */
 const leaveForMenu = () => {
-    forgetSessionToken()
+    getSocketConnectionInstance()?.disconnect()
     window.location.assign('/')
 }
 
@@ -104,9 +105,7 @@ export const Game = () => {
                     href="/"
                     startIcon={<BackIcon />}
                     onClick={(event) => {
-                        // Leaving on purpose gives the seat up now, instead of leaving a ghost for a minute
                         event.preventDefault()
-                        getSocketConnectionInstance()?.disconnect()
                         leaveForMenu()
                     }}>
                     Exit game

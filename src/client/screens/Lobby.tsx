@@ -7,6 +7,8 @@ import { ArrowBack } from '@mui/icons-material'
 import { LobbyState } from '../../server/GameLobby'
 import { HelpDialogButton } from './HelpDialog'
 import { ChangelogPanel } from './ChangelogPanel'
+import { SeatOfferDialog } from './SeatOfferDialog'
+import { SeatOffer } from '../../server/seats'
 
 export const Lobby = () => {
     const navigate = useNavigate()
@@ -19,6 +21,22 @@ export const Lobby = () => {
         waitForHuman: false,
     })
     const [forceStart, setForceStart] = useState(false)
+    const [seatOffer, setSeatOffer] = useState<SeatOffer | null>(null)
+
+    const onResumeSeat = (gameId: string) => {
+        getSocketConnectionInstance()?.resumeSeat(gameId)
+    }
+
+    const onGiveUpSeat = () => {
+        setSeatOffer(null)
+        getSocketConnectionInstance()?.giveUpSeat()
+    }
+
+    // The offered seat expired before "Resume" landed: drop the dialog and take a normal lobby slot
+    const onResumeFailed = () => {
+        setSeatOffer(null)
+        getSocketConnectionInstance()?.giveUpSeat()
+    }
 
     const onForceStartPress = () => {
         const forceStartValue = !forceStart
@@ -37,7 +55,8 @@ export const Lobby = () => {
             },
             (gameId: string) => {
                 navigate(`/g/${gameId}/`)
-            }
+            },
+            { onSeatOffered: setSeatOffer, onResumeFailed }
         )
     }, [navigate])
 
@@ -113,6 +132,7 @@ export const Lobby = () => {
                 <DonatingBanner />
             </Box>
             <ChangelogPanel />
+            <SeatOfferDialog offer={seatOffer} onResume={onResumeSeat} onGiveUp={onGiveUpSeat} />
         </Box>
     )
 }

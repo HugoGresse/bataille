@@ -14,6 +14,8 @@ export const GAME_STATE_INIT = 's/game/init'
 export const GAME_STATE_UPDATE = 's/gameState'
 export const GAME_MESSAGE = 's/gameMessage'
 export const GAME_REJOIN_FAILED = 's/game/rejoinFailed'
+/** A lobby join from a tab that still holds a seat: the seat is offered, not forced */
+export const GAME_SEAT_OFFERED = 's/game/seatOffered'
 
 // ADMINS
 export const ADMIN_NAMESPACE = 'stats'
