@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.22",
+        "date": "2026-09-07",
+        "title": "No player-facing changes",
+        "pr": null
+    },
+    {
         "version": "0.17.21",
         "date": "2026-09-07",
         "title": "Players are now asked to resume or give up seat when joining lobby from an active game",
