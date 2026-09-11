@@ -53,6 +53,25 @@ describe('GameLobby', () => {
         expect(lobby.waitingPlayers).toHaveLength(2)
     })
 
+    it('pings the first waiter once, not on later joins nor on a reconnect', () => {
+        vi.useFakeTimers()
+        const onWaiting = vi.fn()
+        const lobby = new GameLobby(fakeEmitter(), 'g1', vi.fn(), 6, onWaiting)
+
+        lobby.onPlayerJoin(fakeSocket('sock-1'), 'Alice', 2, 'token-alice')
+        expect(onWaiting).toHaveBeenCalledTimes(1)
+        expect(onWaiting).toHaveBeenCalledWith(
+            'Alice',
+            expect.objectContaining({ playerCount: 1, requiredPlayerCount: 6, ongoingGame: 2 })
+        )
+
+        lobby.onPlayerJoin(fakeSocket('sock-2'), 'Bob', 2, 'token-bob')
+        expect(onWaiting).toHaveBeenCalledTimes(1) // the second player is not the first waiter
+
+        lobby.onPlayerJoin(fakeSocket('sock-3'), 'Alice', 2, 'token-alice') // same tab reconnecting
+        expect(onWaiting).toHaveBeenCalledTimes(1) // a reconnect is not a new waiter
+    })
+
     it('treats players without a token the old way: every socket is a slot', () => {
         vi.useFakeTimers()
         const onReady = vi.fn()
