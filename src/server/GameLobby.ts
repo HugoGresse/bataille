@@ -22,7 +22,9 @@ export class GameLobby {
         private readonly socketEmitter: SocketEmitter,
         private futureGameId: string,
         private onLobbyReady: (socketIds: PlayerWaiting[], sockets: { [p: string]: Socket }) => void,
-        private requiredPlayerToStart: number = MINIMUM_PLAYER_PER_GAME
+        private requiredPlayerToStart: number = MINIMUM_PLAYER_PER_GAME,
+        /** Called when the lobby goes from empty to its first waiter, so a game is forming */
+        private onFirstWaiter: (playerName: string, state: LobbyState) => void = () => {}
     ) {}
 
     onPlayerJoin(socket: Socket, name: string, ongoingGames: number, sessionToken: string | null = null) {
@@ -63,6 +65,11 @@ export class GameLobby {
             this.waitForHumanPlayer = false
             this.socketEmitter.emitLobbyState(this)
             this.startCountdown()
+            // Someone is now waiting for others: ping once when the lobby fills its first seat, not on
+            // every join, and not when a tab merely reconnects into the slot it already held
+            if (this.waitingPlayers.length === 1 && !stale) {
+                this.onFirstWaiter(name, this.export())
+            }
         }
     }
 

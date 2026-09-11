@@ -23,7 +23,8 @@ import { ADMIN_KEY, PORT } from './utils/serverEnv'
 import { GameLobby, PlayerWaiting } from './GameLobby'
 import { SocketEmitter } from './SocketEmitter'
 import { trackGameStart } from './utils/trackings'
-import { IA_PLAYER_PER_GAME } from '../common/GameSettings'
+import { notifyTelegram } from './utils/telegram'
+import { IA_PLAYER_PER_GAME, MINIMUM_PLAYER_PER_GAME } from '../common/GameSettings'
 import { IAPlayer } from './model/player/IAPlayer'
 import { AdminServer } from './admin/AdminServer'
 import { gameStats, hashIp } from './stats/GameStats'
@@ -67,14 +68,23 @@ const handlePlayerJoin =
         if (!lobby) {
             const futureGameId = newId()
             const socketEmitter = new SocketEmitter(socketIOServer.to(futureGameId))
-            lobby = new GameLobby(socketEmitter, futureGameId, (waitingPlayers, sockets) => {
-                console.log(`> Lobby ready, starting game with ${waitingPlayers.length} players.`)
-                if (lobby) {
-                    lobby.close()
-                    lobby = null
-                }
-                startGame(futureGameId, socketEmitter, waitingPlayers, sockets)
-            })
+            lobby = new GameLobby(
+                socketEmitter,
+                futureGameId,
+                (waitingPlayers, sockets) => {
+                    console.log(`> Lobby ready, starting game with ${waitingPlayers.length} players.`)
+                    if (lobby) {
+                        lobby.close()
+                        lobby = null
+                    }
+                    startGame(futureGameId, socketEmitter, waitingPlayers, sockets)
+                },
+                MINIMUM_PLAYER_PER_GAME,
+                (playerName, state) =>
+                    notifyTelegram(
+                        `🎮 ${playerName} is waiting in the Bataille lobby (${state.playerCount}/${state.requiredPlayerCount}). ${state.ongoingGame} game(s) running.`
+                    )
+            )
             console.log(`Number of games: ${Object.keys(games).length}`)
         }
         lobby.onPlayerJoin(socket, playerName, Object.keys(games).length, sessionToken)
