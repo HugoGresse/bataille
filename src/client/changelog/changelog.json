@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.24",
+        "date": "2026-09-11",
+        "title": "Telegram ping when first player waits in lobby",
+        "pr": 38
+    },
+    {
         "version": "0.17.23",
         "date": "2026-09-07",
         "title": "Admins can now watch any ongoing game as a view-only spectator",
