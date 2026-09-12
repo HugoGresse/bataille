@@ -12,6 +12,7 @@ import {
     PLAYER_LOBBY_WAIT_FOR_HUMAN,
     PLAYER_REJOIN,
     PLAYER_SPECTATE,
+    AUTH_SESSION_EXPIRED,
 } from '../../common/SOCKET_EMIT'
 import { ExportTypeWithGameState } from '../../server/model/types/ExportType'
 import { SOCKET_URL } from './utils/clientEnv'
@@ -23,6 +24,8 @@ import { appendMessage, ReceivedMessage } from './chat/chatLog'
 import { readSessionToken } from './session'
 import { RECONNECT_GRACE_MS } from '../../common/GameSettings'
 import { SeatOffer } from '../../server/seats'
+import { getAccountSession, setAccountSession } from '../auth/accountSession'
+import { ACCOUNT_NAME_MAX, ACCOUNT_NAME_MIN } from '../../common/auth'
 
 /** A reload asking for its seat back waits this long for the server before calling the game gone */
 const REJOIN_TIMEOUT_MS = 8000
@@ -97,7 +100,7 @@ export class SocketConnection {
             } else if (gameId) {
                 this.socket.emit(PLAYER_REJOIN, this.sessionToken, gameId)
             } else {
-                this.socket.emit(PLAYER_JOIN_LOBBY, SocketConnection.getPlayerName(), this.sessionToken)
+                this.joinLobby(false)
             }
         })
         this.socket.on('disconnect', (reason: string) => {
@@ -131,6 +134,17 @@ export class SocketConnection {
             }
         })
         this.socket.on(GAME_SEAT_OFFERED, (offer: SeatOffer) => onSeatOffered?.(offer))
+        this.socket.on(AUTH_SESSION_EXPIRED, () => setAccountSession(null))
+    }
+
+    private joinLobby(giveUpSeat: boolean) {
+        this.socket.emit(
+            PLAYER_JOIN_LOBBY,
+            SocketConnection.getPlayerName(),
+            this.sessionToken,
+            giveUpSeat,
+            getAccountSession()?.token ?? null
+        )
     }
 
     /** Take the offered seat back, but only while it is still live: a seat forfeited under the dialog
@@ -141,7 +155,7 @@ export class SocketConnection {
 
     /** Decline the offered seat: it is given up in that game, and this tab queues afresh */
     public giveUpSeat() {
-        this.socket.emit(PLAYER_JOIN_LOBBY, SocketConnection.getPlayerName(), this.sessionToken, true)
+        this.joinLobby(true)
     }
 
     private armGiveUp(delayMs: number) {
@@ -256,8 +270,8 @@ export class SocketConnection {
     }
 
     private static getPlayerName(): string {
-        const playerName = getSavedPlayerName()
-        if (!playerName || playerName.length < 2 || playerName.length > 20) {
+        const playerName = getAccountSession()?.name ?? getSavedPlayerName()
+        if (!playerName || playerName.length < ACCOUNT_NAME_MIN || playerName.length > ACCOUNT_NAME_MAX) {
             return pickRandomPlayerName()
         }
         return playerName

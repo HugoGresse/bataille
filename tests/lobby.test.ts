@@ -83,3 +83,14 @@ describe('GameLobby', () => {
         expect(lobby.waitingPlayers).toHaveLength(2)
     })
 })
+
+describe('one account, one seat', () => {
+    it('replaces the waiting seat of the same account joining from another tab', () => {
+        const lobby = new GameLobby(fakeEmitter(), 'g', () => {}, 6)
+        lobby.onPlayerJoin(fakeSocket('tab-1'), 'Alice', 0, 'token-tab-1', 'acc-alice')
+        lobby.onPlayerJoin(fakeSocket('tab-2'), 'Alice', 0, 'token-tab-2', 'acc-alice')
+        lobby.onPlayerJoin(fakeSocket('tab-3'), 'Guest', 0, 'token-tab-3', null)
+        lobby.onPlayerJoin(fakeSocket('tab-4'), 'Guest', 0, 'token-tab-4', null)
+        expect(lobby.waitingPlayers.map((p) => p.socketId)).toEqual(['tab-2', 'tab-3', 'tab-4'])
+    })
+})

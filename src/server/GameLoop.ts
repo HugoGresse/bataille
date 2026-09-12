@@ -2,7 +2,8 @@ import { Game } from './Game'
 import { SocketEmitter } from './SocketEmitter'
 import { AbstractPlayer } from './model/player/AbstractPlayer'
 import { trackGameEnd } from './utils/trackings'
-import { gameStats } from './stats/GameStats'
+import { gameStats, StatResult } from './stats/GameStats'
+import { HumanPlayer } from './model/player/HumanPlayer'
 
 const FRAME_RATE = 10
 const INTERVAL_SPEED = 1000 / FRAME_RATE
@@ -38,18 +39,18 @@ export class GameLoop {
                 }, 1000)
                 console.log(results.result)
                 console.log(`Humans incomes: ${game.getHumanPlayers().map((p) => p.income)}`)
-                this.stop()
+                this.stop(gameResults(game, results.winner))
             }
         }, INTERVAL_SPEED)
         this.isRunning = true
     }
 
-    stop() {
+    stop(results: StatResult[] | null = null) {
         if (this.intervalId) {
             clearInterval(this.intervalId)
             this.isRunning = false
             trackGameEnd(this.gameDuration)
-            gameStats.recordGameEnd(this.gameId, this.gameDuration)
+            gameStats.recordGameEnd(this.gameId, this.gameDuration, results)
             this.onStop()
         }
     }
@@ -62,3 +63,11 @@ export class GameLoop {
         this.emitter.emitGameUpdate(game)
     }
 }
+
+export const gameResults = (game: Game, winner: AbstractPlayer | undefined): StatResult[] =>
+    game.getPlayers().map((player) => ({
+        name: player.name,
+        isAI: player.isAI,
+        ...(player instanceof HumanPlayer && player.accountId ? { accountId: player.accountId } : {}),
+        won: player === winner,
+    }))

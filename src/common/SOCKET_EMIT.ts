@@ -28,3 +28,16 @@ export enum AdminActionsTypes {
     sendMessage,
     getStats,
 }
+
+// AUTH (passkeys): each carries an ack callback with the result
+export const AUTH_REGISTER_START = 'c-auth/register/start'
+export const AUTH_REGISTER_FINISH = 'c-auth/register/finish'
+export const AUTH_LOGIN_START = 'c-auth/login/start'
+export const AUTH_LOGIN_FINISH = 'c-auth/login/finish'
+export const AUTH_SESSION_CHECK = 'c-auth/session/check'
+export const AUTH_LOGOUT = 'c-auth/logout'
+/** The account token sent with a join is unknown to the server: sign-in is over on that tab */
+export const AUTH_SESSION_EXPIRED = 's/auth/sessionExpired'
+
+// LEADERBOARD: ack callback with the entries
+export const LEADERBOARD_GET = 'c-leaderboard/get'

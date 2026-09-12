@@ -25,7 +25,7 @@ describe('GameStats', () => {
             ],
             at('2025-08-20')
         )
-        store.recordGameEnd('g1', 12.5, at('2025-08-21'))
+        store.recordGameEnd('g1', 12.5, null, at('2025-08-21'))
 
         const reloaded = new GameStats(filePath)
         expect(reloaded.getEventCount()).toBe(2)
@@ -38,9 +38,9 @@ describe('GameStats', () => {
         store.recordGameStart('g1', [], at('2025-08-20'))
         store.recordGameStart('g2', [], at('2025-08-20'))
         store.recordGameStart('g3', [], at('2025-08-22'))
-        store.recordGameEnd('g1', 10, at('2025-08-20'))
-        store.recordGameEnd('g2', 5.5, at('2025-08-20'))
-        store.recordGameEnd('g3', 30, at('2025-08-22'))
+        store.recordGameEnd('g1', 10, null, at('2025-08-20'))
+        store.recordGameEnd('g2', 5.5, null, at('2025-08-20'))
+        store.recordGameEnd('g3', 30, null, at('2025-08-22'))
 
         const summary = store.getStats({ from: '2025-08-01', to: '2025-08-31' })
         expect(summary.gameDurationByDay).toEqual([
@@ -203,10 +203,10 @@ describe('GameStats', () => {
         store.recordGameStart('g2', [{ name: 'Hugo', isAI: false }], at('2025-08-15'))
         store.recordGameStart('g3', [{ name: 'Alice', isAI: false }], at('2025-08-31', 20))
         store.recordGameStart('g4', [{ name: 'Hugo', isAI: false }], at('2025-09-01'))
-        store.recordGameEnd('g1', 10, at('2025-08-01'))
-        store.recordGameEnd('g2', 20, at('2025-08-15'))
-        store.recordGameEnd('g3', 40, at('2025-08-31', 23))
-        store.recordGameEnd('g4', 999, at('2025-09-01'))
+        store.recordGameEnd('g1', 10, null, at('2025-08-01'))
+        store.recordGameEnd('g2', 20, null, at('2025-08-15'))
+        store.recordGameEnd('g3', 40, null, at('2025-08-31', 23))
+        store.recordGameEnd('g4', 999, null, at('2025-09-01'))
 
         const summary = store.getStats({ from: '2025-08-01', to: '2025-08-31' })
         expect(summary.gameCount).toBe(3)

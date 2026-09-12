@@ -5,9 +5,14 @@ import { Link as RouterLink } from 'react-router-dom'
 import { HelpDialogButton } from './HelpDialog'
 import { pickRandomPlayerName } from '../../utils/pickRandomPlayerName'
 import { getSavedPlayerName, setPlayerNamePersistent } from '../utils/cookie'
+import { AccountPanel } from './AccountPanel'
+import { useAccountSession } from '../auth/useAccountSession'
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
+import { ACCOUNT_NAME_MAX, ACCOUNT_NAME_MIN } from '../../common/auth'
 
 export const Home = () => {
     const [playerName, setPlayerName] = useState(getSavedPlayerName() || pickRandomPlayerName())
+    const session = useAccountSession()
 
     return (
         <Box
@@ -32,15 +37,27 @@ export const Home = () => {
                             marginLeft: 68,
                         }}
                     />
+                    <Button
+                        component={RouterLink}
+                        to="/leaderboard"
+                        startIcon={<EmojiEventsIcon />}
+                        sx={{ marginLeft: 2 }}>
+                        Leaderboard
+                    </Button>
                 </Box>
 
                 <Box sx={{ marginTop: 3 }}>
                     <TextField
-                        value={playerName}
-                        slotProps={{ htmlInput: { minLength: 2, maxLength: 20 } }}
+                        value={session?.name ?? playerName}
+                        disabled={session !== null}
+                        slotProps={{ htmlInput: { minLength: ACCOUNT_NAME_MIN, maxLength: ACCOUNT_NAME_MAX } }}
                         fullWidth
                         size="small"
-                        label="Player name (2<->20 chars)"
+                        label={
+                            session
+                                ? 'Player name (account)'
+                                : `Player name (${ACCOUNT_NAME_MIN}<->${ACCOUNT_NAME_MAX} chars)`
+                        }
                         onChange={(e) => {
                             let name = e.target.value
                             if (name.length > 0 && name.trim().length === 0) {
@@ -51,6 +68,7 @@ export const Home = () => {
                             setPlayerNamePersistent(name)
                         }}
                     />
+                    <AccountPanel playerName={playerName} />
                 </Box>
             </Box>
 

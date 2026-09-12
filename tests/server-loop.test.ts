@@ -70,7 +70,9 @@ describe('GameUpdateProcessor (server loop step)', () => {
         const playersById = { [p1.id]: p1 }
 
         const unitsProcessor = new UnitsProcessor()
-        const updateUnitsSpy = vi.spyOn(unitsProcessor, 'updateUnits').mockReturnValue({ updatedUnits: [], deletedUnits: [] })
+        const updateUnitsSpy = vi
+            .spyOn(unitsProcessor, 'updateUnits')
+            .mockReturnValue({ updatedUnits: [], deletedUnits: [] })
         const updateTownsSpy = vi.spyOn(unitsProcessor, 'updateTownsFromUnits').mockReturnValue({
             towns: [],
             updatedUnits: [],

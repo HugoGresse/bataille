@@ -11,6 +11,14 @@ export type StatPlayer = {
     country?: string
 }
 
+/** One seat at the end of a game, human or AI. accountId only when the human was signed in */
+export type StatResult = {
+    name: string
+    isAI: boolean
+    accountId?: string
+    won: boolean
+}
+
 export type GameStatEvent = {
     type: 'gameStarted' | 'gameEnded'
     gameId: string
@@ -20,6 +28,8 @@ export type GameStatEvent = {
     players?: StatPlayer[]
     /** gameEnded only */
     durationMinutes?: number
+    /** gameEnded only, absent on games recorded before results were kept */
+    results?: StatResult[]
 }
 
 export type DayValue = {
@@ -181,13 +191,18 @@ export class GameStats {
         })
     }
 
-    recordGameEnd(gameId: string, durationMinutes: number, at: Date = new Date()) {
+    recordGameEnd(gameId: string, durationMinutes: number, results: StatResult[] | null = null, at: Date = new Date()) {
         this.record({
             type: 'gameEnded',
             gameId,
             at: at.toISOString(),
             durationMinutes,
+            ...(results ? { results } : {}),
         })
+    }
+
+    getEvents(): readonly GameStatEvent[] {
+        return this.events
     }
 
     private record(event: GameStatEvent) {

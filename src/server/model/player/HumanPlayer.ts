@@ -7,7 +7,9 @@ export class HumanPlayer extends AbstractPlayer {
         color: string,
         name?: string,
         /** Survives the socket: what a reconnecting client hands over to get its seat back */
-        public readonly sessionToken: string | null = null
+        public readonly sessionToken: string | null = null,
+        /** Set when the seat belongs to a signed-in account: what the leaderboard is keyed on */
+        public readonly accountId: string | null = null
     ) {
         super(name, color)
     }
