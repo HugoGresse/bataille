@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.25",
+        "date": "2026-09-12",
+        "title": "Players can create passkey accounts and appear on the leaderboard",
+        "pr": 39
+    },
+    {
         "version": "0.17.24",
         "date": "2026-09-11",
         "title": "Telegram ping when first player waits in lobby",
