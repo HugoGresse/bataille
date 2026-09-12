@@ -5,6 +5,7 @@ import { Home } from './screens/Home'
 import { Lobby } from './screens/Lobby'
 import { Admin } from './screens/Admin'
 import { Changelog } from './screens/Changelog'
+import { Leaderboard } from './screens/Leaderboard'
 
 const router = createBrowserRouter([
     {
@@ -26,6 +27,10 @@ const router = createBrowserRouter([
     {
         path: '/changelog',
         element: <Changelog />,
+    },
+    {
+        path: '/leaderboard',
+        element: <Leaderboard />,
     },
 ])
 

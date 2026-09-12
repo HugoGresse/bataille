@@ -24,3 +24,22 @@ describe('holding enough of the map', () => {
         expect(messages(emitter).filter((line) => line === call)).toHaveLength(1)
     })
 })
+
+describe('gameResults', () => {
+    it('lists every seat with its account and who won', async () => {
+        const { gameResults } = await import('../src/server/GameLoop')
+        const { HumanPlayer } = await import('../src/server/model/player/HumanPlayer')
+        const { IAPlayer } = await import('../src/server/model/player/IAPlayer')
+        const alice = new HumanPlayer({} as never, '0xFF0000', 'Alice', 'tok', 'acc-alice')
+        const guest = new HumanPlayer({} as never, '0x00FF00', 'Guest', 'tok2')
+        const bot = new IAPlayer('0x0000FF', 'AI-1')
+        const game = { getPlayers: () => [alice, guest, bot] } as never
+
+        expect(gameResults(game, alice)).toEqual([
+            { name: 'Alice', isAI: false, accountId: 'acc-alice', won: true },
+            { name: 'Guest', isAI: false, won: false },
+            { name: 'AI-1', isAI: true, won: false },
+        ])
+        expect(gameResults(game, undefined).every((r) => !r.won)).toBe(true)
+    })
+})

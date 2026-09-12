@@ -28,3 +28,14 @@ export enum AdminActionsTypes {
     sendMessage,
     getStats,
 }
+
+// AUTH (passkeys): each carries an ack callback with the result
+export const AUTH_REGISTER_START = 'c-auth/register/start'
+export const AUTH_REGISTER_FINISH = 'c-auth/register/finish'
+export const AUTH_LOGIN_START = 'c-auth/login/start'
+export const AUTH_LOGIN_FINISH = 'c-auth/login/finish'
+export const AUTH_SESSION_CHECK = 'c-auth/session/check'
+export const AUTH_LOGOUT = 'c-auth/logout'
+
+// LEADERBOARD: ack callback with the entries
+export const LEADERBOARD_GET = 'c-leaderboard/get'

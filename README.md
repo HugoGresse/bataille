@@ -11,6 +11,7 @@ A risk like game, in TypeScript, revamped for quick bataille and fun.
 - up to 6 players (will probably be increased when popularity will grow)
 - public in-game discussion
 - game time: 10-20min
+- optional passkey account (no password, no email) with a leaderboard; guests still play
 
 [Video gameplay](https://www.youtube.com/watch?v=dIgEd0i-_YI)
 
@@ -28,6 +29,7 @@ Requires Node 26 (see `.nvmrc`).
     - `VITE_SOCKET_URL=localhost:3001`
     - `SUMOLOGIC_COLLECTOR` can stay blank (used to track number of games played)
     - `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` can stay blank; set both to get a Telegram ping when a player starts waiting in the lobby
+    - `WEBAUTHN_RP_ID` and `WEBAUTHN_ORIGIN` default to `localhost` / `http://localhost:3000`; in production set them to the domain and origin the game page is served from (`bataille.ovh` / `https://bataille.ovh`)
 1. `npm i`
 2. `npm run start`
 3. `npm run start-server`

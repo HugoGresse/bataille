@@ -23,6 +23,7 @@ import { appendMessage, ReceivedMessage } from './chat/chatLog'
 import { readSessionToken } from './session'
 import { RECONNECT_GRACE_MS } from '../../common/GameSettings'
 import { SeatOffer } from '../../server/seats'
+import { getAccountSession } from '../auth/accountSession'
 
 /** A reload asking for its seat back waits this long for the server before calling the game gone */
 const REJOIN_TIMEOUT_MS = 8000
@@ -97,7 +98,13 @@ export class SocketConnection {
             } else if (gameId) {
                 this.socket.emit(PLAYER_REJOIN, this.sessionToken, gameId)
             } else {
-                this.socket.emit(PLAYER_JOIN_LOBBY, SocketConnection.getPlayerName(), this.sessionToken)
+                this.socket.emit(
+                    PLAYER_JOIN_LOBBY,
+                    SocketConnection.getPlayerName(),
+                    this.sessionToken,
+                    false,
+                    getAccountSession()?.token ?? null
+                )
             }
         })
         this.socket.on('disconnect', (reason: string) => {
@@ -141,7 +148,13 @@ export class SocketConnection {
 
     /** Decline the offered seat: it is given up in that game, and this tab queues afresh */
     public giveUpSeat() {
-        this.socket.emit(PLAYER_JOIN_LOBBY, SocketConnection.getPlayerName(), this.sessionToken, true)
+        this.socket.emit(
+            PLAYER_JOIN_LOBBY,
+            SocketConnection.getPlayerName(),
+            this.sessionToken,
+            true,
+            getAccountSession()?.token ?? null
+        )
     }
 
     private armGiveUp(delayMs: number) {
@@ -256,7 +269,7 @@ export class SocketConnection {
     }
 
     private static getPlayerName(): string {
-        const playerName = getSavedPlayerName()
+        const playerName = getAccountSession()?.name ?? getSavedPlayerName()
         if (!playerName || playerName.length < 2 || playerName.length > 20) {
             return pickRandomPlayerName()
         }

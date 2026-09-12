@@ -27,7 +27,13 @@ export class GameLobby {
         private onFirstWaiter: (playerName: string, state: LobbyState) => void = () => {}
     ) {}
 
-    onPlayerJoin(socket: Socket, name: string, ongoingGames: number, sessionToken: string | null = null) {
+    onPlayerJoin(
+        socket: Socket,
+        name: string,
+        ongoingGames: number,
+        sessionToken: string | null = null,
+        accountId: string | null = null
+    ) {
         const socketId = socket.id
         this.ongoingGame = ongoingGames
         // The same tab back on a new socket takes over its slot rather than doubling it: the old
@@ -43,6 +49,7 @@ export class GameLobby {
             socketId,
             name,
             sessionToken,
+            accountId,
         })
         console.log(`Player join lobby, ${this.waitingPlayers.length}/${this.requiredPlayerToStart}`)
 
@@ -150,6 +157,7 @@ export type PlayerWaiting = {
     socketId: string
     name: string
     sessionToken: string | null
+    accountId: string | null
 }
 
 export type LobbyState = {

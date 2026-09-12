@@ -31,6 +31,10 @@ import { gameStats, hashIp } from './stats/GameStats'
 import { getClientIp } from './utils/clientIp'
 import { lookupCountry } from './utils/geoLookup'
 import { findRecoverableSeat, findSeat, offerFor } from './seats'
+import { authService } from './auth'
+import { registerAuthHandlers } from './auth/authSocket'
+import { createLeaderboardReader } from './stats/leaderboard'
+import { LEADERBOARD_GET } from '../common/SOCKET_EMIT'
 
 const games: {
     [gameId: string]: Game
@@ -38,8 +42,15 @@ const games: {
 let lobby: GameLobby | null
 
 new AdminServer(games)
+const readLeaderboard = createLeaderboardReader(() => gameStats.getEvents())
 
 socketIOServer.on('connection', (socket: Socket) => {
+    registerAuthHandlers(socket, authService)
+    socket.on(LEADERBOARD_GET, (ack: unknown) => {
+        if (typeof ack === 'function') {
+            ack(readLeaderboard())
+        }
+    })
     socket.on(PLAYER_JOIN_LOBBY, handlePlayerJoin(socket))
     socket.on(PLAYER_FORCE_START, handlePlayerForceStart(socket))
     socket.on(PLAYER_LOBBY_WAIT_FOR_HUMAN, handlePlayerWaitForHuman())
@@ -53,7 +64,16 @@ socketIOServer.on('connection', (socket: Socket) => {
 
 const handlePlayerJoin =
     (socket: Socket) =>
-    (playerName: string, sessionToken: string | null = null, giveUpSeat = false) => {
+    (
+        playerName: string,
+        sessionToken: string | null = null,
+        giveUpSeat = false,
+        accountToken: string | null = null
+    ) => {
+        // A signed-in player plays under the account name whatever the client sent: the name is
+        // what the leaderboard shows, so it cannot be borrowed by typing it
+        const account = authService.resolveSession(accountToken)
+        const name = account?.name ?? playerName
         // A dropped seat still in play is offered back, not forced: the client takes it (a rejoin
         // naming the game) or gives it up for a fresh slot. A seat still held on a live socket - a
         // duplicated tab carries the same token - is left alone, not this join's to reclaim.
@@ -87,7 +107,7 @@ const handlePlayerJoin =
             )
             console.log(`Number of games: ${Object.keys(games).length}`)
         }
-        lobby.onPlayerJoin(socket, playerName, Object.keys(games).length, sessionToken)
+        lobby.onPlayerJoin(socket, name, Object.keys(games).length, sessionToken, account?.accountId ?? null)
     }
 
 /**
@@ -198,7 +218,8 @@ const startGame = (
             sockets[waitingPlayer.socketId],
             pickUnusedColor(game.getPlayers()),
             waitingPlayer.name,
-            waitingPlayer.sessionToken
+            waitingPlayer.sessionToken,
+            waitingPlayer.accountId
         )
         game.addPlayer(player, waitingPlayer.socketId)
         game.watchDisconnect(player)
