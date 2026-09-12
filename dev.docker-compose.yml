@@ -1,0 +1,16 @@
+# Local run of the server image, configured from the .env next to this file (the production
+# file gets its environment from the hosting panel instead):
+#   docker compose -f dev.docker-compose.yml up --build
+services:
+    bataille-server:
+        container_name: bataille-server-dev
+        build: .
+        env_file:
+            - .env
+        ports:
+            - '3001:3001'
+        volumes:
+            - bataille-dev-data:/app/data
+
+volumes:
+    bataille-dev-data:

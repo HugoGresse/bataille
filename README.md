@@ -35,6 +35,12 @@ Requires Node 26 (see `.nvmrc`).
 3. `npm run start-server`
 4. Open `localhost:3000`, local dev should work with one player, online require 2 players.
 
+To run the server as the production image instead of `npm run start-server`, with the same `.env`:
+
+```bash
+docker compose -f dev.docker-compose.yml up --build
+```
+
 ## Issues :
 
 1. Unit moving crossing another allied troop merge, not idea if they are just on there way
