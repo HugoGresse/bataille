@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.26",
+        "date": "2026-09-12",
+        "title": "Fixed deployment configuration to restore server stability",
+        "pr": 40
+    },
+    {
         "version": "0.17.25",
         "date": "2026-09-12",
         "title": "Players can create passkey accounts and appear on the leaderboard",
