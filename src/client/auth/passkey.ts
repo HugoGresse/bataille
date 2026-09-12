@@ -23,11 +23,15 @@ export type PasskeyResult = { ok: true; session: AuthSession } | { ok: false; er
 
 const ACK_TIMEOUT_MS = 10_000
 
-/** Home has no game socket: each account action opens one for itself and closes it after */
+/**
+ * Home has no game socket: each account action opens one for itself and closes it after. Every
+ * ack is bounded so a server gone mid-ceremony fails the action instead of hanging it, and no
+ * reconnect: a new connection would not be the one the ceremony started on.
+ */
 const withSocket = async <T>(run: (socket: Socket) => Promise<T>): Promise<T> => {
-    const socket = io(SOCKET_URL, { transports: ['websocket'] })
+    const socket = io(SOCKET_URL, { transports: ['websocket'], ackTimeout: ACK_TIMEOUT_MS, reconnection: false })
     try {
-        return await run(socket.timeout(ACK_TIMEOUT_MS) as unknown as Socket)
+        return await run(socket)
     } finally {
         socket.disconnect()
     }

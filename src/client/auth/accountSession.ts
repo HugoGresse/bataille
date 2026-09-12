@@ -51,3 +51,13 @@ export const subscribeAccountSession = (listener: () => void): (() => void) => {
     listeners.add(listener)
     return () => listeners.delete(listener)
 }
+
+// Another tab signing in or out changes this one too
+if (typeof window !== 'undefined') {
+    window.addEventListener('storage', (event) => {
+        if (event.key === STORAGE_KEY || event.key === null) {
+            cached = read()
+            listeners.forEach((listener) => listener())
+        }
+    })
+}

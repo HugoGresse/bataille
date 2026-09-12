@@ -34,23 +34,24 @@ import { findRecoverableSeat, findSeat, offerFor } from './seats'
 import { authService } from './auth'
 import { registerAuthHandlers } from './auth/authSocket'
 import { createLeaderboardReader } from './stats/leaderboard'
-import { LEADERBOARD_GET } from '../common/SOCKET_EMIT'
+import { AUTH_SESSION_EXPIRED, LEADERBOARD_GET } from '../common/SOCKET_EMIT'
+import { answer } from './auth/authSocket'
+import { accountStore } from './auth'
 
 const games: {
     [gameId: string]: Game
 } = {}
 let lobby: GameLobby | null
 
+// A rejected async socket handler would otherwise take every running game down with it
+process.on('unhandledRejection', (reason) => console.error('Unhandled rejection:', reason))
+
 new AdminServer(games)
 const readLeaderboard = createLeaderboardReader(() => gameStats.getEvents())
 
 socketIOServer.on('connection', (socket: Socket) => {
     registerAuthHandlers(socket, authService)
-    socket.on(LEADERBOARD_GET, (ack: unknown) => {
-        if (typeof ack === 'function') {
-            ack(readLeaderboard())
-        }
-    })
+    socket.on(LEADERBOARD_GET, (ack: unknown) => answer(ack, readLeaderboard()))
     socket.on(PLAYER_JOIN_LOBBY, handlePlayerJoin(socket))
     socket.on(PLAYER_FORCE_START, handlePlayerForceStart(socket))
     socket.on(PLAYER_LOBBY_WAIT_FOR_HUMAN, handlePlayerWaitForHuman())

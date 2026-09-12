@@ -47,12 +47,41 @@ export class AccountStore {
             if (!fs.existsSync(this.filePath)) {
                 return
             }
-            const parsed = JSON.parse(fs.readFileSync(this.filePath, 'utf8')) as StoreFile
-            this.accounts = Array.isArray(parsed.accounts) ? parsed.accounts : []
+            const parsed = JSON.parse(fs.readFileSync(this.filePath, 'utf8')) as Partial<StoreFile>
+            if (parsed.version !== 1 || !Array.isArray(parsed.accounts)) {
+                throw new Error('unexpected accounts file shape')
+            }
+            this.accounts = parsed.accounts.flatMap((raw) => {
+                const account = normalizeRecord(raw)
+                if (!account) {
+                    console.error('Dropping malformed account record:', raw)
+                }
+                return account ? [account] : []
+            })
         } catch (error) {
             this.loadError = String(error)
             console.error(`Failed to load accounts from ${this.filePath}:`, error)
         }
+    }
+
+    /**
+     * Mutate in memory, then write. A write that fails restores the previous state so a retry
+     * does not see an account the disk never got. A file that failed to load is never written
+     * over: whatever it held would be lost.
+     */
+    private commit<T>(mutation: () => T): T {
+        if (this.loadError) {
+            throw new Error(`accounts file failed to load, refusing to overwrite it: ${this.loadError}`)
+        }
+        const snapshot = structuredClone(this.accounts)
+        const result = mutation()
+        try {
+            this.persist()
+        } catch (error) {
+            this.accounts = snapshot
+            throw error
+        }
+        return result
     }
 
     private persist() {
@@ -95,41 +124,82 @@ export class AccountStore {
         return this.accounts.find((account) => account.sessionHashes.includes(hash))
     }
 
-    create(name: string, credential: StoredCredential, now: Date = new Date()): Account {
-        const account: Account = {
-            id: crypto.randomUUID(),
-            name: normalizeAccountName(name),
-            createdAt: now.toISOString(),
-            credentials: [credential],
-            sessionHashes: [],
-        }
-        this.accounts.push(account)
-        this.persist()
-        return account
+    /** Creates the account and its first session in one write. Throws if the name is taken. */
+    create(name: string, credential: StoredCredential, now: Date = new Date()): { account: Account; token: string } {
+        return this.commit(() => {
+            if (this.findByName(name)) {
+                throw new Error('name already taken')
+            }
+            const account: Account = {
+                id: crypto.randomUUID(),
+                name: normalizeAccountName(name),
+                createdAt: now.toISOString(),
+                credentials: [credential],
+                sessionHashes: [],
+            }
+            this.accounts.push(account)
+            return { account, token: addSession(account) }
+        })
     }
 
-    updateCounter(credentialId: string, counter: number) {
-        const found = this.findByCredentialId(credentialId)
-        if (found) {
-            found.credential.counter = counter
-            this.persist()
-        }
-    }
-
-    /** @return the token to hand to the client; only its hash is stored */
-    openSession(account: Account): string {
-        const token = crypto.randomBytes(32).toString('base64url')
-        account.sessionHashes = [...account.sessionHashes, hashSessionToken(token)].slice(-SESSIONS_PER_ACCOUNT)
-        this.persist()
-        return token
+    /**
+     * Opens a session, recording the new signature counter of the passkey that proved it in the
+     * same write. @return the token to hand to the client; only its hash is stored
+     */
+    openSession(account: Account, used?: { credential: StoredCredential; counter: number }): string {
+        return this.commit(() => {
+            if (used) {
+                used.credential.counter = used.counter
+            }
+            return addSession(account)
+        })
     }
 
     closeSession(token: string) {
         const hash = hashSessionToken(token)
         const account = this.accounts.find((a) => a.sessionHashes.includes(hash))
         if (account) {
-            account.sessionHashes = account.sessionHashes.filter((h) => h !== hash)
-            this.persist()
+            this.commit(() => {
+                account.sessionHashes = account.sessionHashes.filter((h) => h !== hash)
+            })
         }
+    }
+}
+
+const addSession = (account: Account): string => {
+    const token = crypto.randomBytes(32).toString('base64url')
+    account.sessionHashes = [...account.sessionHashes, hashSessionToken(token)].slice(-SESSIONS_PER_ACCOUNT)
+    return token
+}
+
+const isStringArray = (value: unknown): value is string[] =>
+    Array.isArray(value) && value.every((item) => typeof item === 'string')
+
+const isCredential = (value: unknown): value is StoredCredential => {
+    const c = value as Partial<StoredCredential> | null
+    return (
+        !!c &&
+        typeof c.id === 'string' &&
+        typeof c.publicKey === 'string' &&
+        typeof c.counter === 'number' &&
+        (c.transports === undefined || isStringArray(c.transports))
+    )
+}
+
+/** A record read from disk is only trusted once every field it will be asked for is there */
+const normalizeRecord = (raw: unknown): Account | null => {
+    const a = raw as Partial<Account> | null
+    if (!a || typeof a.id !== 'string' || typeof a.name !== 'string') {
+        return null
+    }
+    if (!Array.isArray(a.credentials) || !a.credentials.every(isCredential)) {
+        return null
+    }
+    return {
+        id: a.id,
+        name: a.name,
+        createdAt: typeof a.createdAt === 'string' ? a.createdAt : new Date(0).toISOString(),
+        credentials: a.credentials,
+        sessionHashes: isStringArray(a.sessionHashes) ? a.sessionHashes : [],
     }
 }

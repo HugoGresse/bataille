@@ -5,7 +5,8 @@ const MAX_ENTRIES = 50
 
 type Tally = { name: string; games: number; wins: number; winsVsHumans: number }
 
-const hasOtherHuman = (results: StatResult[], self: StatResult): boolean => results.some((r) => !r.isAI && r !== self)
+const hasOtherHuman = (results: StatResult[], self: StatResult): boolean =>
+    results.some((r) => !r.isAI && r !== self && (!r.accountId || r.accountId !== self.accountId))
 
 /**
  * Signed-in players ranked by wins. A game alone against AIs counts as a game; wins against
@@ -17,10 +18,13 @@ export const buildLeaderboard = (events: readonly GameStatEvent[]): LeaderboardE
         if (event.type !== 'gameEnded' || !event.results) {
             continue
         }
+        // One seat per account per game: a second seat of the same person is not a second game
+        const counted = new Set<string>()
         for (const result of event.results) {
-            if (result.isAI || !result.accountId) {
+            if (result.isAI || !result.accountId || counted.has(result.accountId)) {
                 continue
             }
+            counted.add(result.accountId)
             const tally = tallies.get(result.accountId) ?? { name: result.name, games: 0, wins: 0, winsVsHumans: 0 }
             tally.name = result.name
             tally.games++

@@ -36,6 +36,14 @@ describe('buildLeaderboard', () => {
         ])
     })
 
+    it('counts one seat per account per game and never a win against oneself', () => {
+        const entries = buildLeaderboard([
+            ended('g1', [human('Alice', 'a', true), human('Alice', 'a', false)]),
+            ended('g2', [human('Alice', 'a', true), human('Alice', 'a', false), human('Bob', 'b', false)]),
+        ])
+        expect(entries.find((e) => e.name === 'Alice')).toMatchObject({ games: 2, wins: 2, winsVsHumans: 1 })
+    })
+
     it('ignores guests, AIs and games recorded without results', () => {
         const entries = buildLeaderboard([
             ended('g1', [human('Guest', undefined, true), human('Bob', 'b', false), ai()]),

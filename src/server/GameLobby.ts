@@ -37,8 +37,11 @@ export class GameLobby {
         const socketId = socket.id
         this.ongoingGame = ongoingGames
         // The same tab back on a new socket takes over its slot rather than doubling it: the old
-        // socket may not be seen as gone for a long while, and two slots would start a game alone
-        const stale = sessionToken ? this.waitingPlayers.find((p) => p.sessionToken === sessionToken) : undefined
+        // socket may not be seen as gone for a long while, and two slots would start a game alone.
+        // The same account from another tab does too: one person is one seat.
+        const stale = this.waitingPlayers.find(
+            (p) => (sessionToken && p.sessionToken === sessionToken) || (accountId && p.accountId === accountId)
+        )
         if (stale) {
             this.removeWaiting(stale.socketId)
         }
