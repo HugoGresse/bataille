@@ -96,8 +96,6 @@ export const refreshAccountSession = async (): Promise<void> => {
             const resolved = await socket.emitWithAck(AUTH_SESSION_CHECK, session.token)
             if (!resolved) {
                 setAccountSession(null)
-            } else if (resolved.name !== session.name) {
-                setAccountSession({ ...session, name: resolved.name })
             }
         } catch {
             // server unreachable: keep what we have, the join will sort it out

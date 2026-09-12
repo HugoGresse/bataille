@@ -10,6 +10,7 @@ import {
     registerWithPasskey,
 } from '../auth/passkey'
 import { useAccountSession } from '../auth/useAccountSession'
+import { accountNameError } from '../../common/auth'
 
 type AccountPanelProps = {
     /** The name typed on the home screen: what a new account is created under */
@@ -25,6 +26,7 @@ export const AccountPanel = ({ playerName }: AccountPanelProps) => {
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const supported = passkeysSupported()
+    const nameError = accountNameError(playerName)
 
     useEffect(() => {
         void refreshAccountSession()
@@ -80,13 +82,13 @@ export const AccountPanel = ({ playerName }: AccountPanelProps) => {
                 <Button
                     size="small"
                     variant="text"
-                    disabled={busy}
+                    disabled={busy || nameError !== null}
                     onClick={() => run(() => registerWithPasskey(playerName))}>
                     Create account as "{playerName}"
                 </Button>
             </Box>
             <Typography variant="caption" color="text.secondary">
-                An account keeps your name and puts you on the leaderboard. Guests can still play.
+                {nameError ?? 'An account keeps your name and puts you on the leaderboard. Guests can still play.'}
             </Typography>
             {error ? (
                 <Alert severity="error" sx={{ marginTop: 1 }} onClose={() => setError(null)}>

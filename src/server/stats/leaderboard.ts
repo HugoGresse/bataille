@@ -26,7 +26,6 @@ export const buildLeaderboard = (events: readonly GameStatEvent[]): LeaderboardE
             }
             counted.add(result.accountId)
             const tally = tallies.get(result.accountId) ?? { name: result.name, games: 0, wins: 0, winsVsHumans: 0 }
-            tally.name = result.name
             tally.games++
             if (result.won) {
                 tally.wins++
@@ -56,17 +55,14 @@ export const buildLeaderboard = (events: readonly GameStatEvent[]): LeaderboardE
         .slice(0, MAX_ENTRIES)
 }
 
-const CACHE_MS = 60_000
-
-/** The fold walks every event, so callers hitting it per page view share one result a minute */
-export const createLeaderboardReader = (getEvents: () => readonly GameStatEvent[], now: () => number = Date.now) => {
-    let cached: { at: number; count: number; entries: LeaderboardEntry[] } | null = null
+/** The event log is append-only, so the fold is only redone once a game has been added to it */
+export const createLeaderboardReader = (getEvents: () => readonly GameStatEvent[]) => {
+    let cached: { count: number; entries: LeaderboardEntry[] } | null = null
     return (): LeaderboardEntry[] => {
         const events = getEvents()
-        if (cached && cached.count === events.length && now() - cached.at < CACHE_MS) {
-            return cached.entries
+        if (!cached || cached.count !== events.length) {
+            cached = { count: events.length, entries: buildLeaderboard(events) }
         }
-        cached = { at: now(), count: events.length, entries: buildLeaderboard(events) }
         return cached.entries
     }
 }

@@ -1,0 +1,20 @@
+services:
+    bataille-server:
+        container_name: bataille-server
+        build: .
+        # The image carries no .env (see the Dockerfile), so the server's configuration comes from
+        # the .env next to this file on the host: ADMIN_KEY, TELEGRAM_*, and the WEBAUTHN_RP_ID /
+        # WEBAUTHN_ORIGIN pair that passkeys are bound to. Optional so a bare checkout still boots.
+        env_file:
+            - path: .env
+              required: false
+        # Statistics and accounts live on disk. Without this they sit in the container's writable
+        # layer, which is discarded every time the container is recreated, so each deploy looked
+        # like a stats reset. A named volume rather than a host path: it inherits the image's
+        # ownership on first use, whereas a bind mount would need a host directory owned by the
+        # same uid as the node user.
+        volumes:
+            - bataille-stats:/app/data
+
+volumes:
+    bataille-stats:

@@ -62,32 +62,17 @@ describe('buildLeaderboard', () => {
         ])
         expect(entries.map((e) => e.name)).toEqual(['Bob', 'Carol', 'Alice'])
     })
-
-    it('shows the latest name an account played under', () => {
-        const entries = buildLeaderboard([
-            ended('g1', [human('Old', 'a', false), ai()]),
-            ended('g2', [human('New', 'a', false), ai()]),
-        ])
-        expect(entries[0].name).toBe('New')
-    })
 })
 
 describe('createLeaderboardReader', () => {
-    it('recomputes when events arrive or the cache ages out', () => {
+    it('recomputes only when a game has been appended', () => {
         const events: GameStatEvent[] = []
-        let now = 0
-        const read = createLeaderboardReader(
-            () => events,
-            () => now
-        )
+        const read = createLeaderboardReader(() => events)
         expect(read()).toEqual([])
         events.push(ended('g1', [human('Alice', 'a', true)]))
         expect(read()).toHaveLength(1)
-
-        const cached = read()
-        events[0] = ended('g1', [human('Renamed', 'a', true)])
-        expect(read()).toBe(cached)
-        now = 61_000
-        expect(read()[0].name).toBe('Renamed')
+        expect(read()).toBe(read())
+        events.push(ended('g2', [human('Bob', 'b', true)]))
+        expect(read()).toHaveLength(2)
     })
 })
