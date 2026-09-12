@@ -2,12 +2,8 @@ services:
     bataille-server:
         container_name: bataille-server
         build: .
-        # The image carries no .env (see the Dockerfile), so the server's configuration comes from
-        # the .env next to this file on the host: ADMIN_KEY, TELEGRAM_*, and the WEBAUTHN_RP_ID /
-        # WEBAUTHN_ORIGIN pair that passkeys are bound to. Optional so a bare checkout still boots.
-        env_file:
-            - path: .env
-              required: false
+        # Server configuration (ADMIN_KEY, TELEGRAM_*, WEBAUTHN_RP_ID, WEBAUTHN_ORIGIN) is set in the
+        # hosting panel that runs this file; the image carries no .env.
         # Statistics and accounts live on disk. Without this they sit in the container's writable
         # layer, which is discarded every time the container is recreated, so each deploy looked
         # like a stats reset. A named volume rather than a host path: it inherits the image's

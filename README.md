@@ -29,11 +29,17 @@ Requires Node 26 (see `.nvmrc`).
     - `VITE_SOCKET_URL=localhost:3001`
     - `SUMOLOGIC_COLLECTOR` can stay blank (used to track number of games played)
     - `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` can stay blank; set both to get a Telegram ping when a player starts waiting in the lobby
-    - `WEBAUTHN_RP_ID` and `WEBAUTHN_ORIGIN` default to `localhost` / `http://localhost:3000`; in production set them to the domain and origin the game page is served from (`bataille.ovh` / `https://bataille.ovh`). The Docker image carries no `.env`: `docker compose` reads the `.env` next to `docker-compose.yaml` on the host and passes it to the server
+    - `WEBAUTHN_RP_ID` and `WEBAUTHN_ORIGIN` default to `localhost` / `http://localhost:3000`; in production set them to the domain and origin the game page is served from (`bataille.ovh` / `https://bataille.ovh`). The Docker image carries no `.env`: set them in the hosting panel next to `ADMIN_KEY`
 1. `npm i`
 2. `npm run start`
 3. `npm run start-server`
 4. Open `localhost:3000`, local dev should work with one player, online require 2 players.
+
+To run the server as the production image instead of `npm run start-server`, with the same `.env`:
+
+```bash
+docker compose -f dev.docker-compose.yml up --build
+```
 
 ## Issues :
 
