@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.27",
+        "date": "2026-10-02",
+        "title": "Stable guest name, country in the lobby ping, mute by account",
+        "pr": 41
+    },
+    {
         "version": "0.17.26",
         "date": "2026-09-12",
         "title": "Fixed deployment configuration to restore server stability",
