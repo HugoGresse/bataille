@@ -63,7 +63,8 @@ describe('GameLobby', () => {
         expect(onWaiting).toHaveBeenCalledWith(
             'Alice',
             expect.objectContaining({ playerCount: 1, requiredPlayerCount: 6, ongoingGame: 2 }),
-            expect.objectContaining({ id: 'sock-1' })
+            expect.objectContaining({ id: 'sock-1' }),
+            null
         )
 
         lobby.onPlayerJoin(fakeSocket('sock-2'), 'Bob', 2, 'token-bob')
