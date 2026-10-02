@@ -36,3 +36,43 @@ describe('notifyTelegram', () => {
         expect(fetchMock).not.toHaveBeenCalled()
     })
 })
+
+describe('the waiting ping', () => {
+    afterEach(() => {
+        vi.unstubAllEnvs()
+        vi.resetModules()
+    })
+
+    const state = { playerCount: 1, requiredPlayerCount: 6, ongoingGame: 2 } as never
+
+    it('names the country after the player when it is known', async () => {
+        const { waitingMessage, countryName } = await import('../src/server/utils/telegram')
+        expect(waitingMessage('Gandalf', 'FR', state)).toBe(
+            '🎮 Gandalf (France) is waiting in the Bataille lobby (1/6). 2 game(s) running.'
+        )
+        expect(waitingMessage('Gandalf', undefined, state)).toBe(
+            '🎮 Gandalf is waiting in the Bataille lobby (1/6). 2 game(s) running.'
+        )
+        expect(countryName('us')).toBe('United States')
+        expect(countryName('ZZ')).toBeUndefined()
+        expect(countryName('France')).toBeUndefined()
+    })
+
+    it('never pings for Hugo by default, whatever the case or the guest suffix', async () => {
+        const { isMutedPlayer } = await import('../src/server/utils/telegram')
+        expect(isMutedPlayer('Hugo')).toBe(true)
+        expect(isMutedPlayer(' hugo ')).toBe(true)
+        expect(isMutedPlayer('Hugo (guest)')).toBe(true)
+        expect(isMutedPlayer('Hugolin')).toBe(false)
+        expect(isMutedPlayer('Gandalf')).toBe(false)
+    })
+
+    it('reads the muted names from TELEGRAM_MUTED_PLAYERS', async () => {
+        vi.stubEnv('TELEGRAM_MUTED_PLAYERS', 'Alice, bob')
+        vi.resetModules()
+        const { isMutedPlayer } = await import('../src/server/utils/telegram')
+        expect(isMutedPlayer('Bob')).toBe(true)
+        expect(isMutedPlayer('alice')).toBe(true)
+        expect(isMutedPlayer('Hugo')).toBe(false)
+    })
+})

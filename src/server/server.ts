@@ -20,10 +20,10 @@ import { pickUnusedColor } from './utils/pickUnusedColor'
 import { NewUnitDataEvent } from '../common/NewUnitDataEvent'
 import { socketIOServer } from './utils/io'
 import { ADMIN_KEY, PORT } from './utils/serverEnv'
-import { GameLobby, PlayerWaiting } from './GameLobby'
+import { GameLobby, LobbyState, PlayerWaiting } from './GameLobby'
 import { SocketEmitter } from './SocketEmitter'
 import { trackGameStart } from './utils/trackings'
-import { notifyTelegram } from './utils/telegram'
+import { isMutedPlayer, notifyTelegram, waitingMessage } from './utils/telegram'
 import { IA_PLAYER_PER_GAME, MINIMUM_PLAYER_PER_GAME } from '../common/GameSettings'
 import { IAPlayer } from './model/player/IAPlayer'
 import { AdminServer } from './admin/AdminServer'
@@ -63,6 +63,17 @@ socketIOServer.on('connection', (socket: Socket) => {
     socket.on(PLAYER_SPECTATE, handlePlayerSpectate(socket))
 })
 
+/** The country lookup goes over the network: the ping waits for it, the lobby never does */
+const announceWaiter = (playerName: string, state: LobbyState, socket: Socket): void => {
+    if (isMutedPlayer(playerName)) {
+        return
+    }
+    const ip = getClientIp(socket)
+    void (ip ? lookupCountry(ip) : Promise.resolve(undefined))
+        .catch(() => undefined)
+        .then((country) => notifyTelegram(waitingMessage(playerName, country, state)))
+}
+
 const handlePlayerJoin =
     (socket: Socket) =>
     (
@@ -101,10 +112,7 @@ const handlePlayerJoin =
                     startGame(futureGameId, socketEmitter, waitingPlayers, sockets)
                 },
                 MINIMUM_PLAYER_PER_GAME,
-                (playerName, state) =>
-                    notifyTelegram(
-                        `🎮 ${playerName} is waiting in the Bataille lobby (${state.playerCount}/${state.requiredPlayerCount}). ${state.ongoingGame} game(s) running.`
-                    )
+                announceWaiter
             )
             console.log(`Number of games: ${Object.keys(games).length}`)
         }

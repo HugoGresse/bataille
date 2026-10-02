@@ -4,14 +4,15 @@ import { DonatingBanner } from './DonatingBanner'
 import { Link as RouterLink } from 'react-router-dom'
 import { HelpDialogButton } from './HelpDialog'
 import { pickRandomPlayerName } from '../../utils/pickRandomPlayerName'
-import { getSavedPlayerName, setPlayerNamePersistent } from '../utils/cookie'
+import { setPlayerNamePersistent } from '../utils/cookie'
+import { getOrCreatePlayerName } from '../utils/playerName'
 import { AccountPanel } from './AccountPanel'
 import { useAccountSession } from '../auth/useAccountSession'
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
 import { ACCOUNT_NAME_MAX, ACCOUNT_NAME_MIN } from '../../common/auth'
 
 export const Home = () => {
-    const [playerName, setPlayerName] = useState(getSavedPlayerName() || pickRandomPlayerName())
+    const [playerName, setPlayerName] = useState(getOrCreatePlayerName)
     const session = useAccountSession()
 
     return (
