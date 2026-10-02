@@ -18,14 +18,12 @@ import { ExportTypeWithGameState } from '../../server/model/types/ExportType'
 import { SOCKET_URL } from './utils/clientEnv'
 import { LobbyState } from '../../server/GameLobby'
 import { Message } from '../../server/model/types/Message'
-import { pickRandomPlayerName } from '../../utils/pickRandomPlayerName'
-import { getSavedPlayerName } from '../utils/cookie'
+import { getOrCreatePlayerName } from '../utils/playerName'
 import { appendMessage, ReceivedMessage } from './chat/chatLog'
 import { readSessionToken } from './session'
 import { RECONNECT_GRACE_MS } from '../../common/GameSettings'
 import { SeatOffer } from '../../server/seats'
 import { getAccountSession, setAccountSession } from '../auth/accountSession'
-import { ACCOUNT_NAME_MAX, ACCOUNT_NAME_MIN } from '../../common/auth'
 
 /** A reload asking for its seat back waits this long for the server before calling the game gone */
 const REJOIN_TIMEOUT_MS = 8000
@@ -270,10 +268,6 @@ export class SocketConnection {
     }
 
     private static getPlayerName(): string {
-        const playerName = getAccountSession()?.name ?? getSavedPlayerName()
-        if (!playerName || playerName.length < ACCOUNT_NAME_MIN || playerName.length > ACCOUNT_NAME_MAX) {
-            return pickRandomPlayerName()
-        }
-        return playerName
+        return getAccountSession()?.name ?? getOrCreatePlayerName()
     }
 }

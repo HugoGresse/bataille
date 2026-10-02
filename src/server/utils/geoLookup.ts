@@ -5,7 +5,8 @@
  * player is one request ever, private ranges never leave the machine, and every failure resolves to
  * "no country" rather than throwing — statistics must never be able to break a game starting.
  *
- * Note this does send the player's address to a third party. Set GEO_LOOKUP_URL to an empty string
+ * Note this does send the player's address to a third party: at game start for the statistics,
+ * and as soon as a player waits in the lobby when the Telegram ping is configured. Set GEO_LOOKUP_URL to an empty string
  * to turn the whole thing off.
  */
 const DEFAULT_ENDPOINT = 'https://ipwho.is/'

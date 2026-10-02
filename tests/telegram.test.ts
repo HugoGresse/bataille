@@ -36,3 +36,53 @@ describe('notifyTelegram', () => {
         expect(fetchMock).not.toHaveBeenCalled()
     })
 })
+
+describe('the waiting ping', () => {
+    afterEach(() => {
+        vi.unstubAllEnvs()
+        vi.resetModules()
+    })
+
+    const state = { playerCount: 1, requiredPlayerCount: 6, ongoingGame: 2 } as never
+
+    it('names the country after the player when it is known', async () => {
+        const { waitingMessage, countryName } = await import('../src/server/utils/telegram')
+        expect(waitingMessage('Gandalf', 'FR', state)).toBe(
+            '🎮 Gandalf (France) is waiting in the Bataille lobby (1/6). 2 game(s) running.'
+        )
+        expect(waitingMessage('Gandalf', undefined, state)).toBe(
+            '🎮 Gandalf is waiting in the Bataille lobby (1/6). 2 game(s) running.'
+        )
+        expect(countryName('us')).toBe('United States')
+        expect(countryName('ZZ')).toBeUndefined()
+        expect(countryName('France')).toBeUndefined()
+    })
+
+    it('mutes nobody unless TELEGRAM_MUTED_ACCOUNTS says so', async () => {
+        vi.stubEnv('TELEGRAM_MUTED_ACCOUNTS', '')
+        vi.resetModules()
+        const { isMutedAccount } = await import('../src/server/utils/telegram')
+        expect(isMutedAccount('Hugo')).toBe(false)
+    })
+
+    it('reads the muted accounts from TELEGRAM_MUTED_ACCOUNTS, whatever the case', async () => {
+        vi.stubEnv('TELEGRAM_MUTED_ACCOUNTS', 'Hugo, bob')
+        vi.resetModules()
+        const { isMutedAccount } = await import('../src/server/utils/telegram')
+        expect(isMutedAccount('Hugo')).toBe(true)
+        expect(isMutedAccount(' hugo ')).toBe(true)
+        expect(isMutedAccount('Bob')).toBe(true)
+        expect(isMutedAccount('Hugolin')).toBe(false)
+        expect(isMutedAccount('Hugo (guest)')).toBe(false)
+    })
+
+    it('is enabled only with both the bot token and the chat id', async () => {
+        vi.stubEnv('TELEGRAM_BOT_TOKEN', 'bot123')
+        vi.stubEnv('TELEGRAM_CHAT_ID', '')
+        vi.resetModules()
+        expect((await import('../src/server/utils/telegram')).telegramEnabled).toBe(false)
+        vi.stubEnv('TELEGRAM_CHAT_ID', '999')
+        vi.resetModules()
+        expect((await import('../src/server/utils/telegram')).telegramEnabled).toBe(true)
+    })
+})

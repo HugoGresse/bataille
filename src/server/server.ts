@@ -20,10 +20,10 @@ import { pickUnusedColor } from './utils/pickUnusedColor'
 import { NewUnitDataEvent } from '../common/NewUnitDataEvent'
 import { socketIOServer } from './utils/io'
 import { ADMIN_KEY, PORT } from './utils/serverEnv'
-import { GameLobby, PlayerWaiting } from './GameLobby'
+import { GameLobby, LobbyState, PlayerWaiting } from './GameLobby'
 import { SocketEmitter } from './SocketEmitter'
 import { trackGameStart } from './utils/trackings'
-import { notifyTelegram } from './utils/telegram'
+import { isMutedAccount, notifyTelegram, telegramEnabled, waitingMessage } from './utils/telegram'
 import { IA_PLAYER_PER_GAME, MINIMUM_PLAYER_PER_GAME } from '../common/GameSettings'
 import { IAPlayer } from './model/player/IAPlayer'
 import { AdminServer } from './admin/AdminServer'
@@ -63,18 +63,36 @@ socketIOServer.on('connection', (socket: Socket) => {
     socket.on(PLAYER_SPECTATE, handlePlayerSpectate(socket))
 })
 
+/**
+ * The country lookup goes over the network: the ping waits for it, the lobby never does. No bot,
+ * no lookup: an address is only sent out when there is a ping to put its country in.
+ */
+const announceWaiter = (playerName: string, state: LobbyState, socket: Socket, accountId: string | null): void => {
+    if (!telegramEnabled || (accountId && isMutedAccount(playerName))) {
+        return
+    }
+    const ip = getClientIp(socket)
+    void (ip ? lookupCountry(ip) : Promise.resolve(undefined))
+        .catch(() => undefined)
+        .then((country) => notifyTelegram(waitingMessage(playerName, country, state)))
+}
+
+const guestName = (typed: unknown): string => {
+    const name = typeof typed === 'string' ? typed : ''
+    return accountStore.findByName(name) ? `${name} (guest)` : name
+}
+
 const handlePlayerJoin =
     (socket: Socket) =>
-    (
-        playerName: string,
-        sessionToken: string | null = null,
-        giveUpSeat = false,
-        accountToken: string | null = null
-    ) => {
-        // A signed-in player plays under the account name whatever the client sent: the name is
-        // what the leaderboard shows, so it cannot be borrowed by typing it
+    (playerName: string, sessionToken: string | null = null, giveUpSeat = false, accountToken: unknown = null) => {
+        // A signed-in player plays under the account name whatever the client sent, and a guest
+        // who typed a registered name is marked as such: the name on the leaderboard stays the
+        // account's. A token the server no longer knows is reported so the tab stops claiming it.
         const account = authService.resolveSession(accountToken)
-        const name = account?.name ?? playerName
+        if (accountToken && !account) {
+            socket.emit(AUTH_SESSION_EXPIRED)
+        }
+        const name = account?.name ?? guestName(playerName)
         // A dropped seat still in play is offered back, not forced: the client takes it (a rejoin
         // naming the game) or gives it up for a fresh slot. A seat still held on a live socket - a
         // duplicated tab carries the same token - is left alone, not this join's to reclaim.
@@ -101,10 +119,7 @@ const handlePlayerJoin =
                     startGame(futureGameId, socketEmitter, waitingPlayers, sockets)
                 },
                 MINIMUM_PLAYER_PER_GAME,
-                (playerName, state) =>
-                    notifyTelegram(
-                        `🎮 ${playerName} is waiting in the Bataille lobby (${state.playerCount}/${state.requiredPlayerCount}). ${state.ongoingGame} game(s) running.`
-                    )
+                announceWaiter
             )
             console.log(`Number of games: ${Object.keys(games).length}`)
         }

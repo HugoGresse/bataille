@@ -9,7 +9,7 @@ export const setPlayerNamePersistent = (value: string) => {
         date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000)
         expires = '; expires=' + date.toUTCString()
     }
-    document.cookie = name + '=' + (value || '') + expires + '; path=/'
+    document.cookie = name + '=' + encodeURIComponent(value || '') + expires + '; path=/'
 }
 export const getSavedPlayerName = () => {
     const nameEQ = COOKIE_PLAYER_NAME + '='
@@ -17,7 +17,14 @@ export const getSavedPlayerName = () => {
     for (let i = 0; i < ca.length; i++) {
         let c = ca[i]
         while (c.charAt(0) === ' ') c = c.substring(1, c.length)
-        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length)
+        if (c.indexOf(nameEQ) === 0) {
+            const raw = c.substring(nameEQ.length, c.length)
+            try {
+                return decodeURIComponent(raw)
+            } catch {
+                return raw // written before values were encoded
+            }
+        }
     }
     return null
 }
