@@ -54,6 +54,13 @@ export class TileSelection {
             }
         })
 
+        // A tap on one of our towns opens its ring on the very pointer up this scene then sees, so
+        // whether the tap landed off an open ring has to be read when it went down
+        let ringOpenAtPress = false
+        this.scene.input.on('pointerdown', () => {
+            ringOpenAtPress = this.scene.getUIScene().cityRing.isOpen()
+        })
+
         this.scene.input.on('pointerup', (pointer: Input.Pointer) => {
             // Clicks on UI scene widgets (buttons, slider...) must not select tiles or move units
             if (consumeUIPointer(pointer)) {
@@ -63,6 +70,11 @@ export class TileSelection {
             // pointer rather than tracked here: `globalTopOnly` skips this scene entirely whenever
             // the press landed on a HUD widget, so a locally recorded press point goes stale.
             if (pointer.getDistance() > CLICK_MAX_DISTANCE) {
+                return
+            }
+            // On a touch screen there is no Escape: a tap off the muster ring only puts it away. The
+            // stack stays selected, so the following tap sends it. A mouse click still moves at once.
+            if (pointer.wasTouch && ringOpenAtPress && this.scene.getUIScene().dismissRing()) {
                 return
             }
             const tile = findTileAt(pointer)
@@ -78,6 +90,7 @@ export class TileSelection {
         })
         this.scene.events.on('destroy', () => {
             this.scene.events.off('pointerup')
+            this.scene.events.off('pointerdown')
             this.scene.events.off('pointermove')
         })
     }

@@ -3,12 +3,17 @@ import { GameObjects, Input, Scene } from 'phaser'
 import { INPUT_ENABLE } from '../BatailleGame'
 import { debounce } from '../../utils/debounce'
 import { BatailleScene } from '../scenes/bataille/BatailleScene'
-import { toCameraZoom, toLogicalZoom } from './renderScale'
+import { devicePx, toCameraZoom, toLogicalZoom } from './renderScale'
 import { clampZoom, distanceBetween, pinchedZoom, WHEEL_ZOOM_STEP } from './pinchZoom'
+import { StartFocus } from './startFocus'
 
 type Camera = Phaser.Cameras.Scene2D.Camera
 
 const DEFAULT_ZOOM = 0.7
+/** Same travel the map uses to tell a click from a pan */
+const PAN_DISTANCE = devicePx(15)
+/** Long enough to read as a glide onto your towns, short enough not to hold up the first move */
+const FOCUS_MS = 900
 
 let CURRENT_ZOOM = DEFAULT_ZOOM
 
@@ -33,6 +38,20 @@ export const setupCamera = (camera: Camera, scene: BatailleScene, map: Phaser.Ti
     pinchMovements(camera, scene)
     dragMovements(camera, scene, map)
     keyMovements(camera, scene)
+}
+
+/**
+ * Glide from wherever the game opened onto the player's own towns. Pan and zoom run together so the
+ * towns stay in view the whole way, and the counters are rescaled once the zoom settles.
+ */
+export const focusCamera = (camera: Camera, scene: BatailleScene, focus: StartFocus) => {
+    CURRENT_ZOOM = clampZoom(focus.zoom)
+    camera.pan(focus.x, focus.y, FOCUS_MS, 'Cubic.easeInOut', true)
+    camera.zoomTo(toCameraZoom(CURRENT_ZOOM), FOCUS_MS, 'Cubic.easeInOut', true, (_camera, progress) => {
+        if (progress === 1) {
+            rescaleCounters(scene)
+        }
+    })
 }
 
 /**
@@ -65,7 +84,7 @@ const pinchMovements = (camera: Camera, scene: BatailleScene) => {
 
 const isPinching = (scene: Scene): boolean => !!scene.input.pointer2?.isDown
 
-const dragMovements = (camera: Camera, scene: Scene, map: Phaser.Tilemaps.Tilemap) => {
+const dragMovements = (camera: Camera, scene: BatailleScene, map: Phaser.Tilemaps.Tilemap) => {
     const zone = scene.add
         .zone(map.widthInPixels / 2, map.heightInPixels / 2, map.widthInPixels, map.heightInPixels)
         .setInteractive({ draggable: true })
@@ -79,10 +98,14 @@ const dragMovements = (camera: Camera, scene: Scene, map: Phaser.Tilemaps.Tilema
         // @ts-ignore
         dY = pointer.worldY
     })
-    zone.on('drag', (pointer: PointerEvent, dragX: number, dragY: number) => {
+    zone.on('drag', (pointer: Input.Pointer, dragX: number, dragY: number) => {
         // A second finger means a pinch: the first one is spreading, not panning
         if (isPinching(scene)) {
             return
+        }
+        // Panning to look at what the muster ring covers puts the ring away; the stack stays selected
+        if (pointer.getDistance() > PAN_DISTANCE) {
+            scene.getUIScene().dismissRing()
         }
         if (dX === 0 && dY === 0) {
             // @ts-ignore

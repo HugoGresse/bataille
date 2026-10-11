@@ -70,6 +70,10 @@ export const HelpDialog = ({ open, setOpen }: HelpDialogProps) => {
                         <li>ENTER: open dialog chat</li>
                         <li>Mouse/Touch: click a unit (origin) then click a tile (destination) to move</li>
                         <li>ESC: close the town's muster ring, then cancel the current unit selection</li>
+                        <li>
+                            Touch: ✕ next to the town closes its muster ring and drops the selection; dragging the map
+                            or tapping off the ring only puts the ring away
+                        </li>
                     </ul>
                 </DialogContentText>
                 <DialogContentText id="alert-dialog-description">

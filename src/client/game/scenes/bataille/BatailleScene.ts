@@ -4,7 +4,7 @@ import { Input, Tilemaps } from 'phaser'
 import { BaseScene, SCENE_BATAILLE_KEY, SCENE_UI_KEY } from '../BaseScene'
 import { BatailleGame } from '../../BatailleGame'
 import { ExportTypeWithGameState } from '../../../../server/model/types/ExportType'
-import { setupCamera } from '../../utils/setupCamera'
+import { focusCamera, setupCamera } from '../../utils/setupCamera'
 import { TileSelection } from './TileSelection'
 import { Town } from '../../actors/buildings/Town'
 import { TILE_WIDTH_HEIGHT } from '../../../../common/UNITS'
@@ -19,7 +19,8 @@ import { round32 } from '../../../../utils/Round32'
 import { CaptureWave } from './CaptureWave'
 import { toColorNumber } from '../../utils/colors'
 import { moveAmountFor } from '../../utils/moveAmount'
-import { toLogicalZoom } from '../../utils/renderScale'
+import { RENDER_SCALE, toLogicalZoom } from '../../utils/renderScale'
+import { startFocus } from '../../utils/startFocus'
 
 const tileKey = ({ x, y }: TileCoord) => `${x},${y}`
 
@@ -56,6 +57,8 @@ export class BatailleScene extends BaseScene {
         [id: string]: Town
     } = {}
     private townsByTile = new Map<string, Town>()
+    /** Towns never move, so their centres are worked out once */
+    private townCenters: { x: number; y: number }[] = []
     private socket!: SocketConnection
     private selectedUnit: StickUnit | null = null
     private pathPreview: PathPreview | null = null
@@ -282,6 +285,11 @@ export class BatailleScene extends BaseScene {
         this.getUIScene().onUnitSelected(town)
     }
 
+    /** World position of every town's centre: the muster ring turns away from the ones near it */
+    getTownCenters(): { x: number; y: number }[] {
+        return this.townCenters
+    }
+
     /** Size of the stack standing on a tile, 0 when it is empty: the muster ring caps against it */
     getStackHPAt(tile: TileCoord): number {
         const unit = Object.values(this.units).find((candidate) => isSameTile(this.getUnitTile(candidate), tile))
@@ -318,6 +326,11 @@ export class BatailleScene extends BaseScene {
                 })
         })
 
+        this.townCenters = Object.values(this.towns).map((town) => ({
+            x: town.x + TILE_WIDTH_HEIGHT / 2,
+            y: town.y + TILE_WIDTH_HEIGHT / 2,
+        }))
+
         this.tileSelectionDetector = new TileSelection(this, this.map)
         this.tileSelectionDetector.start()
         this.tilesColorsUpdater = new TilesColorsUpdater(this, data.map.countries)
@@ -332,6 +345,22 @@ export class BatailleScene extends BaseScene {
             this.units[unit.id] = this.spawnUnit(unit)
         }
         this.tilesColorsUpdater.update(data.gameState.ps)
+        this.focusOnOwnTowns(data.gameState.cp?.n)
+    }
+
+    /** Open on the player's own towns rather than a fixed spot they may be nowhere near */
+    private focusOnOwnTowns(currentPlayerName: string | undefined) {
+        if (!currentPlayerName) {
+            return // a spectator has no towns of their own
+        }
+        const ownTowns = Object.values(this.towns)
+            .filter((town) => town.tileData.p?.n === currentPlayerName)
+            .map((town) => ({ x: town.x + TILE_WIDTH_HEIGHT / 2, y: town.y + TILE_WIDTH_HEIGHT / 2 }))
+        const camera = this.cameras.main
+        const focus = startFocus(ownTowns, { width: camera.width / RENDER_SCALE, height: camera.height / RENDER_SCALE })
+        if (focus) {
+            focusCamera(camera, this, focus)
+        }
     }
 
     private buildMergedRenderLayers(layerNames: string[]) {
