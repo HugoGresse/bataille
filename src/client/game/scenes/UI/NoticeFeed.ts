@@ -109,6 +109,11 @@ export class NoticeFeed {
         this.layout()
     }
 
+    /** Screen area the feed covers: the muster ring keeps its buttons out from under it */
+    getBounds(): { x: number; y: number; width: number; height: number } {
+        return { x: this.panel.x, y: this.panel.y, width: this.panel.width, height: this.panel.height }
+    }
+
     toggle() {
         this.open = !this.open
         if (this.open) {

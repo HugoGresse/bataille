@@ -4,7 +4,7 @@ import { Input, Tilemaps } from 'phaser'
 import { BaseScene, SCENE_BATAILLE_KEY, SCENE_UI_KEY } from '../BaseScene'
 import { BatailleGame } from '../../BatailleGame'
 import { ExportTypeWithGameState } from '../../../../server/model/types/ExportType'
-import { focusCamera, setupCamera } from '../../utils/setupCamera'
+import { focusCamera, rememberView, restoreView, setupCamera } from '../../utils/setupCamera'
 import { TileSelection } from './TileSelection'
 import { Town } from '../../actors/buildings/Town'
 import { TILE_WIDTH_HEIGHT } from '../../../../common/UNITS'
@@ -17,7 +17,7 @@ import { gridFromWalkability } from '../../../../common/pathfinding/walkabilityG
 import { isSameTile, TileCoord } from '../../../../common/pathfinding/findTilePath'
 import { round32 } from '../../../../utils/Round32'
 import { CaptureWave } from './CaptureWave'
-import { toColorNumber } from '../../utils/colors'
+import { isSameColor, toColorNumber } from '../../utils/colors'
 import { moveAmountFor } from '../../utils/moveAmount'
 import { RENDER_SCALE, toLogicalZoom } from '../../utils/renderScale'
 import { startFocus } from '../../utils/startFocus'
@@ -59,6 +59,8 @@ export class BatailleScene extends BaseScene {
     private townsByTile = new Map<string, Town>()
     /** Towns never move, so their centres are worked out once */
     private townCenters: { x: number; y: number }[] = []
+    /** Set once the board is built: the camera is remembered against it in case of a rebuild */
+    private gameId: string | null = null
     private socket!: SocketConnection
     private selectedUnit: StickUnit | null = null
     private pathPreview: PathPreview | null = null
@@ -87,6 +89,9 @@ export class BatailleScene extends BaseScene {
 
     update(time: number, delta: number) {
         super.update(time, delta)
+        if (this.gameId) {
+            rememberView(this.cameras.main, this.gameId)
+        }
         // States are deltas, so they all have to be applied in order. A backgrounded tab stops
         // requestAnimationFrame entirely while the socket keeps queueing, so draining one per frame
         // would take minutes to catch up: work through the backlog, bounded so a huge one cannot
@@ -326,10 +331,7 @@ export class BatailleScene extends BaseScene {
                 })
         })
 
-        this.townCenters = Object.values(this.towns).map((town) => ({
-            x: town.x + TILE_WIDTH_HEIGHT / 2,
-            y: town.y + TILE_WIDTH_HEIGHT / 2,
-        }))
+        this.townCenters = Object.values(this.towns).map((town) => town.getTileCenter())
 
         this.tileSelectionDetector = new TileSelection(this, this.map)
         this.tileSelectionDetector.start()
@@ -345,17 +347,24 @@ export class BatailleScene extends BaseScene {
             this.units[unit.id] = this.spawnUnit(unit)
         }
         this.tilesColorsUpdater.update(data.gameState.ps)
-        this.focusOnOwnTowns(data.gameState.cp?.n)
+        this.gameId = data.gameId
+        // A board rebuilt mid-game (a reconnect) goes back to where the player was looking
+        if (!restoreView(this.cameras.main, this, data.gameId)) {
+            this.focusOnOwnTowns(data.gameState.cp?.c)
+        }
     }
 
-    /** Open on the player's own towns rather than a fixed spot they may be nowhere near */
-    private focusOnOwnTowns(currentPlayerName: string | undefined) {
-        if (!currentPlayerName) {
+    /**
+     * Open on the player's own towns rather than a fixed spot they may be nowhere near. Matched on
+     * colour, which is unique in a game, unlike names that two players can share.
+     */
+    private focusOnOwnTowns(currentPlayerColor: string | undefined) {
+        if (!currentPlayerColor) {
             return // a spectator has no towns of their own
         }
         const ownTowns = Object.values(this.towns)
-            .filter((town) => town.tileData.p?.n === currentPlayerName)
-            .map((town) => ({ x: town.x + TILE_WIDTH_HEIGHT / 2, y: town.y + TILE_WIDTH_HEIGHT / 2 }))
+            .filter((town) => isSameColor(town.getOwnerColor(), currentPlayerColor))
+            .map((town) => town.getTileCenter())
         const camera = this.cameras.main
         const focus = startFocus(ownTowns, { width: camera.width / RENDER_SCALE, height: camera.height / RENDER_SCALE })
         if (focus) {

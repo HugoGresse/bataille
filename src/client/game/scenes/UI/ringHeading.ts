@@ -8,7 +8,15 @@ export type RingGeometry = {
     satRadius: number
     /** Room under a satellite taken by its keycap */
     capHeight: number
+    /** The close button sits this far from the city, on the side away from the fan */
+    closeDistance: number
+    closeRadius: number
 }
+
+export type Rect = { x: number; y: number; width: number; height: number }
+
+/** The screen, less the corners other controls already own: a button under them cannot be pressed */
+export type RingView = { width: number; height: number; reserved?: Rect[] }
 
 /** Tried in this order, so a tie keeps the fan above the city where it has always opened */
 export const HEADINGS = [0, 45, -45, 90, -90, 135, -135, 180]
@@ -23,27 +31,40 @@ export const fanPoint = (origin: Point, angle: number, radius: number): Point =>
     return { x: origin.x + Math.sin(radians) * radius, y: origin.y - Math.cos(radians) * radius }
 }
 
+const overlaps = (point: Point, radius: number, rect: Rect): boolean =>
+    point.x + radius > rect.x &&
+    point.x - radius < rect.x + rect.width &&
+    point.y + radius > rect.y &&
+    point.y - radius < rect.y + rect.height
+
+/** A button the screen edge cuts off, or that sits under another control, cannot be pressed */
+const isClipped = (point: Point, radius: number, below: number, view: RingView): boolean =>
+    point.x - radius < 0 ||
+    point.x + radius > view.width ||
+    point.y - radius < 0 ||
+    point.y + radius + below > view.height ||
+    (view.reserved ?? []).some((rect) => overlaps(point, radius, rect))
+
 /**
  * What a heading costs: one for every town a satellite would sit on, and much more for a satellite
- * the screen edge cuts off.
+ * or close button the screen edge cuts off or another control covers.
  */
 export const headingCost = (
     heading: number,
     origin: Point,
     towns: Point[],
-    view: { width: number; height: number },
+    view: RingView,
     geometry: RingGeometry
 ): number => {
     const { satRadius, arcRadius, capHeight } = geometry
     let cost = 0
+    const close = fanPoint(origin, heading + 180, geometry.closeDistance)
+    if (isClipped(close, geometry.closeRadius, 0, view)) {
+        cost += CLIPPED_COST
+    }
     for (const offset of geometry.spread) {
         const sat = fanPoint(origin, heading + offset, arcRadius)
-        const clipped =
-            sat.x - satRadius < 0 ||
-            sat.x + satRadius > view.width ||
-            sat.y - satRadius < 0 ||
-            sat.y + satRadius + capHeight > view.height
-        if (clipped) {
+        if (isClipped(sat, satRadius, capHeight, view)) {
             cost += CLIPPED_COST
         }
         for (const town of towns) {
@@ -63,7 +84,7 @@ export const headingCost = (
 export const chooseHeading = (
     origin: Point,
     towns: Point[],
-    view: { width: number; height: number },
+    view: RingView,
     geometry: RingGeometry,
     current: number | null = null
 ): number => {

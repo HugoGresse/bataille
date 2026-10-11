@@ -54,12 +54,14 @@ export class TileSelection {
             }
         })
 
-        // A tap on one of our towns opens its ring on the very pointer up this scene then sees, so
-        // whether the tap landed off an open ring has to be read when it went down
-        let ringOpenAtPress = false
-        this.scene.input.on('pointerdown', () => {
-            ringOpenAtPress = this.scene.getUIScene().cityRing.isOpen()
-        })
+        // A tap on one of our towns opens (or switches) its ring on the very pointer up this scene
+        // then sees, so which ring was open has to be read when the tap went down: only a tap that
+        // leaves the same ring open is a tap off it
+        let ringAtPress: object | null = null
+        const onPointerDown = () => {
+            ringAtPress = this.scene.getUIScene().cityRing.getTown()
+        }
+        this.scene.input.on('pointerdown', onPointerDown)
 
         this.scene.input.on('pointerup', (pointer: Input.Pointer) => {
             // Clicks on UI scene widgets (buttons, slider...) must not select tiles or move units
@@ -74,7 +76,13 @@ export class TileSelection {
             }
             // On a touch screen there is no Escape: a tap off the muster ring only puts it away. The
             // stack stays selected, so the following tap sends it. A mouse click still moves at once.
-            if (pointer.wasTouch && ringOpenAtPress && this.scene.getUIScene().dismissRing()) {
+            const ring = this.scene.getUIScene().cityRing
+            if (
+                pointer.wasTouch &&
+                ringAtPress &&
+                ringAtPress === ring.getTown() &&
+                this.scene.getUIScene().dismissRing()
+            ) {
                 return
             }
             const tile = findTileAt(pointer)
@@ -90,7 +98,7 @@ export class TileSelection {
         })
         this.scene.events.on('destroy', () => {
             this.scene.events.off('pointerup')
-            this.scene.events.off('pointerdown')
+            this.scene.input.off('pointerdown', onPointerDown)
             this.scene.events.off('pointermove')
         })
     }

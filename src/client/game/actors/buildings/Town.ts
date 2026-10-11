@@ -62,6 +62,11 @@ export class Town extends Building {
         return { x: Math.floor(this.x / TILE_WIDTH_HEIGHT), y: Math.floor(this.y / TILE_WIDTH_HEIGHT) }
     }
 
+    /** World position of the middle of this town's tile */
+    getTileCenter(): { x: number; y: number } {
+        return { x: this.x + TILE_WIDTH_HEIGHT / 2, y: this.y + TILE_WIDTH_HEIGHT / 2 }
+    }
+
     getOwnerColor(): string | undefined {
         return this.tileData.p?.c
     }

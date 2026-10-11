@@ -54,6 +54,24 @@ export const focusCamera = (camera: Camera, scene: BatailleScene, focus: StartFo
     })
 }
 
+/** Where the camera last was, per game, so a board rebuilt by a reconnect opens on the same spot */
+let lastView: { gameId: string; x: number; y: number; zoom: number } | null = null
+
+export const rememberView = (camera: Camera, gameId: string) => {
+    lastView = { gameId, x: camera.midPoint.x, y: camera.midPoint.y, zoom: camera.zoom }
+}
+
+/** @return false when there is nothing remembered for this game, so the opening glide should run */
+export const restoreView = (camera: Camera, scene: BatailleScene, gameId: string): boolean => {
+    if (lastView?.gameId !== gameId) {
+        return false
+    }
+    camera.setZoom(lastView.zoom)
+    camera.centerOn(lastView.x, lastView.y)
+    rescaleCounters(scene)
+    return true
+}
+
 /**
  * Two fingers on the map zoom it by the ratio of their spread, following them frame by frame rather
  * than easing, since an easing lags behind the hand. The second pointer has to be asked for: Phaser
@@ -93,6 +111,12 @@ const dragMovements = (camera: Camera, scene: BatailleScene, map: Phaser.Tilemap
     let dX = 0
     let dY = 0
     zone.on('dragstart', (pointer: PointerEvent, dragX: number, dragY: number) => {
+        // The opening glide gives way to the hand: a running pan effect would swallow every drag pan
+        if (camera.panEffect.isRunning) {
+            camera.panEffect.reset()
+            camera.zoomEffect.reset()
+            rescaleCounters(scene)
+        }
         // @ts-ignore
         dX = pointer.worldX
         // @ts-ignore

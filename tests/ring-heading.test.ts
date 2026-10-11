@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { chooseHeading, fanPoint, headingCost, RingGeometry } from '../src/client/game/scenes/UI/ringHeading'
 
-const GEOMETRY: RingGeometry = { spread: [-52, 0, 52], arcRadius: 92, satRadius: 25, capHeight: 16 }
+const GEOMETRY: RingGeometry = {
+    spread: [-52, 0, 52],
+    arcRadius: 92,
+    satRadius: 25,
+    capHeight: 16,
+    closeDistance: 51,
+    closeRadius: 14,
+}
 const VIEW = { width: 800, height: 600 }
 const CITY = { x: 400, y: 300 }
 
@@ -27,10 +34,25 @@ describe('chooseHeading', () => {
     })
 
     it('swings inwards rather than run off the edge of the screen', () => {
-        const nearTopLeft = { x: 60, y: 50 }
+        const nearTopLeft = { x: 64, y: 56 }
         const heading = chooseHeading(nearTopLeft, [], VIEW, GEOMETRY)
         expect(headingCost(heading, nearTopLeft, [], VIEW, GEOMETRY)).toBe(0)
         expect(heading).toBe(135)
+    })
+
+    it('keeps the close button on screen too', () => {
+        const nearBottom = { x: 400, y: VIEW.height - 60 }
+        const heading = chooseHeading(nearBottom, [], VIEW, GEOMETRY)
+        expect(headingCost(heading, nearBottom, [], VIEW, GEOMETRY)).toBe(0)
+        expect(heading).not.toBe(0)
+    })
+
+    it('stays out from under another control', () => {
+        const nearTopRight = { x: VIEW.width - 120, y: 140 }
+        const menu = { x: VIEW.width - 56, y: 0, width: 56, height: 56 }
+        const view = { ...VIEW, reserved: [menu] }
+        expect(headingCost(45, nearTopRight, [], view, GEOMETRY)).toBeGreaterThan(0)
+        expect(headingCost(chooseHeading(nearTopRight, [], view, GEOMETRY), nearTopRight, [], view, GEOMETRY)).toBe(0)
     })
 
     it('keeps the current heading when nothing beats it, so the fan does not flutter', () => {

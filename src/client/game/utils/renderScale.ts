@@ -19,3 +19,13 @@ export const toLogicalZoom = (cameraZoom: number): number => cameraZoom / RENDER
 
 /** The camera zoom to apply for a zoom level the player picked */
 export const toCameraZoom = (logicalZoom: number): number => logicalZoom * RENDER_SCALE
+
+/** Where a point on the board sits on screen, in the CSS pixels the HUD lays out in */
+export const worldToHud = (
+    camera: { worldView: { x: number; y: number }; zoom: number },
+    worldX: number,
+    worldY: number
+): { x: number; y: number } => ({
+    x: ((worldX - camera.worldView.x) * camera.zoom) / RENDER_SCALE,
+    y: ((worldY - camera.worldView.y) * camera.zoom) / RENDER_SCALE,
+})

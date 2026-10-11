@@ -23,6 +23,7 @@ import { DeferredPromise } from '../utils/Deferred'
 import { ConnectionPhase, getSocketConnectionInstance, newSocketConnectionInstance } from './SocketConnection'
 import { ReceivedMessage } from './chat/chatLog'
 import { GameMenu } from './GameMenu'
+import { COMPACT_QUERY, DISCORD_URL } from './compactLayout'
 
 type GameParams = {
     gameId: string
@@ -56,7 +57,8 @@ export const Game = () => {
     )
     const blocker = useBlocker(true)
     // Phones get the map edge to edge: the toolbar folds into a menu floating over the canvas
-    const compact = useMediaQuery('(max-width: 600px)')
+    // noSsr: read on the first render, or a phone commits the full toolbar before hiding it
+    const compact = useMediaQuery(COMPACT_QUERY, { noSsr: true })
 
     useEffect(() => {
         // This prevents the user from going back using the browser Back button:
@@ -150,11 +152,7 @@ export const Game = () => {
                     {exitLabel}
                 </Button>
                 <div>
-                    <Button
-                        color="secondary"
-                        href="https://discord.gg/tQP5TVD9js"
-                        target="_blank"
-                        startIcon={<FeedbackIcon />}>
+                    <Button color="secondary" href={DISCORD_URL} target="_blank" startIcon={<FeedbackIcon />}>
                         Discord (feedbacks/news)
                     </Button>{' '}
                     <HelpDialogButton color="secondary" buttonText={'HELP'} />{' '}
@@ -187,6 +185,7 @@ export const Game = () => {
                 {compact && (
                     <GameMenu
                         exitLabel={exitLabel}
+                        spectating={isSpectator}
                         onExit={exit}
                         onSurrender={isSpectator ? null : () => setSurrenderDialogOpen(true)}
                         surrendered={surrendered}

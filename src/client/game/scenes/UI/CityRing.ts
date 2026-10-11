@@ -5,9 +5,10 @@ import { MAX_UNIT_LIFE, roomInStack, TILE_WIDTH_HEIGHT, UnitsType } from '../../
 import { getGameWindowSize } from '../../../utils/getGameWindowSize'
 import { ensureRingTextures, PLATE_TEXTURE, SAT_OFF_TEXTURE, SAT_TEXTURE } from './ringTextures'
 import { MUSTER_OPTIONS, MusterOption, musterCount } from '../../utils/muster'
-import { RENDER_SCALE } from '../../utils/renderScale'
+import { RENDER_SCALE, worldToHud } from '../../utils/renderScale'
+import { COMPACT_QUERY, MENU_CORNER_PX } from '../../compactLayout'
 import { crispText } from './crispText'
-import { chooseHeading, fanPoint, RingGeometry } from './ringHeading'
+import { chooseHeading, fanPoint, Rect, RingGeometry } from './ringHeading'
 
 /** Screen-space geometry: the ring is the same size at every zoom level */
 const ARC_RADIUS = 92
@@ -32,7 +33,14 @@ const SPREAD_STAGGER = 0.12
 
 /** Angles off the fan's heading, which is itself measured from straight up, clockwise */
 const ANGLES = [-52, 0, 52]
-const GEOMETRY: RingGeometry = { spread: ANGLES, arcRadius: ARC_RADIUS, satRadius: SAT_RADIUS, capHeight: CAP_HEIGHT }
+const GEOMETRY: RingGeometry = {
+    spread: ANGLES,
+    arcRadius: ARC_RADIUS,
+    satRadius: SAT_RADIUS,
+    capHeight: CAP_HEIGHT,
+    closeDistance: CLOSE_DISTANCE,
+    closeRadius: CLOSE_RADIUS,
+}
 /** Towns further than this from the city on screen cannot sit under the fan, whichever way it points */
 const OBSTACLE_REACH = ARC_RADIUS + SAT_RADIUS * 2
 
@@ -352,8 +360,7 @@ export class CityRing {
         }
         const worldX = this.town.tileX * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
         const worldY = this.town.tileY * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
-        const x = ((worldX - camera.worldView.x) * camera.zoom) / RENDER_SCALE
-        const y = ((worldY - camera.worldView.y) * camera.zoom) / RENDER_SCALE
+        const { x, y } = worldToHud(camera, worldX, worldY)
 
         const { width, height } = getGameWindowSize(this.scene)
         const reach = ARC_RADIUS + SAT_RADIUS
@@ -372,7 +379,13 @@ export class CityRing {
         const heading =
             from === this.headingFrom
                 ? this.heading
-                : chooseHeading({ x, y }, this.nearbyTowns(camera, x, y), { width, height }, GEOMETRY, this.heading)
+                : chooseHeading(
+                      { x, y },
+                      this.nearbyTowns(camera, worldX, worldY),
+                      { width, height, reserved: this.reservedAreas(width) },
+                      GEOMETRY,
+                      this.heading
+                  )
         this.headingFrom = from
         if (heading !== this.heading) {
             const firstPlacement = this.heading === null
@@ -393,19 +406,31 @@ export class CityRing {
         }
     }
 
-    /** Screen positions of the other towns close enough to the city to end up under the fan */
-    private nearbyTowns(camera: Phaser.Cameras.Scene2D.Camera, x: number, y: number) {
-        const scale = camera.zoom / RENDER_SCALE
+    /**
+     * Screen positions of the other towns close enough to the city to end up under the fan. Picked
+     * out in world space first, so only that handful is projected onto the screen.
+     */
+    private nearbyTowns(camera: Phaser.Cameras.Scene2D.Camera, worldX: number, worldY: number) {
+        const reach = OBSTACLE_REACH / (camera.zoom / RENDER_SCALE)
         return this.scene
             .getBatailleScene()
             .getTownCenters()
-            .map((town) => ({ x: (town.x - camera.worldView.x) * scale, y: (town.y - camera.worldView.y) * scale }))
             .filter((town) => {
-                const dx = town.x - x
-                const dy = town.y - y
+                const dx = town.x - worldX
+                const dy = town.y - worldY
                 // The city itself sits at the centre, under the clear middle of the plate
-                return dx * dx + dy * dy > 4 && dx * dx + dy * dy < OBSTACLE_REACH * OBSTACLE_REACH
+                return (dx !== 0 || dy !== 0) && dx * dx + dy * dy < reach * reach
             })
+            .map((town) => worldToHud(camera, town.x, town.y))
+    }
+
+    /** Controls drawn over the map that a satellite or the close button must not end up under */
+    private reservedAreas(width: number): Rect[] {
+        const reserved: Rect[] = [this.scene.noticeFeed.getBounds()]
+        if (window.matchMedia(COMPACT_QUERY).matches) {
+            reserved.push({ x: width - MENU_CORNER_PX, y: 0, width: MENU_CORNER_PX, height: MENU_CORNER_PX })
+        }
+        return reserved
     }
 
     private layoutSatellites() {
