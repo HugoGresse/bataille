@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.28",
+        "date": "2026-10-11",
+        "title": "Camera starts on your towns, muster ring easier to close, roomier phone layout, more AIs",
+        "pr": 42
+    },
+    {
         "version": "0.17.27",
         "date": "2026-10-02",
         "title": "Stable guest name, country in the lobby ping, mute by account",
