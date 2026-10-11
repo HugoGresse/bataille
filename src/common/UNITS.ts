@@ -5,6 +5,10 @@ export const UNIT_STICK = 'u-stick'
 export const TILE_WIDTH_HEIGHT = 32
 export const TILE_WIDTH_HEIGHT_HALF = TILE_WIDTH_HEIGHT / 2
 
+/** Larger is slower: a stack waits SPEED_FACTOR / speed ms on a tile, then steps onto the next one */
+export const SPEED_FACTOR = 2800
+export const STICK_SPEED = 6
+
 export enum UnitsType {
     Stick = 1,
     Bar = 2,

@@ -8,6 +8,8 @@ const fromEnv = (name: string, fallback: number): number => {
 }
 
 export const INCOME_MS = 7000
+/** One turn of the server game loop: units step, fight and capture on these ticks only */
+export const SERVER_TICK_MS = 100
 export const MONEY_INCOME_START = 4
 export const MINIMUM_PLAYER_PER_GAME = fromEnv('MIN_PLAYER', 6)
 /** Players a game is filled up to: AIs take whatever seats the humans leave. Capped by the colours there are. */

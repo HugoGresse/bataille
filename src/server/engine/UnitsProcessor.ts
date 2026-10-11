@@ -50,6 +50,7 @@ export class UnitsProcessor {
 
                 unitMoved = unit.update(map)
                 if (unitMoved) {
+                    // Reported once, here: re-registering it on its new tile below changes nothing it sends
                     updatedUnits.push(unit.getPublicState())
                     const unitNewPos = unit.position.getRounded()
                     if (unitNewPos.x != x || unitNewPos.y != y) {
@@ -81,7 +82,6 @@ export class UnitsProcessor {
                             const newMap = new Map()
                             newMap.set(unitNewPos.y, unit)
                             this.units.set(unitNewPos.x, newMap)
-                            updatedUnits.push(unit.getPublicState())
                         } else {
                             const tempY = tempX.get(unitNewPos.y)
                             if (tempY) {
@@ -96,7 +96,6 @@ export class UnitsProcessor {
                                 }
                             } else {
                                 tempX.set(unitNewPos.y, unit)
-                                updatedUnits.push(unit.getPublicState())
                             }
                         }
                     }
