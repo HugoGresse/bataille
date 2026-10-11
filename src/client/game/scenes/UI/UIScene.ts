@@ -92,6 +92,25 @@ export class UIScene extends BaseScene {
         }
     }
 
+    /** The ring's ✕: give up on this town altogether, the ring and the stack it was opened with */
+    dismissRingAndSelection() {
+        this.cityRing.close()
+        this.getBatailleScene().clearUnitSelection(false)
+    }
+
+    /**
+     * The map is being dragged, or tapped off the ring on a touch screen: the ring gets out of the
+     * way, but the stack stays selected so the next tap still sends it.
+     * @return true when there was a ring to put away
+     */
+    dismissRing(): boolean {
+        if (!this.cityRing.isOpen()) {
+            return false
+        }
+        this.cityRing.close()
+        return true
+    }
+
     /** An empty tile was clicked: nothing to muster from */
     onEmptyTileSelected() {
         this.cityRing.close()

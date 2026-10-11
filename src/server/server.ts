@@ -16,7 +16,7 @@ import {
     GAME_SEAT_OFFERED,
 } from '../common/SOCKET_EMIT'
 import { UnitAction } from '../common/UnitAction'
-import { pickUnusedColor } from './utils/pickUnusedColor'
+import { MAX_PLAYERS_PER_GAME, pickUnusedColor } from './utils/pickUnusedColor'
 import { NewUnitDataEvent } from '../common/NewUnitDataEvent'
 import { socketIOServer } from './utils/io'
 import { ADMIN_KEY, PORT } from './utils/serverEnv'
@@ -241,7 +241,8 @@ const startGame = (
         game.watchDisconnect(player)
     }
 
-    const numberOfIA = Math.min(IA_PLAYER_PER_GAME - waitingPlayers.length, IA_PLAYER_PER_GAME)
+    // Past the palette a player would get no colour at all, so the target is held to it
+    const numberOfIA = Math.min(IA_PLAYER_PER_GAME, MAX_PLAYERS_PER_GAME) - waitingPlayers.length
     for (let i = 1; i <= numberOfIA; i++) {
         const color = pickUnusedColor(game.getPlayers())
         const player = new IAPlayer(color, `AI-${i}`)

@@ -19,7 +19,7 @@ describe('GameSettings in a browser', () => {
         const settings = await import('../src/common/GameSettings')
 
         expect(settings.MINIMUM_PLAYER_PER_GAME).toBe(6)
-        expect(settings.IA_PLAYER_PER_GAME).toBe(0)
+        expect(settings.IA_PLAYER_PER_GAME).toBe(6)
         expect(settings.RECONNECT_GRACE_MS).toBeGreaterThan(0)
     })
 

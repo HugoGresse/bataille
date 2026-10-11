@@ -2,7 +2,17 @@ import React, { useEffect, useRef, useState } from 'react'
 import { BatailleGame } from './BatailleGame'
 import '../screens/game.css'
 import { useBlocker, useParams, useSearchParams } from 'react-router-dom'
-import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
+import {
+    Box,
+    Button,
+    Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    useMediaQuery,
+} from '@mui/material'
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
 import BackIcon from '@mui/icons-material/ArrowBack'
 import FeedbackIcon from '@mui/icons-material/Feedback'
@@ -12,6 +22,8 @@ import { MessageDialog } from '../screens/MessageDialog'
 import { DeferredPromise } from '../utils/Deferred'
 import { ConnectionPhase, getSocketConnectionInstance, newSocketConnectionInstance } from './SocketConnection'
 import { ReceivedMessage } from './chat/chatLog'
+import { GameMenu } from './GameMenu'
+import { COMPACT_QUERY, DISCORD_URL } from './compactLayout'
 
 type GameParams = {
     gameId: string
@@ -44,6 +56,9 @@ export const Game = () => {
         () => getSocketConnectionInstance()?.getLatestState()?.cp.s ?? false
     )
     const blocker = useBlocker(true)
+    // Phones get the map edge to edge: the toolbar folds into a menu floating over the canvas
+    // noSsr: read on the first render, or a phone commits the full toolbar before hiding it
+    const compact = useMediaQuery(COMPACT_QUERY, { noSsr: true })
 
     useEffect(() => {
         // This prevents the user from going back using the browser Back button:
@@ -100,30 +115,44 @@ export const Game = () => {
         }
     }, [gameId, gameContainer, generation])
 
+    const exitLabel = isSpectator ? 'Back to admin' : 'Exit game'
+    const exit = () => {
+        if (isSpectator) {
+            getSocketConnectionInstance()?.disconnect()
+            window.location.assign(`/admin?token=${encodeURIComponent(spectateToken!)}`)
+        } else {
+            leaveForMenu()
+        }
+    }
+    const enterFullscreen = () => {
+        // iPhone Safari has no element fullscreen at all
+        gameTopContainer.current?.requestFullscreen?.()
+        game?.setFullscreen()
+    }
+
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', margin: 1 }}>
+        // dvh, not vh: on a phone 100vh counts the space under the browser's own toolbar, so the
+        // bottom of the map sat hidden behind it
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100vh',
+                '@supports (height: 100dvh)': { height: '100dvh' },
+            }}>
+            <Box sx={{ display: compact ? 'none' : 'flex', justifyContent: 'space-between', margin: 1 }}>
                 <Button
                     color="secondary"
                     href={isSpectator ? `/admin?token=${encodeURIComponent(spectateToken!)}` : '/'}
                     startIcon={<BackIcon />}
                     onClick={(event) => {
                         event.preventDefault()
-                        if (isSpectator) {
-                            getSocketConnectionInstance()?.disconnect()
-                            window.location.assign(`/admin?token=${encodeURIComponent(spectateToken!)}`)
-                        } else {
-                            leaveForMenu()
-                        }
+                        exit()
                     }}>
-                    {isSpectator ? 'Back to admin' : 'Exit game'}
+                    {exitLabel}
                 </Button>
                 <div>
-                    <Button
-                        color="secondary"
-                        href="https://discord.gg/tQP5TVD9js"
-                        target="_blank"
-                        startIcon={<FeedbackIcon />}>
+                    <Button color="secondary" href={DISCORD_URL} target="_blank" startIcon={<FeedbackIcon />}>
                         Discord (feedbacks/news)
                     </Button>{' '}
                     <HelpDialogButton color="secondary" buttonText={'HELP'} />{' '}
@@ -142,17 +171,28 @@ export const Game = () => {
                     <Button
                         color="secondary"
                         variant="outlined"
-                        onClick={() => {
-                            gameTopContainer.current?.requestFullscreen()
-                            game?.setFullscreen()
-                        }}
+                        onClick={enterFullscreen}
                         startIcon={<FullscreenIcon />}>
                         Fullscreen
                     </Button>
                 </div>
             </Box>
-            <Box sx={{ display: 'flex', overflow: 'hidden' }} ref={gameTopContainer} id="gameTopContainer">
+            <Box
+                sx={{ display: 'flex', overflow: 'hidden', position: 'relative' }}
+                ref={gameTopContainer}
+                id="gameTopContainer">
                 <div ref={gameContainer} id="gameContainer" />
+                {compact && (
+                    <GameMenu
+                        exitLabel={exitLabel}
+                        spectating={isSpectator}
+                        onExit={exit}
+                        onSurrender={isSpectator ? null : () => setSurrenderDialogOpen(true)}
+                        surrendered={surrendered}
+                        onFullscreen={enterFullscreen}
+                        container={() => gameTopContainer.current}
+                    />
+                )}
             </Box>
             <MessageDialog
                 open={messageDialogOpen}

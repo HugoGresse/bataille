@@ -5,8 +5,10 @@ import { MAX_UNIT_LIFE, roomInStack, TILE_WIDTH_HEIGHT, UnitsType } from '../../
 import { getGameWindowSize } from '../../../utils/getGameWindowSize'
 import { ensureRingTextures, PLATE_TEXTURE, SAT_OFF_TEXTURE, SAT_TEXTURE } from './ringTextures'
 import { MUSTER_OPTIONS, MusterOption, musterCount } from '../../utils/muster'
-import { RENDER_SCALE } from '../../utils/renderScale'
+import { RENDER_SCALE, worldToHud } from '../../utils/renderScale'
+import { COMPACT_QUERY, MENU_CORNER_PX } from '../../compactLayout'
 import { crispText } from './crispText'
+import { chooseHeading, fanPoint, Rect, RingGeometry } from './ringHeading'
 
 /** Screen-space geometry: the ring is the same size at every zoom level */
 const ARC_RADIUS = 92
@@ -14,6 +16,11 @@ const SAT_RADIUS = 25
 const PLATE_RADIUS = 66
 /** Pad in the satellite texture that carries its rim highlight */
 const SAT_TEXTURE_PAD = 3
+/** The close button sits on the side of the city away from the fan */
+const CLOSE_RADIUS = 14
+const CLOSE_DISTANCE = SAT_RADIUS + 26
+/** Keycap hanging under each satellite, which the fan has to keep on screen too */
+const CAP_HEIGHT = 16
 
 const HOVER_SCALE = 1.07
 const PRESS_SCALE = 0.93
@@ -24,8 +31,18 @@ const SPREAD_MS = 300
 /** Head start each satellite gives the next one, as a fraction of the spread */
 const SPREAD_STAGGER = 0.12
 
-/** Angles are measured from straight up, fanning left to right */
+/** Angles off the fan's heading, which is itself measured from straight up, clockwise */
 const ANGLES = [-52, 0, 52]
+const GEOMETRY: RingGeometry = {
+    spread: ANGLES,
+    arcRadius: ARC_RADIUS,
+    satRadius: SAT_RADIUS,
+    capHeight: CAP_HEIGHT,
+    closeDistance: CLOSE_DISTANCE,
+    closeRadius: CLOSE_RADIUS,
+}
+/** Towns further than this from the city on screen cannot sit under the fan, whichever way it points */
+const OBSTACLE_REACH = ARC_RADIUS + SAT_RADIUS * 2
 
 type Satellite = {
     option: MusterOption
@@ -47,10 +64,17 @@ export class CityRing {
     private plate: Phaser.GameObjects.Image | null = null
     private title: Phaser.GameObjects.Text | null = null
     private hint: Phaser.GameObjects.Text | null = null
+    private closeButton: Phaser.GameObjects.Container | null = null
     private satellites: Satellite[] = []
     private town: { tileX: number; tileY: number; name?: string } | null = null
-    /** Layout only changes when the ring flips or the treasury moves, the anchor moves every frame */
-    private direction = 0
+    /**
+     * Which way the fan points, chosen to keep clear of neighbouring towns and the screen edge. Null
+     * until the ring has been placed once. Layout only changes when it turns or the treasury moves;
+     * the anchor moves every frame.
+     */
+    private heading: number | null = null
+    /** Where the heading was last worked out from: it only needs redoing once the city moves on screen */
+    private headingFrom = ''
     private lastMoney = -1
     private lastStackHP = -1
     /** 0 while the satellites are still stacked on the city, 1 once they have reached the arc */
@@ -74,7 +98,8 @@ export class CityRing {
         this.close()
         this.town = { tileX, tileY, name: townName }
 
-        this.direction = 0
+        this.heading = null
+        this.headingFrom = ''
         this.lastMoney = -1
         ensureRingTextures(this.scene, PLATE_RADIUS, SAT_RADIUS)
 
@@ -96,14 +121,19 @@ export class CityRing {
         this.title.setPadding(6, 3, 6, 3)
         this.root.add(this.title)
 
-        this.hint = crispText(this.scene, 0, 0, 'Esc to close', {
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '9px',
-            color: '#ffffff',
-        })
-        this.hint.setOrigin(0.5, 0.5)
-        this.hint.setAlpha(0.55)
-        this.root.add(this.hint)
+        this.closeButton = this.buildCloseButton()
+        this.root.add(this.closeButton)
+        // A keyboard is there to use: say which key does what the button does
+        if (!this.scene.sys.game.device.input.touch) {
+            this.hint = crispText(this.scene, 0, 0, 'ESC', {
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                fontSize: '9px',
+                color: '#ffffff',
+            })
+            this.hint.setOrigin(0.5, 0)
+            this.hint.setAlpha(0.55)
+            this.root.add(this.hint)
+        }
 
         MUSTER_OPTIONS.forEach((option, index) => {
             this.satellites.push(this.buildSatellite(option, index))
@@ -113,16 +143,41 @@ export class CityRing {
         this.playOpenAnimation()
     }
 
+    /** ✕ beside the city: drops the ring and the stack it was opened with, the way Escape does twice */
+    private buildCloseButton(): Phaser.GameObjects.Container {
+        const disc = this.scene.add.circle(0, 0, CLOSE_RADIUS, 0x1b2130, 0.92)
+        disc.setStrokeStyle(1.5, 0xffffff, 0.6)
+        const cross = crispText(this.scene, 0, 0, '✕', {
+            fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+            fontSize: '13px',
+            color: '#ffffff',
+        })
+        cross.setOrigin(0.5, 0.5)
+        const button = this.scene.add.container(0, 0, [disc, cross])
+        button.setSize(CLOSE_RADIUS * 2, CLOSE_RADIUS * 2)
+        button.setInteractive(
+            new Phaser.Geom.Circle(CLOSE_RADIUS, CLOSE_RADIUS, CLOSE_RADIUS),
+            Phaser.Geom.Circle.Contains
+        )
+        if (button.input) {
+            button.input.cursor = 'pointer'
+        }
+        button.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+            this.scene.markUIPointer(pointer)
+            button.setScale(PRESS_SCALE)
+        })
+        button.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => button.setScale(1))
+        button.on(Phaser.Input.Events.GAMEOBJECT_POINTER_UP, () => this.scene.dismissRingAndSelection())
+        return button
+    }
+
     /** The plate blooms out of the city and the satellites fan off it, one just behind the next */
     private playOpenAnimation() {
-        this.spreadTween?.stop()
-        this.spread = 0
-        this.layoutSatellites(this.direction)
-
         this.plate?.setScale(0.68)
         this.plate?.setAlpha(0)
         this.title?.setAlpha(0)
         this.hint?.setAlpha(0)
+        this.closeButton?.setAlpha(0)
         this.scene.tweens.add({
             targets: this.plate,
             scale: 1,
@@ -131,12 +186,20 @@ export class CityRing {
             ease: 'Cubic.easeOut',
         })
         this.scene.tweens.add({
-            targets: [this.title, this.hint].filter(Boolean),
+            targets: [this.title, this.hint, this.closeButton].filter(Boolean),
             alpha: { from: 0, to: 0.78 },
             duration: PLATE_IN_MS,
             delay: 70,
             ease: 'Cubic.easeOut',
         })
+        this.playSpread()
+    }
+
+    /** The satellites fan off the city, one just behind the next: on open, and again when it turns */
+    private playSpread() {
+        this.spreadTween?.stop()
+        this.spread = 0
+        this.layoutSatellites()
 
         this.spreadTween = this.scene.tweens.addCounter({
             from: 0,
@@ -145,12 +208,12 @@ export class CityRing {
             ease: 'Back.easeOut',
             onUpdate: (tween) => {
                 this.spread = tween.getValue() ?? 1
-                this.layoutSatellites(this.direction)
+                this.layoutSatellites()
             },
             onComplete: () => {
                 this.spread = 1
                 this.spreadTween = null
-                this.layoutSatellites(this.direction)
+                this.layoutSatellites()
             },
         })
     }
@@ -166,6 +229,7 @@ export class CityRing {
         this.plate = null
         this.title = null
         this.hint = null
+        this.closeButton = null
         this.town = null
     }
 
@@ -296,8 +360,7 @@ export class CityRing {
         }
         const worldX = this.town.tileX * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
         const worldY = this.town.tileY * TILE_WIDTH_HEIGHT + TILE_WIDTH_HEIGHT / 2
-        const x = ((worldX - camera.worldView.x) * camera.zoom) / RENDER_SCALE
-        const y = ((worldY - camera.worldView.y) * camera.zoom) / RENDER_SCALE
+        const { x, y } = worldToHud(camera, worldX, worldY)
 
         const { width, height } = getGameWindowSize(this.scene)
         const reach = ARC_RADIUS + SAT_RADIUS
@@ -311,11 +374,27 @@ export class CityRing {
         // sits inside the ring, and nudging the ring away would break that relationship.
         this.root.setPosition(Math.round(x), Math.round(y))
 
-        // Flip below the city when the arc would run off the top of the view
-        const direction = y - reach - 24 < 0 ? 1 : -1
-        if (direction !== this.direction) {
-            this.direction = direction
-            this.layoutSatellites(direction)
+        // Point the fan wherever it hides the fewest neighbouring towns and stays on screen
+        const from = `${Math.round(x)},${Math.round(y)},${camera.zoom},${width},${height}`
+        const heading =
+            from === this.headingFrom
+                ? this.heading
+                : chooseHeading(
+                      { x, y },
+                      this.nearbyTowns(camera, worldX, worldY),
+                      { width, height, reserved: this.reservedAreas(width) },
+                      GEOMETRY,
+                      this.heading
+                  )
+        this.headingFrom = from
+        if (heading !== this.heading) {
+            const firstPlacement = this.heading === null
+            this.heading = heading
+            if (firstPlacement || this.spreadTween) {
+                this.layoutSatellites()
+            } else {
+                this.playSpread() // swinging round in one frame would read as a glitch
+            }
         }
 
         const money = this.scene.getState()?.cp.m ?? 0
@@ -327,9 +406,43 @@ export class CityRing {
         }
     }
 
-    private layoutSatellites(direction: number) {
-        this.title?.setPosition(0, direction * (ARC_RADIUS + SAT_RADIUS + 16))
-        this.hint?.setPosition(0, -direction * (SAT_RADIUS + 24))
+    /**
+     * Screen positions of the other towns close enough to the city to end up under the fan. Picked
+     * out in world space first, so only that handful is projected onto the screen.
+     */
+    private nearbyTowns(camera: Phaser.Cameras.Scene2D.Camera, worldX: number, worldY: number) {
+        const reach = OBSTACLE_REACH / (camera.zoom / RENDER_SCALE)
+        return this.scene
+            .getBatailleScene()
+            .getTownCenters()
+            .filter((town) => {
+                const dx = town.x - worldX
+                const dy = town.y - worldY
+                // The city itself sits at the centre, under the clear middle of the plate
+                return (dx !== 0 || dy !== 0) && dx * dx + dy * dy < reach * reach
+            })
+            .map((town) => worldToHud(camera, town.x, town.y))
+    }
+
+    /** Controls drawn over the map that a satellite or the close button must not end up under */
+    private reservedAreas(width: number): Rect[] {
+        const reserved: Rect[] = [this.scene.noticeFeed.getBounds()]
+        if (window.matchMedia(COMPACT_QUERY).matches) {
+            reserved.push({ x: width - MENU_CORNER_PX, y: 0, width: MENU_CORNER_PX, height: MENU_CORNER_PX })
+        }
+        return reserved
+    }
+
+    private layoutSatellites() {
+        const heading = this.heading ?? 0
+        const origin = { x: 0, y: 0 }
+        // The title sits past the fan; pushed further out sideways so it clears the outer satellite
+        const titleReach = ARC_RADIUS + SAT_RADIUS + 16 + Math.abs(Math.sin((heading * Math.PI) / 180)) * 30
+        const title = fanPoint(origin, heading, titleReach)
+        this.title?.setPosition(Math.round(title.x), Math.round(title.y))
+        const close = fanPoint(origin, heading + 180, CLOSE_DISTANCE)
+        this.closeButton?.setPosition(Math.round(close.x), Math.round(close.y))
+        this.hint?.setPosition(Math.round(close.x), Math.round(close.y) + CLOSE_RADIUS + 3)
 
         // Keyed off the tween, not the value: the ease overshoots past 1 and would flicker between
         // the animated scale and the hover-owned one
@@ -339,9 +452,7 @@ export class CityRing {
             // The head start is divided out per satellite so they all land exactly on the arc.
             const headStart = index * SPREAD_STAGGER
             const reach = Math.max(0, (this.spread - headStart) / (1 - headStart))
-            const radians = Phaser.Math.DEG_TO_RAD * ANGLES[index]
-            const satX = Math.sin(radians) * ARC_RADIUS * reach
-            const satY = direction * Math.cos(radians) * ARC_RADIUS * reach
+            const { x: satX, y: satY } = fanPoint(origin, heading + ANGLES[index], ARC_RADIUS * reach)
             sat.container.setPosition(satX, satY)
             // the cap is a child of the ring, so its position is relative to the town, not the screen
             sat.cap.setPosition(satX, satY + SAT_RADIUS + 3)

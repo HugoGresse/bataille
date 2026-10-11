@@ -2,7 +2,7 @@ import * as Phaser from 'phaser'
 import { UIScene } from './UIScene'
 import { TILE_WIDTH_HEIGHT } from '../../../../common/UNITS'
 import { getGameWindowSize } from '../../../utils/getGameWindowSize'
-import { RENDER_SCALE } from '../../utils/renderScale'
+import { worldToHud } from '../../utils/renderScale'
 import { crispText } from './crispText'
 import { lossLabel, markerOpacity, placeMarker, shouldMerge } from './lossMarkerGeometry'
 
@@ -240,10 +240,7 @@ export class LossMarkers {
         if (!camera) {
             return { x: worldX, y: worldY }
         }
-        return {
-            x: ((worldX - camera.worldView.x) * camera.zoom) / RENDER_SCALE,
-            y: ((worldY - camera.worldView.y) * camera.zoom) / RENDER_SCALE,
-        }
+        return worldToHud(camera, worldX, worldY)
     }
 
     private remove(marker: Marker) {
