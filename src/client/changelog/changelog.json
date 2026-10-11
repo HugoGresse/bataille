@@ -1,5 +1,11 @@
 [
     {
+        "version": "0.17.29",
+        "date": "2026-10-11",
+        "title": "Units glide steadily between tiles and arrive at captures on time",
+        "pr": 43
+    },
+    {
         "version": "0.17.28",
         "date": "2026-10-11",
         "title": "Camera starts on your towns, muster ring easier to close, roomier phone layout, more AIs",
