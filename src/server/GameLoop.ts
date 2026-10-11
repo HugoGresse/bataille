@@ -4,9 +4,7 @@ import { AbstractPlayer } from './model/player/AbstractPlayer'
 import { trackGameEnd } from './utils/trackings'
 import { gameStats, StatResult } from './stats/GameStats'
 import { HumanPlayer } from './model/player/HumanPlayer'
-
-const FRAME_RATE = 10
-const INTERVAL_SPEED = 1000 / FRAME_RATE
+import { SERVER_TICK_MS } from '../common/GameSettings'
 
 export class GameLoop {
     private intervalId: NodeJS.Timeout | null = null
@@ -41,7 +39,7 @@ export class GameLoop {
                 console.log(`Humans incomes: ${game.getHumanPlayers().map((p) => p.income)}`)
                 this.stop(gameResults(game, results.winner))
             }
-        }, INTERVAL_SPEED)
+        }, SERVER_TICK_MS)
         this.isRunning = true
     }
 

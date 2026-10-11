@@ -50,6 +50,9 @@ export interface UnitState {
         y: number
     }
     c: string // color
+    /** Moving units only: the tile centre it steps onto next, and in how many ms */
+    n?: { x: number; y: number }
+    w?: number
 }
 
 export interface TownsState extends TilePublic {}

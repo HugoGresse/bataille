@@ -1,8 +1,8 @@
 import { round32 } from '../../../utils/Round32'
 import { Velocity } from './Velocity'
 import { GameMap } from '../map/GameMap'
-
-const SPEED_FACTOR = 2800 // increase to slow down movements
+import { SPEED_FACTOR } from '../../../common/UNITS'
+import { SERVER_TICK_MS } from '../../../common/GameSettings'
 
 export class Position {
     // real position used for the movement
@@ -38,11 +38,10 @@ export class Position {
     /**
      * @return true if the target has been reached
      */
-    move(target: number[], velocity: Velocity, map: GameMap): boolean {
+    move(target: number[], velocity: Velocity, map: GameMap, now: number = Date.now()): boolean {
         const currentRoundedPos = this.getRounded()
         const currentTile = map.getTileAt(currentRoundedPos.x, currentRoundedPos.y)
         const speed = velocity.modulate(this, currentTile)
-        const now = Date.now()
 
         if (this.nextMoveTime === 0) {
             this.nextMoveTime = now + SPEED_FACTOR / speed
@@ -50,15 +49,36 @@ export class Position {
         }
 
         if (now > this.nextMoveTime) {
-            this.nextMoveTime = 0
             this.x = target[0]
             this.y = target[1]
             this.rX = round32(this.x)
             this.rY = round32(this.y)
+            // The next wait is set now, from the tile just stepped onto, so the time of the next step is
+            // known (and reported) the moment this one lands. It starts a tick from now, as it always has.
+            const newRoundedPos = this.getRounded()
+            const newSpeed = velocity.modulate(this, map.getTileAt(newRoundedPos.x, newRoundedPos.y))
+            this.nextMoveTime = now + SERVER_TICK_MS + SPEED_FACTOR / newSpeed
             return true
         }
 
         return false
+    }
+
+    /** The unit has arrived: its next journey starts with a full wait on the tile it is on */
+    stopWaiting() {
+        this.nextMoveTime = 0
+    }
+
+    /**
+     * How long until this unit takes its next step, so a client can glide it there and arrive as it
+     * lands: the first tick strictly after the wait is up. Undefined when no wait is running, or the
+     * ground holds it for good.
+     */
+    msUntilNextStep(now: number = Date.now()): number | undefined {
+        if (!this.nextMoveTime || !Number.isFinite(this.nextMoveTime)) {
+            return undefined
+        }
+        return (Math.floor(Math.max(0, this.nextMoveTime - now) / SERVER_TICK_MS) + 1) * SERVER_TICK_MS
     }
 
     copyFrom(position: Position) {

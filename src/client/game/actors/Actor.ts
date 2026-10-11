@@ -10,6 +10,8 @@ import {
     TRIM_PAD,
     trimTextureKey,
 } from './counterTextures'
+import { glidePlan } from '../utils/glidePlan'
+import { distanceBetween, Point } from '../utils/pinchZoom'
 
 /** Stack size thresholds: a scout, a working force, an army worth fearing */
 const SIZE_STEPS = [
@@ -21,7 +23,6 @@ const SIZE_STEPS = [
 const RIM = 0xffffff
 const HURT = 0xff5252
 
-const TWEEN_MS = 90
 const HURT_MS = 400
 const LIFT_SCALE = 1.1
 const LIFT_Y = -3
@@ -96,7 +97,7 @@ export class Actor extends Phaser.GameObjects.Container {
             }
             this.targetX = refUnit.p.x
             this.targetY = refUnit.p.y
-            this.startMovementTween()
+            this.startMovementTween(refUnit.n, refUnit.w)
         }
     }
 
@@ -233,25 +234,45 @@ export class Actor extends Phaser.GameObjects.Container {
     }
 
     /**
-     * Tween toward the latest known server position, slightly faster than the server tick so the
-     * piece stays in sync with server-side events (fights, town captures).
+     * Glide toward where the stack is heading, timed to land as the server step does, so a march
+     * reads as one steady motion and arrives on a town as it is captured. Every report restarts the
+     * glide from wherever the piece is, so it never pauses between tiles.
      */
-    private startMovementTween() {
-        if (!this.scene || !this.active || this.moveTween) {
+    private startMovementTween(nextStep?: Point, msToNextStep?: number) {
+        if (!this.scene || !this.active || this.targetX === null || this.targetY === null) {
             return
         }
-        if (this.targetX === null || this.targetY === null || (this.targetX === this.x && this.targetY === this.y)) {
+        this.moveTween?.stop()
+        this.moveTween = null
+        const plan = glidePlan(this, { x: this.targetX, y: this.targetY }, nextStep, msToNextStep)
+        if (plan.snapTo) {
+            this.setPosition(plan.snapTo.x, plan.snapTo.y)
+        }
+        this.glideAlong(plan.via ? [plan.via, plan.to] : [plan.to], plan.ms)
+    }
+
+    /** Glide through each point in turn, sharing the time out by distance so the pace stays even */
+    private glideAlong(points: Point[], ms: number) {
+        const [point, ...rest] = points
+        if (!point) {
+            return
+        }
+        const legs = points.map((p, i) => distanceBetween(i ? points[i - 1] : this, p))
+        const total = legs.reduce((sum, leg) => sum + leg, 0)
+        const legMs = total ? (ms * legs[0]) / total : 0
+        if (!legs[0]) {
+            this.glideAlong(rest, ms - legMs)
             return
         }
         this.moveTween = this.scene.tweens.add({
             targets: this,
-            x: { from: this.x, to: this.targetX },
-            y: { from: this.y, to: this.targetY },
+            x: { from: this.x, to: point.x },
+            y: { from: this.y, to: point.y },
             ease: 'Linear',
-            duration: TWEEN_MS,
+            duration: legMs,
             onComplete: () => {
                 this.moveTween = null
-                this.startMovementTween() // the target may have moved again meanwhile
+                this.glideAlong(rest, ms - legMs)
             },
         })
     }

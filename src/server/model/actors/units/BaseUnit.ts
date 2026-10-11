@@ -73,18 +73,21 @@ export abstract class BaseUnit extends Actor {
     }
 
     update(map: GameMap): boolean {
-        if (this.forceUpdate) {
-            this.forceUpdate = false
-            return true
-        }
+        // A forced report still runs the unit's moves this tick: skipping them would make a due step
+        // land a tick later than the time its piece was told to arrive
+        const forced = this.forceUpdate
+        this.forceUpdate = false
         if (this.actions.length === 0) {
-            return false
+            return forced
         }
         if (this.postponedAction) {
             this.postponedAction = false
-            return false
+            return forced
         }
         let unitMoved = false
+        // A unit setting off is reported at once, with where it is heading, so its piece starts
+        // gliding now rather than one whole step later
+        let setOff = false
 
         const nextActions = []
         for (const action of this.actions) {
@@ -93,6 +96,7 @@ export abstract class BaseUnit extends Actor {
                     if (!action.path) {
                         action.calculatePath(this.position, map)
                         action.moveToNextPoint()
+                        setOff = true
                     }
 
                     const nextPoint = action.getNextPoint()
@@ -101,6 +105,9 @@ export abstract class BaseUnit extends Actor {
                         if (moved) {
                             action.moveToNextPoint()
                             unitMoved = true
+                            if (!action.hasNextPoint()) {
+                                this.position.stopWaiting()
+                            }
                         }
                         nextActions.push(action)
                     } else {
@@ -113,15 +120,28 @@ export abstract class BaseUnit extends Actor {
             }
         }
         this.actions = nextActions
-        return unitMoved
+        return unitMoved || setOff || forced
+    }
+
+    /** The waypoint this unit steps onto next, while it is still on its way */
+    private nextStep(): number[] | null {
+        const move = this.actions.find((action) => action.type === UnitActionType.Move && action.hasNextPoint())
+        return move?.getNextPoint() ?? null
     }
 
     getPublicState(): UnitState {
-        return {
+        const state: UnitState = {
             id: this.id,
             hp: this.life.getHP(),
             p: this.position.get(),
             c: this.owner.colorHex,
         }
+        const next = this.nextStep()
+        const msToNext = next ? this.position.msUntilNextStep() : undefined
+        if (next && msToNext !== undefined) {
+            state.n = { x: next[0], y: next[1] }
+            state.w = msToNext
+        }
+        return state
     }
 }
